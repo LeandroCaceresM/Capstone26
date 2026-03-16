@@ -4,6 +4,6 @@ Yo tambor
 
 
 ## Colaboradores
-- Leandro Caceres
-- Edinson Delgado 
+- Leandro Caceres Mayorrica
+- Edinson Delgado Reinoso
 
