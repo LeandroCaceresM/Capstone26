@@ -1,0 +1,24 @@
+{
+    "nombre": "Edinson Gonzale",
+    "vida": 28,
+    "vida_max": 30,
+    "ataque": 10,
+    "magia": 3,
+    "defensa_fisica": 3,
+    "defensa_magica": 3,
+    "agilidad": 5,
+    "velocidad": 5,
+    "nivel": 1,
+    "exp": 8,
+    "arma": null,
+    "armadura": null,
+    "companeros": [],
+    "inventario": {
+        "utiles": [
+            "Tortilla de rescoldo"
+        ],
+        "armaduras": [
+            "Casco de minero"
+        ]
+    }
+}
