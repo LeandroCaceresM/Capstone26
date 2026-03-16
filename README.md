@@ -1,4 +1,9 @@
 # Capstone26
 Ahora si me mando un  balazo
 Yo tambor
-## asdadas
+
+
+## Colaboradores
+- Leandro Caceres
+- Edinson Delgado 
+
