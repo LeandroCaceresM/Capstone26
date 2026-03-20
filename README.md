@@ -1,6 +1,5 @@
-# Capstone26
-Ahora si me mando un  balazo
-Yo tambor
+# Capstone2026
+El inicio de todo
 
 
 ## Colaboradores
