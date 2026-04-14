@@ -1,5 +1,5 @@
-# Capstone2026
-El inicio de todo
+# 🎓 CAPSTONE_PROJECT
+Proyecto de Titulación Duoc UC 2026
 
 
 ## Colaboradores
