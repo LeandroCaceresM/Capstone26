@@ -1,4 +1,4 @@
-# 🎓 CAPSTONE_PROJECT
+# 🎓 PROYECTO CAPSTONE
 Proyecto de Titulación Duoc UC 2026
 
 
