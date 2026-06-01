@@ -77,26 +77,30 @@ from django.shortcuts import render, get_object_or_404
 from .models import Vecino
 
 #View para mostrar la región de un vecino, eliminar luego.
-def ver_region_vecino(request, id_vecino):
+from django.shortcuts import render
+from .models import Region, Vecino
 
-    vecino = get_object_or_404(
-        Vecino.objects.select_related(
+def vecinos_por_region(request):
+    regiones = Region.objects.all().order_by('nom_region')
+
+    vecinos = None
+    region_seleccionada = None
+
+    region_id = request.GET.get('region')
+
+    if region_id:
+        vecinos = Vecino.objects.select_related(
             'juntavecinos_id_junta__sector_id_sector__comuna_id_comuna__region_id_region'
-        ),
-        id_vecino=id_vecino
-    )
+        ).filter(
+            juntavecinos_id_junta__sector_id_sector__comuna_id_comuna__region_id_region__id_region=region_id
+        )
 
-    region = (
-        vecino
-        .juntavecinos_id_junta
-        .sector_id_sector
-        .comuna_id_comuna
-        .region_id_region
-    )
+        region_seleccionada = Region.objects.get(id_region=region_id)
 
     context = {
-        'vecino': vecino,
-        'region': region
+        'regiones': regiones,
+        'vecinos': vecinos,
+        'region_seleccionada': region_seleccionada
     }
 
-    return render(request, 'ver_region.html', context)
+    return render(request, 'debug/vecinos_por_region.html', context)

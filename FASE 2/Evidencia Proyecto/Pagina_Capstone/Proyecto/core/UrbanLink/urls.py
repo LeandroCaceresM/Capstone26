@@ -26,4 +26,8 @@ urlpatterns = [
     #Vista para debug, eliminar luego.
     path('debug/prueba-vecino/', views.prueba_vecino, name='prueba_vecino'),
     path('debug/crear-junta/', views.crear_junta, name='crear_junta'),
-]
+    path(
+        'debug/vecinos-region/',
+        views.vecinos_por_region,
+        name='vecinos_por_region')
+    ]
