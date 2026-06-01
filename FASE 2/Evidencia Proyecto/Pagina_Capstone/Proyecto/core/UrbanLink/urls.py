@@ -19,6 +19,11 @@ from django.urls import include, path
 from app import views
 
 urlpatterns = [
+    #Vista para admin.
     path("admin/", admin.site.urls),
-    path('', views.tulon),
+    #Vistas para usuarios.
+    path('', views.tutin),
+    #Vista para debug, eliminar luego.
+    path('debug/prueba-vecino/', views.prueba_vecino, name='prueba_vecino'),
+    path('debug/crear-junta/', views.crear_junta, name='crear_junta'),
 ]

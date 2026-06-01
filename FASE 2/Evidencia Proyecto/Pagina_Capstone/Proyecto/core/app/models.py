@@ -7,7 +7,6 @@
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 
-
 class Cargo(models.Model):
     id_cargo = models.UUIDField(primary_key=True)
     nombre_cargo = models.CharField(max_length=50)

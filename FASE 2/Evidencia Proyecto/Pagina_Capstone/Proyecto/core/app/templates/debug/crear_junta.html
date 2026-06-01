@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Junta de Vecinos</title>
+
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 30px auto;
+        }
+
+        form{
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        input, select{
+            padding: 10px;
+        }
+
+        button{
+            padding: 10px;
+            background-color: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover{
+            background-color: darkgreen;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Crear Junta de Vecinos</h1>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Nombre de la Junta</label>
+    <input type="text"
+           name="nombre"
+           maxlength="150"
+           required>
+
+    <label>Dirección</label>
+    <input type="text"
+           name="direccion"
+           maxlength="300">
+
+    <label>Sector</label>
+    <select name="sector" required>
+        <option value="">Seleccione un sector</option>
+
+        {% for sector in sectores %}
+            <option value="{{ sector.id_sector }}">
+                {{ sector.nom_sector }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">
+        Guardar Junta
+    </button>
+
+</form>
+
+</body>
+</html>

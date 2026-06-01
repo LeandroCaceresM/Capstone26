@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Prueba Supabase</title>
+
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 30px auto;
+        }
+
+        form{
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        input, select{
+            padding: 8px;
+        }
+
+        button{
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        button:hover{
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Prueba inserción Vecino</h1>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <input type="text" name="rut" placeholder="RUT" required>
+
+    <input type="text" name="pri_nombre" placeholder="Primer Nombre" required>
+
+    <input type="text" name="seg_nombre" placeholder="Segundo Nombre">
+
+    <input type="text" name="apell_paterno" placeholder="Apellido Paterno" required>
+
+    <input type="text" name="apell_materno" placeholder="Apellido Materno" required>
+
+    <input type="email" name="correo" placeholder="Correo" required>
+
+    <input type="text" name="telefono" placeholder="Teléfono" required>
+
+    <input type="text" name="direccion" placeholder="Dirección" required>
+
+    <label>Junta de vecinos</label>
+    <select name="junta" required>
+        {% for junta in juntas %}
+            <option value="{{ junta.id_junta }}">
+                {{ junta.nombre }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Rol</label>
+    <select name="rol" required>
+        {% for rol in roles %}
+            <option value="{{ rol.id_rol }}">
+                {{ rol.nombre_rol }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Cargo</label>
+    <select name="cargo">
+        {% for cargo in cargos %}
+            <option value="{{ cargo.id_cargo }}">
+                {{ cargo.nombre_cargo }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">
+        Guardar en Supabase
+    </button>
+
+</form>
+
+</body>
+</html>
