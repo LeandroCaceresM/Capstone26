@@ -17,57 +17,94 @@ class Cargo(models.Model):
         db_table = 'cargo'
 
 
-class Certificado(models.Model):
+class CertificadoDeResidencia(models.Model):
     id_certificado = models.UUIDField(primary_key=True)
     fecha_emision = models.DateTimeField()
-    vecino_id_vecino = models.ForeignKey('Vecino', models.DO_NOTHING, db_column='vecino_id_vecino')
-    vecino_id_vecino2 = models.ForeignKey('Vecino', models.DO_NOTHING, db_column='vecino_id_vecino2', related_name='certificado_vecino_id_vecino2_set', blank=True, null=True)
+    id_vecino = models.ForeignKey('Vecino', models.DO_NOTHING, db_column='id_vecino')
+    id_vecino2 = models.ForeignKey('Vecino', models.DO_NOTHING, db_column='id_vecino2', related_name='certificadoderesidencia_id_vecino2_set')
 
     class Meta:
         managed = False
-        db_table = 'certificado'
+        db_table = 'certificado_de_residencia'
 
 
 class Comuna(models.Model):
     id_comuna = models.UUIDField(primary_key=True)
     nom_comuna = models.CharField(max_length=100)
-    region_id_region = models.ForeignKey('Region', models.DO_NOTHING, db_column='region_id_region')
+    id_region = models.ForeignKey('Region', models.DO_NOTHING, db_column='id_region')
 
     class Meta:
         managed = False
         db_table = 'comuna'
 
 
+class Directiva(models.Model):
+    id_directiva = models.UUIDField(primary_key=True)
+    fecha_inicio_direct = models.DateField()
+    fecha_fin_direct = models.DateField()
+    id_junta = models.ForeignKey('Juntavecinos', models.DO_NOTHING, db_column='id_junta')
+
+    class Meta:
+        managed = False
+        db_table = 'directiva'
+
+
 class EstadoSolicitud(models.Model):
     id_est = models.UUIDField(primary_key=True)
-    nomb_est_sol = models.CharField(unique=True, max_length=50)
+    nomb_est_sol = models.CharField(max_length=50)
 
     class Meta:
         managed = False
         db_table = 'estado_solicitud'
 
 
+class HistCargo(models.Model):
+    pk = models.CompositePrimaryKey('id_vecino', 'id_cargo')
+    fecha_cargo_tentativa = models.DateField()
+    fecha_cargo_fin = models.DateField()
+    fecha_cargo_fin_real = models.DateField(blank=True, null=True)
+    id_vecino = models.ForeignKey('Vecino', models.DO_NOTHING, db_column='id_vecino')
+    id_cargo = models.ForeignKey(Cargo, models.DO_NOTHING, db_column='id_cargo')
+    id_directiva = models.ForeignKey(Directiva, models.DO_NOTHING, db_column='id_directiva')
+
+    class Meta:
+        managed = False
+        db_table = 'hist_cargo'
+
+
 class HistEstSol(models.Model):
-    id_historial = models.UUIDField(primary_key=True)
+    pk = models.CompositePrimaryKey('id_solicitud', 'id_est')
     fecha_cb_estado = models.DateTimeField()
-    solicitud_id_solicitud = models.ForeignKey('Solicitud', models.DO_NOTHING, db_column='solicitud_id_solicitud')
-    estado_solicitud_id_est = models.ForeignKey(EstadoSolicitud, models.DO_NOTHING, db_column='estado_solicitud_id_est')
+    id_solicitud = models.ForeignKey('Solicitud', models.DO_NOTHING, db_column='id_solicitud')
+    id_est = models.ForeignKey(EstadoSolicitud, models.DO_NOTHING, db_column='id_est')
 
     class Meta:
         managed = False
         db_table = 'hist_est_sol'
 
 
-class JuntaVecinos(models.Model):
-    id_junta = models.UUIDField(primary_key=True)
-    nombre = models.CharField(max_length=150)
-    direccion = models.CharField(max_length=300, blank=True, null=True)
-    fecha_creacion = models.DateTimeField()
-    sector_id_sector = models.ForeignKey('Sector', models.DO_NOTHING, db_column='sector_id_sector')
+class HistVivienda(models.Model):
+    pk = models.CompositePrimaryKey('fecha_ini', 'id_vivienda', 'id_vecino')
+    fecha_ini = models.DateField()
+    fecha_ter = models.DateField(blank=True, null=True)
+    id_vivienda = models.ForeignKey('Vivienda', models.DO_NOTHING, db_column='id_vivienda')
+    id_vecino = models.ForeignKey('Vecino', models.DO_NOTHING, db_column='id_vecino')
 
     class Meta:
         managed = False
-        db_table = 'junta_vecinos'
+        db_table = 'hist_vivienda'
+
+
+class Juntavecinos(models.Model):
+    id_junta = models.UUIDField(primary_key=True)
+    nombre = models.CharField(max_length=150)
+    direccion = models.CharField(max_length=300)
+    fecha_creacion = models.DateTimeField()
+    id_sector = models.ForeignKey('Sector', models.DO_NOTHING, db_column='id_sector')
+
+    class Meta:
+        managed = False
+        db_table = 'juntavecinos'
 
 
 class Region(models.Model):
@@ -82,7 +119,7 @@ class Region(models.Model):
 class Rol(models.Model):
     id_rol = models.UUIDField(primary_key=True)
     nombre_rol = models.CharField(max_length=50)
-    descripcion = models.CharField(max_length=200, blank=True, null=True)
+    descripcion = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -92,7 +129,7 @@ class Rol(models.Model):
 class Sector(models.Model):
     id_sector = models.UUIDField(primary_key=True)
     nom_sector = models.CharField(max_length=100)
-    comuna_id_comuna = models.ForeignKey(Comuna, models.DO_NOTHING, db_column='comuna_id_comuna')
+    id_comuna = models.ForeignKey(Comuna, models.DO_NOTHING, db_column='id_comuna')
 
     class Meta:
         managed = False
@@ -102,41 +139,73 @@ class Sector(models.Model):
 class Solicitud(models.Model):
     id_solicitud = models.UUIDField(primary_key=True)
     fecha_solicitud = models.DateTimeField()
+    estado = models.CharField(max_length=50)
     comentario = models.CharField(max_length=500, blank=True, null=True)
-    vecino_id_vecino = models.ForeignKey('Vecino', models.DO_NOTHING, db_column='vecino_id_vecino')
-    tiposolicitud_id_tsolicitud = models.ForeignKey('TipoSolicitud', models.DO_NOTHING, db_column='tiposolicitud_id_tsolicitud')
-    estado_actual = models.ForeignKey(EstadoSolicitud, models.DO_NOTHING)
+    id_vecino = models.ForeignKey('Vecino', models.DO_NOTHING, db_column='id_vecino')
+    id_tsolicitud = models.ForeignKey('Tiposolicitud', models.DO_NOTHING, db_column='id_tsolicitud')
 
     class Meta:
         managed = False
         db_table = 'solicitud'
 
 
-class TipoSolicitud(models.Model):
-    id_tsolicitud = models.UUIDField(primary_key=True)
-    tipo_solicitud = models.CharField(unique=True, max_length=50)
+class TipoDiscapacidad(models.Model):
+    id_tipo_discap = models.UUIDField(primary_key=True)
+    nom_tipo_discap = models.CharField(max_length=50)
 
     class Meta:
         managed = False
-        db_table = 'tipo_solicitud'
+        db_table = 'tipo_discapacidad'
+
+
+class Tiposolicitud(models.Model):
+    id_tsolicitud = models.UUIDField(primary_key=True)
+    tipo_solicitud = models.CharField(max_length=50)
+
+    class Meta:
+        managed = False
+        db_table = 'tiposolicitud'
 
 
 class Vecino(models.Model):
     id_vecino = models.UUIDField(primary_key=True)
-    rut = models.CharField(unique=True, max_length=12)
+    rut = models.BigIntegerField()
     pri_nombre = models.CharField(max_length=50)
     seg_nombre = models.CharField(max_length=50, blank=True, null=True)
     apell_paterno = models.CharField(max_length=50)
     apell_materno = models.CharField(max_length=50)
-    correo = models.CharField(unique=True, max_length=60)
-    telefono = models.CharField(max_length=20)
-    direccion = models.CharField(max_length=300)
+    correo = models.CharField(max_length=60, blank=True, null=True)
+    telefono = models.BigIntegerField()
+    fecha_de_nacimiento = models.DateField()
+    vigencia = models.CharField(max_length=1)
     fecha_registro = models.DateTimeField()
-    juntavecinos_id_junta = models.ForeignKey(JuntaVecinos, models.DO_NOTHING, db_column='juntavecinos_id_junta')
-    cargo_id_cargo = models.ForeignKey(Cargo, models.DO_NOTHING, db_column='cargo_id_cargo', blank=True, null=True)
-    rol_id_rol = models.ForeignKey(Rol, models.DO_NOTHING, db_column='rol_id_rol')
-    vigencia = models.BooleanField(db_comment='vigencia del besino xd')
+    id_rol = models.ForeignKey(Rol, models.DO_NOTHING, db_column='id_rol')
 
     class Meta:
         managed = False
         db_table = 'vecino'
+
+
+class VecinoDiscap(models.Model):
+    pk = models.CompositePrimaryKey('id_tipo_discap', 'id_vecino')
+    fecha_registro_discap = models.DateField()
+    id_tipo_discap = models.ForeignKey(TipoDiscapacidad, models.DO_NOTHING, db_column='id_tipo_discap')
+    id_vecino = models.ForeignKey(Vecino, models.DO_NOTHING, db_column='id_vecino')
+
+    class Meta:
+        managed = False
+        db_table = 'vecino_discap'
+
+
+class Vivienda(models.Model):
+    id_vivienda = models.UUIDField(primary_key=True)
+    tipo_vivienda = models.CharField(max_length=1)
+    nombre_calle = models.CharField(max_length=150)
+    numero_calle = models.IntegerField()
+    num_block = models.IntegerField(blank=True, null=True)
+    num_dpto = models.IntegerField(blank=True, null=True)
+    id_junta = models.ForeignKey(Juntavecinos, models.DO_NOTHING, db_column='id_junta')
+
+    class Meta:
+        managed = False
+        db_table = 'vivienda'
