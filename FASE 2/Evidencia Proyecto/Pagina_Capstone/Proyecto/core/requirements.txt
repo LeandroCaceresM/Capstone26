@@ -1,2 +1,2 @@
-#Instalar psicopata3
+#Instalar psycopg2
 pip install psycopg2-binary
