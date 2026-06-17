@@ -1,2 +1,5 @@
+#Instalar Django
+py -m pip install Django==6.0.6
+
 #Instalar psycopg2
-pip install psycopg2-binary
+py -m pip install psycopg2-binary

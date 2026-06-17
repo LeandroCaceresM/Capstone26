@@ -42,21 +42,13 @@
     {% csrf_token %}
 
     <input type="text" name="rut" placeholder="RUT" required>
-
     <input type="text" name="pri_nombre" placeholder="Primer Nombre" required>
-
     <input type="text" name="seg_nombre" placeholder="Segundo Nombre">
-
     <input type="text" name="apell_paterno" placeholder="Apellido Paterno" required>
-
     <input type="text" name="apell_materno" placeholder="Apellido Materno" required>
-
     <input type="email" name="correo" placeholder="Correo" required>
-
     <input type="text" name="telefono" placeholder="Teléfono" required>
-
     <input type="text" name="direccion" placeholder="Dirección" required>
-
     <label>Junta de vecinos</label>
     <select name="junta" required>
         {% for junta in juntas %}
