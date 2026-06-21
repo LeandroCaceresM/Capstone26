@@ -9,9 +9,6 @@ from .supabase_client import supabase
 
 
 # Views para usuarios
-def tutin(request):
-    return render(request, 'debug/tutin.html')
-
 def registro_view(request):
     if request.method == "POST":
         correo = request.POST.get("correo")
@@ -119,12 +116,6 @@ def logout_view(request):
     messages.success(request, "Sesión cerrada correctamente.")
     return redirect("login")
 
-
-def home_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
-
-    return render(request, "home.html")
 
 def panel_vecino_view(request):
     if not request.session.get("vecino_id"):
