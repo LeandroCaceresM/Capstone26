@@ -88,7 +88,6 @@ def login_view(request):
             request.session["nombre"] = vecino.pri_nombre
             request.session["rol"] = vecino.id_rol.nombre_rol
 
-            messages.success(request, f"Bienvenido, {vecino.pri_nombre}.")
             return redirect("home")
 
         except Vecino.DoesNotExist:

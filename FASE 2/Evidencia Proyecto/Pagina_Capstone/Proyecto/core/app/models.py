@@ -32,7 +32,7 @@ class Comuna(models.Model):
         managed = False
         db_table = 'comuna'
 
-#Directiva que correspondia a x junta en x fecha
+#Directiva que correspondia a x junta durante x fecha
 class Directiva(models.Model):
     id_directiva = models.UUIDField(primary_key=True)
     fecha_inicio_direct = models.DateField()
@@ -52,7 +52,7 @@ class EstadoSolicitud(models.Model):
         managed = False
         db_table = 'estado_solicitud'
 
-#
+#Historia de cargo de un vecino por ej: o sea si fue presidente de junta en algun momento pero ya no 
 class HistCargo(models.Model):
     pk = models.CompositePrimaryKey('id_vecino', 'id_cargo')
     fecha_cargo_tentativa = models.DateField()
@@ -66,7 +66,7 @@ class HistCargo(models.Model):
         managed = False
         db_table = 'hist_cargo'
 
-
+#Historial de estado solicitud, por ej: se subio el 2 (En proceso) y se aprobó el 17 (Aprobada)
 class HistEstSol(models.Model):
     pk = models.CompositePrimaryKey('id_solicitud', 'id_est')
     fecha_cb_estado = models.DateTimeField()
@@ -77,7 +77,7 @@ class HistEstSol(models.Model):
         managed = False
         db_table = 'hist_est_sol'
 
-
+#Para saber si un vecino sigue viviendo ahi o si es arrendatario, o en caso de que un vecino se transladó a otra parte
 class HistVivienda(models.Model):
     pk = models.CompositePrimaryKey('fecha_ini', 'id_vivienda', 'id_vecino')
     fecha_ini = models.DateField()
@@ -89,7 +89,7 @@ class HistVivienda(models.Model):
         managed = False
         db_table = 'hist_vivienda'
 
-
+#La junta de vecinos en si
 class Juntavecinos(models.Model):
     id_junta = models.UUIDField(primary_key=True)
     nombre = models.CharField(max_length=150)
@@ -101,7 +101,7 @@ class Juntavecinos(models.Model):
         managed = False
         db_table = 'juntavecinos'
 
-
+#Regiones de Chile
 class Region(models.Model):
     id_region = models.UUIDField(primary_key=True)
     nom_region = models.CharField(max_length=100)
@@ -110,7 +110,7 @@ class Region(models.Model):
         managed = False
         db_table = 'region'
 
-
+#Rol de un vecino en el sf (Usuario, Admin, SuperAdmin)
 class Rol(models.Model):
     id_rol = models.UUIDField(primary_key=True)
     nombre_rol = models.CharField(max_length=50)
@@ -120,7 +120,7 @@ class Rol(models.Model):
         managed = False
         db_table = 'rol'
 
-
+#Sector que pertenece a una comuna, por ejemplo (Region: Biobio, Comuna: San Pedro, Sector: Michaihue)
 class Sector(models.Model):
     id_sector = models.UUIDField(primary_key=True)
     nom_sector = models.CharField(max_length=100)
@@ -130,7 +130,7 @@ class Sector(models.Model):
         managed = False
         db_table = 'sector'
 
-
+#Solicitudes que pueden hacer los vecinos
 class Solicitud(models.Model):
     id_solicitud = models.UUIDField(primary_key=True)
     fecha_solicitud = models.DateTimeField()
@@ -143,7 +143,7 @@ class Solicitud(models.Model):
         managed = False
         db_table = 'solicitud'
 
-
+#Tipo de discapacidad que puede tener un vecino (Adulto Mayor, ElectroDependiente y Movilidad Reducida) puede tener los 3
 class TipoDiscapacidad(models.Model):
     id_tipo_discap = models.UUIDField(primary_key=True)
     nom_tipo_discap = models.CharField(max_length=50)
@@ -152,7 +152,7 @@ class TipoDiscapacidad(models.Model):
         managed = False
         db_table = 'tipo_discapacidad'
 
-
+#Tipo de solicitud ya sea Reserva de espacios, Autorizacion, Reporte, Ayuda, Postulacion, Registro, Reclamo
 class Tiposolicitud(models.Model):
     id_tsolicitud = models.UUIDField(primary_key=True)
     tipo_solicitud = models.CharField(max_length=50)
@@ -161,7 +161,7 @@ class Tiposolicitud(models.Model):
         managed = False
         db_table = 'tiposolicitud'
 
-
+#El vecino en si
 class Vecino(models.Model):
     id_vecino = models.UUIDField(primary_key=True)
     supabase_uid = models.UUIDField(unique=True, blank=True, null=True)    
@@ -193,7 +193,7 @@ class VecinoDiscap(models.Model):
         managed = False
         db_table = 'vecino_discap'
 
-
+#Domicilio que corresponde a un vecino, en caso de que viva en dpto entonces tambien se le solicita numero de block y dpto
 class Vivienda(models.Model):
     id_vivienda = models.UUIDField(primary_key=True)
     tipo_vivienda = models.CharField(max_length=1)
