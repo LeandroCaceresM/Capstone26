@@ -1,11 +1,13 @@
-_<h1>Panel SuperAdmin</h1>
+<h1>Panel SuperAdmin</h1>
 
 <p>Bienvenido, {{ request.session.nombre }}</p>
 
+<p>Total juntas: {{ total_juntas }}</p>
+<p>Total vecinos: {{ total_vecinos }}</p>
+
 <ul>
-    <li>Crear juntas de vecinos</li>
-    <li>Asignar cargos a vecinos</li>
-    <li>Gestionar administradores</li>
+    <li><a href="{% url 'listar_juntas' %}">Gestionar juntas de vecinos</a></li>
+    <li><a href="{% url 'asignar_cargo' %}">Asignar cargo a vecino</a></li>
 </ul>
 
 <a href="{% url 'logout' %}">Cerrar sesión</a>

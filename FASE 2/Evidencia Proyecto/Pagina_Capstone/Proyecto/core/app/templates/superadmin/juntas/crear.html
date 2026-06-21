@@ -1,0 +1,27 @@
+<h1>Crear Nueva Junta</h1>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Nombre de la junta</label><br>
+    <input type="text" name="nombre" required><br><br>
+
+    <label>Dirección</label><br>
+    <input type="text" name="direccion" required><br><br>
+
+    <label>Sector</label><br>
+    <select name="id_sector" required>
+        <option value="">Seleccione un sector</option>
+        {% for sector in sectores %}
+            <option value="{{ sector.id_sector }}">
+                {{ sector.nom_sector }}
+            </option>
+        {% endfor %}
+    </select><br><br>
+
+    <button type="submit">Guardar Junta</button>
+</form>
+
+<br>
+
+<a href="{% url 'listar_juntas' %}">Volver</a>

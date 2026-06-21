@@ -1,11 +1,15 @@
 import uuid
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 
-from .models import Vecino, Rol
+from .models import (
+    Juntavecinos, Sector, Vecino, Cargo,
+    Directiva, HistCargo, Rol
+)
 from .supabase_client import supabase
+
 
 # Views para usuarios
 def tutin(request):
@@ -146,7 +150,7 @@ def panel_presidente_view(request):
 
     return render(request, "panel_presidente.html")
 
-
+#Views del SUPERADIN
 def panel_superadmin_view(request):
     if not request.session.get("vecino_id"):
         return redirect("login")
@@ -156,3 +160,148 @@ def panel_superadmin_view(request):
         return redirect("login")
 
     return render(request, "panel_superadmin.html")
+
+
+def es_superadmin(request):
+    return request.session.get("rol") == "Superadmin"
+
+
+def panel_superadmin_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    if not es_superadmin(request):
+        messages.error(request, "No tienes permiso para entrar al panel Superadmin.")
+        return redirect("login")
+
+    total_juntas = Juntavecinos.objects.count()
+    total_vecinos = Vecino.objects.count()
+
+    return render(request, "panel_superadmin.html", {
+        "total_juntas": total_juntas,
+        "total_vecinos": total_vecinos,
+    })
+
+
+def listar_juntas_view(request):
+    if not es_superadmin(request):
+        return redirect("login")
+
+    juntas = Juntavecinos.objects.all()
+
+    return render(request, "superadmin/juntas/listar.html", {
+        "juntas": juntas
+    })
+
+
+def crear_junta_view(request):
+    if not es_superadmin(request):
+        return redirect("login")
+
+    sectores = Sector.objects.all()
+
+    if request.method == "POST":
+        nombre = request.POST.get("nombre")
+        direccion = request.POST.get("direccion")
+        id_sector = request.POST.get("id_sector")
+
+        sector = get_object_or_404(Sector, id_sector=id_sector)
+
+        Juntavecinos.objects.create(
+            id_junta=uuid.uuid4(),
+            nombre=nombre,
+            direccion=direccion,
+            fecha_creacion=timezone.now(),
+            id_sector=sector
+        )
+
+        messages.success(request, "Junta creada correctamente.")
+        return redirect("listar_juntas")
+
+    return render(request, "superadmin/juntas/crear.html", {
+        "sectores": sectores
+    })
+
+
+def editar_junta_view(request, id_junta):
+    if not es_superadmin(request):
+        return redirect("login")
+
+    junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
+    sectores = Sector.objects.all()
+
+    if request.method == "POST":
+        junta.nombre = request.POST.get("nombre")
+        junta.direccion = request.POST.get("direccion")
+
+        id_sector = request.POST.get("id_sector")
+        junta.id_sector = get_object_or_404(Sector, id_sector=id_sector)
+
+        junta.save()
+
+        messages.success(request, "Junta actualizada correctamente.")
+        return redirect("listar_juntas")
+
+    return render(request, "superadmin/juntas/editar.html", {
+        "junta": junta,
+        "sectores": sectores
+    })
+
+
+def eliminar_junta_view(request, id_junta):
+    if not es_superadmin(request):
+        return redirect("login")
+
+    junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
+
+    if request.method == "POST":
+        junta.delete()
+        messages.success(request, "Junta eliminada correctamente.")
+        return redirect("listar_juntas")
+
+    return render(request, "superadmin/juntas/eliminar.html", {
+        "junta": junta
+    })
+
+
+def asignar_cargo_view(request):
+    if not es_superadmin(request):
+        return redirect("login")
+
+    vecinos = Vecino.objects.all()
+    cargos = Cargo.objects.all()
+    directivas = Directiva.objects.all()
+
+    if request.method == "POST":
+        id_vecino = request.POST.get("id_vecino")
+        id_cargo = request.POST.get("id_cargo")
+        id_directiva = request.POST.get("id_directiva")
+        fecha_inicio = request.POST.get("fecha_inicio")
+        fecha_fin = request.POST.get("fecha_fin")
+
+        vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
+        cargo = get_object_or_404(Cargo, id_cargo=id_cargo)
+        directiva = get_object_or_404(Directiva, id_directiva=id_directiva)
+
+        HistCargo.objects.create(
+            id_vecino=vecino,
+            id_cargo=cargo,
+            id_directiva=directiva,
+            fecha_cargo_tentativa=fecha_inicio,
+            fecha_cargo_fin=fecha_fin,
+            fecha_cargo_fin_real=None
+        )
+
+        if cargo.nombre_cargo.lower() == "presidente":
+            rol_admin = Rol.objects.get(nombre_rol="Admin")
+            vecino.id_rol = rol_admin
+            vecino.save()
+
+        messages.success(request, "Cargo asignado correctamente.")
+        return redirect("panel_superadmin")
+
+    return render(request, "superadmin/asignar_cargo.html", {
+        "vecinos": vecinos,
+        "cargos": cargos,
+        "directivas": directivas
+    })

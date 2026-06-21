@@ -1,0 +1,38 @@
+<h1>Gestionar Juntas de Vecinos</h1>
+
+<a href="{% url 'crear_junta' %}">
+    + Crear Nueva Junta
+</a>
+
+<br><br>
+
+{% if juntas %}
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Nombre</th>
+            <th>Dirección</th>
+            <th>Sector</th>
+            <th>Fecha creación</th>
+            <th>Acciones</th>
+        </tr>
+
+        {% for junta in juntas %}
+        <tr>
+            <td>{{ junta.nombre }}</td>
+            <td>{{ junta.direccion }}</td>
+            <td>{{ junta.id_sector.nom_sector }}</td>
+            <td>{{ junta.fecha_creacion }}</td>
+            <td>
+                <a href="{% url 'editar_junta' junta.id_junta %}">Editar</a> |
+                <a href="{% url 'eliminar_junta' junta.id_junta %}">Eliminar</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No existe ninguna junta aún.</p>
+{% endif %}
+
+<br>
+
+<a href="{% url 'panel_superadmin' %}">Volver al panel</a>

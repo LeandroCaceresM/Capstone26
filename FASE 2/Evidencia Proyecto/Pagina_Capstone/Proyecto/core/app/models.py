@@ -32,7 +32,7 @@ class Comuna(models.Model):
         managed = False
         db_table = 'comuna'
 
-#Directiva que correspondia a x junta durante x fecha
+#Directiva que corresponde a x junta durante x fecha
 class Directiva(models.Model):
     id_directiva = models.UUIDField(primary_key=True)
     fecha_inicio_direct = models.DateField()
