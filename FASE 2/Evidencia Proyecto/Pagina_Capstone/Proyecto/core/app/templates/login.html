@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión</title>
+</head>
+<body>
+
+    <h1>Iniciar Sesión</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label>Correo</label><br>
+        <input type="email" name="correo" required><br><br>
+
+        <label>Contraseña</label><br>
+        <input type="password" name="password" required><br><br>
+
+        <button type="submit">Ingresar</button>
+    </form>
+
+    <br>
+
+    <a href="{% url 'registro' %}">
+        Registrarse
+    </a>
+
+</body>
+</html>

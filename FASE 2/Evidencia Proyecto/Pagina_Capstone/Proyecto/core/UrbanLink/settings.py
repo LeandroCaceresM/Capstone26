@@ -84,6 +84,9 @@ DATABASES = {
     }
 }
 
+SUPABASE_URL = "https://linljyuykgncuvnrfagx.supabase.co"
+SUPABASE_ANON_KEY = "sb_publishable_IVBUZxPj2swgMEDRN5_v4g_--YMqkHM"
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

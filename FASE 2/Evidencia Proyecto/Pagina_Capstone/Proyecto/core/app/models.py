@@ -1,12 +1,6 @@
-# This is an auto-generated Django model module.
-# You'll have to do the following manually to clean this up:
-#   * Rearrange models' order
-#   * Make sure each model has one field with primary_key=True
-#   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
-# Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 
+#Cargo de un vecino en la junta: Presidente, Tesorero, Secretario, Vecino.
 class Cargo(models.Model):
     id_cargo = models.UUIDField(primary_key=True)
     nombre_cargo = models.CharField(max_length=50)
@@ -17,6 +11,7 @@ class Cargo(models.Model):
         db_table = 'cargo'
 
 
+#Certificado de residencia que vecinos pueden sacar, el presidente sube su "firma digital" y despues el vecino simplemente lo descarga
 class CertificadoDeResidencia(models.Model):
     id_certificado = models.UUIDField(primary_key=True)
     fecha_emision = models.DateTimeField()
@@ -27,7 +22,7 @@ class CertificadoDeResidencia(models.Model):
         managed = False
         db_table = 'certificado_de_residencia'
 
-
+#Comuna de una region
 class Comuna(models.Model):
     id_comuna = models.UUIDField(primary_key=True)
     nom_comuna = models.CharField(max_length=100)
@@ -37,7 +32,7 @@ class Comuna(models.Model):
         managed = False
         db_table = 'comuna'
 
-
+#Directiva que correspondia a x junta en x fecha
 class Directiva(models.Model):
     id_directiva = models.UUIDField(primary_key=True)
     fecha_inicio_direct = models.DateField()
@@ -48,7 +43,7 @@ class Directiva(models.Model):
         managed = False
         db_table = 'directiva'
 
-
+#Estado de proceso de una solicitud: Aprobada, Cancelada, En Proceso.
 class EstadoSolicitud(models.Model):
     id_est = models.UUIDField(primary_key=True)
     nomb_est_sol = models.CharField(max_length=50)
@@ -57,7 +52,7 @@ class EstadoSolicitud(models.Model):
         managed = False
         db_table = 'estado_solicitud'
 
-
+#
 class HistCargo(models.Model):
     pk = models.CompositePrimaryKey('id_vecino', 'id_cargo')
     fecha_cargo_tentativa = models.DateField()
@@ -169,6 +164,8 @@ class Tiposolicitud(models.Model):
 
 class Vecino(models.Model):
     id_vecino = models.UUIDField(primary_key=True)
+    supabase_uid = models.UUIDField(unique=True, blank=True, null=True)    
+
     rut = models.BigIntegerField()
     pri_nombre = models.CharField(max_length=50)
     seg_nombre = models.CharField(max_length=50, blank=True, null=True)

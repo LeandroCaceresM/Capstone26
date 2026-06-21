@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro</title>
+</head>
+<body>
+
+<h1>Registro de Vecino</h1>
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Rut</label><br>
+    <input type="number" name="rut" required><br><br>
+
+    <label>Primer Nombre</label><br>
+    <input type="text" name="pri_nombre" required><br><br>
+
+    <label>Segundo Nombre</label><br>
+    <input type="text" name="seg_nombre"><br><br>
+
+    <label>Apellido Paterno</label><br>
+    <input type="text" name="apell_paterno" required><br><br>
+
+    <label>Apellido Materno</label><br>
+    <input type="text" name="apell_materno" required><br><br>
+
+    <label>Correo</label><br>
+    <input type="email" name="correo" required><br><br>
+
+    <label>Teléfono</label><br>
+    <input type="number" name="telefono" required><br><br>
+
+    <label>Fecha de Nacimiento</label><br>
+    <input type="date" name="fecha_de_nacimiento" required><br><br>
+
+    <label>Contraseña</label><br>
+    <input type="password" name="password" required><br><br>
+
+    <button type="submit">
+        Registrarse
+    </button>
+
+</form>
+
+<br>
+
+<a href="{% url 'login' %}">
+    Volver al Login
+</a>
+
+</body>
+</html>

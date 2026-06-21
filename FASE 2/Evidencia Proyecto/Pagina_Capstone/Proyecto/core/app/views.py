@@ -1,81 +1,115 @@
-from django.shortcuts import render
-from django.utils import timezone
 import uuid
 
-from .models import Vecino, Juntavecinos, Rol, Cargo, Sector, Region
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.utils import timezone
 
+from .models import Vecino, Rol
+from .supabase_client import supabase
 
 # Views para usuarios
 def tutin(request):
     return render(request, 'debug/tutin.html')
 
+def registro_view(request):
+    if request.method == "POST":
+        correo = request.POST.get("correo")
+        password = request.POST.get("password")
 
-# Crear un vecino (ajustado al modelo nuevo)
-def prueba_vecino(request):
-    if request.method == 'POST':
-        Vecino.objects.create(
-            id_vecino=uuid.uuid4(),
-            rut=request.POST['rut'],
-            pri_nombre=request.POST['pri_nombre'],
-            seg_nombre=request.POST.get('seg_nombre'),
-            apell_paterno=request.POST['apell_paterno'],
-            apell_materno=request.POST['apell_materno'],
-            correo=request.POST.get('correo'),
-            telefono=request.POST['telefono'],
-            fecha_de_nacimiento=request.POST['fecha_de_nacimiento'],
-            vigencia=request.POST.get('vigencia', 'S'),
-            fecha_registro=timezone.now(),
-            id_rol=Rol.objects.get(id_rol=request.POST['rol']),
-        )
+        rut = request.POST.get("rut")
+        pri_nombre = request.POST.get("pri_nombre")
+        seg_nombre = request.POST.get("seg_nombre")
+        apell_paterno = request.POST.get("apell_paterno")
+        apell_materno = request.POST.get("apell_materno")
+        telefono = request.POST.get("telefono")
+        fecha_de_nacimiento = request.POST.get("fecha_de_nacimiento")
 
-        return render(request, 'debug/ok.html')
+        try:
+            auth_response = supabase.auth.sign_up({
+                "email": correo,
+                "password": password
+            })
 
-    context = {
-        'roles': Rol.objects.all(),
-    }
+            user = auth_response.user
 
-    return render(request, 'debug/prueba_vecino.html', context)
+            if not user:
+                messages.error(request, "No se pudo crear el usuario.")
+                return redirect("registro")
 
+            rol_vecino = Rol.objects.get(nombre_rol="Usuario")
 
-# Crear junta de vecinos (ajustado a Juntavecinos)
-def crear_junta(request):
-    if request.method == 'POST':
-        Juntavecinos.objects.create(
-            id_junta=uuid.uuid4(),
-            nombre=request.POST['nombre'],
-            direccion=request.POST['direccion'],
-            fecha_creacion=timezone.now(),
-            id_sector=Sector.objects.get(
-                id_sector=request.POST['sector']
+            Vecino.objects.create(
+                id_vecino=uuid.uuid4(),
+                supabase_uid=user.id,
+                rut=rut,
+                pri_nombre=pri_nombre,
+                seg_nombre=seg_nombre or None,
+                apell_paterno=apell_paterno,
+                apell_materno=apell_materno,
+                correo=correo,
+                telefono=telefono,
+                fecha_de_nacimiento=fecha_de_nacimiento,
+                vigencia="S",
+                fecha_registro=timezone.now(),
+                id_rol=rol_vecino
             )
-        )
 
-        return render(request, 'debug/junta_ok.html')
+            messages.success(request, "Registro exitoso. Ahora puedes iniciar sesión.")
+            return redirect("login")
 
-    return render(request, 'debug/crear_junta.html', {
-        'sectores': Sector.objects.all()
-    })
+        except Exception as e:
+            messages.error(request, f"Error al registrar: {e}")
+            return redirect("registro")
+
+    return render(request, "registro.html")
 
 
-# Vecinos filtrados por región (vía HistVivienda -> Vivienda -> Junta -> Sector -> Comuna -> Región)
-def vecinos_por_region(request):
-    regiones = Region.objects.all().order_by('nom_region')
+def login_view(request):
+    if request.method == "POST":
+        correo = request.POST.get("correo")
+        password = request.POST.get("password")
 
-    region_id = request.GET.get('region')
-    vecinos = None
-    region_seleccionada = None
+        try:
+            auth_response = supabase.auth.sign_in_with_password({
+                "email": correo,
+                "password": password
+            })
 
-    if region_id:
-        vecinos = Vecino.objects.filter(
-            histvivienda__id_vivienda__id_junta__id_sector__id_comuna__id_region__id_region=region_id
-        ).distinct()
+            user = auth_response.user
 
-        region_seleccionada = Region.objects.get(id_region=region_id)
+            if not user:
+                messages.error(request, "Correo o contraseña incorrectos.")
+                return redirect("login")
 
-    context = {
-        'regiones': regiones,
-        'vecinos': vecinos,
-        'region_seleccionada': region_seleccionada
-    }
+            vecino = Vecino.objects.get(supabase_uid=user.id)
 
-    return render(request, 'debug/vecinos_por_region.html', context)
+            request.session["supabase_uid"] = str(user.id)
+            request.session["vecino_id"] = str(vecino.id_vecino)
+            request.session["nombre"] = vecino.pri_nombre
+            request.session["rol"] = vecino.id_rol.nombre_rol
+
+            messages.success(request, f"Bienvenido, {vecino.pri_nombre}.")
+            return redirect("home")
+
+        except Vecino.DoesNotExist:
+            messages.error(request, "El usuario existe en Auth, pero no está registrado como vecino.")
+            return redirect("login")
+
+        except Exception as e:
+            messages.error(request, f"Error al iniciar sesión: {e}")
+            return redirect("login")
+
+    return render(request, "login.html")
+
+
+def logout_view(request):
+    request.session.flush()
+    messages.success(request, "Sesión cerrada correctamente.")
+    return redirect("login")
+
+
+def home_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    return render(request, "home.html")
