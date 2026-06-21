@@ -1,0 +1,51 @@
+<h1>Asignar vecino a {{ junta.nombre }}</h1>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Vecino</label><br>
+    <select name="id_vecino" required>
+        <option value="">Seleccione un vecino</option>
+        {% for vecino in vecinos %}
+            <option value="{{ vecino.id_vecino }}">
+                {{ vecino.pri_nombre }} {{ vecino.apell_paterno }} {{ vecino.apell_materno }} - {{ vecino.rut }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <br><br>
+
+    <label>Tipo vivienda</label><br>
+    <select name="tipo_vivienda" required>
+        <option value="C">Casa</option>
+        <option value="D">Departamento</option>
+    </select>
+
+    <br><br>
+
+    <label>Nombre calle</label><br>
+    <input type="text" name="nombre_calle" required>
+
+    <br><br>
+
+    <label>Número calle</label><br>
+    <input type="number" name="numero_calle" required>
+
+    <br><br>
+
+    <label>Número block</label><br>
+    <input type="number" name="num_block">
+
+    <br><br>
+
+    <label>Número departamento</label><br>
+    <input type="number" name="num_dpto">
+
+    <br><br>
+
+    <button type="submit">Asignar vecino</button>
+</form>
+
+<br>
+
+<a href="{% url 'vecinos_junta' junta.id_junta %}">Volver</a>

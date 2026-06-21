@@ -1,0 +1,50 @@
+<h1>Vecinos de la junta: {{ junta.nombre }}</h1>
+
+<a href="{% url 'asignar_vecino_junta' junta.id_junta %}">
+    + Asignar vecino a esta junta
+</a>
+
+<br><br>
+
+{% if vecinos_junta %}
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Nombre</th>
+            <th>RUT</th>
+            <th>Correo</th>
+            <th>Dirección</th>
+            <th>Fecha inicio</th>
+        </tr>
+
+        {% for registro in vecinos_junta %}
+        <tr>
+            <td>
+                {{ registro.id_vecino.pri_nombre }}
+                {{ registro.id_vecino.apell_paterno }}
+                {{ registro.id_vecino.apell_materno }}
+            </td>
+            <td>{{ registro.id_vecino.rut }}</td>
+            <td>{{ registro.id_vecino.correo }}</td>
+            <td>
+                {{ registro.id_vivienda.nombre_calle }}
+                {{ registro.id_vivienda.numero_calle }}
+
+                {% if registro.id_vivienda.num_block %}
+                    Block {{ registro.id_vivienda.num_block }}
+                {% endif %}
+
+                {% if registro.id_vivienda.num_dpto %}
+                    Dpto {{ registro.id_vivienda.num_dpto }}
+                {% endif %}
+            </td>
+            <td>{{ registro.fecha_ini }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>Esta junta está vacía actualmente. No tiene vecinos asignados.</p>
+{% endif %}
+
+<br>
+
+<a href="{% url 'listar_juntas' %}">Volver a juntas</a>

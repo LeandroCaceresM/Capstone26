@@ -4,10 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 
-from .models import (
-    Juntavecinos, Sector, Vecino, Cargo,
-    Directiva, HistCargo, Rol
-)
+from .models import *
 from .supabase_client import supabase
 
 
@@ -304,4 +301,64 @@ def asignar_cargo_view(request):
         "vecinos": vecinos,
         "cargos": cargos,
         "directivas": directivas
+    })
+    
+def vecinos_junta_view(request, id_junta):
+    if request.session.get("rol") != "Superadmin":
+        return redirect("login")
+
+    junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
+
+    vecinos_junta = HistVivienda.objects.filter(
+        id_vivienda__id_junta=junta,
+        fecha_ter__isnull=True
+    ).select_related("id_vecino", "id_vivienda")
+
+    return render(request, "superadmin/juntas/vecinos.html", {
+        "junta": junta,
+        "vecinos_junta": vecinos_junta
+    })
+
+
+def asignar_vecino_junta_view(request, id_junta):
+    if request.session.get("rol") != "Superadmin":
+        return redirect("login")
+
+    junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
+
+    vecinos = Vecino.objects.filter(vigencia="S")
+
+    if request.method == "POST":
+        id_vecino = request.POST.get("id_vecino")
+        tipo_vivienda = request.POST.get("tipo_vivienda")
+        nombre_calle = request.POST.get("nombre_calle")
+        numero_calle = request.POST.get("numero_calle")
+        num_block = request.POST.get("num_block") or None
+        num_dpto = request.POST.get("num_dpto") or None
+
+        vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
+
+        vivienda = Vivienda.objects.create(
+            id_vivienda=uuid.uuid4(),
+            tipo_vivienda=tipo_vivienda,
+            nombre_calle=nombre_calle,
+            numero_calle=numero_calle,
+            num_block=num_block,
+            num_dpto=num_dpto,
+            id_junta=junta
+        )
+
+        HistVivienda.objects.create(
+            fecha_ini=timezone.now().date(),
+            fecha_ter=None,
+            id_vivienda=vivienda,
+            id_vecino=vecino
+        )
+
+        messages.success(request, "Vecino asignado correctamente a la junta.")
+        return redirect("vecinos_junta", id_junta=junta.id_junta)
+
+    return render(request, "superadmin/juntas/asignar_vecino.html", {
+        "junta": junta,
+        "vecinos": vecinos
     })

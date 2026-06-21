@@ -25,6 +25,8 @@ urlpatterns = [
     path("superadmin/juntas/eliminar/<uuid:id_junta>/", views.eliminar_junta_view, name="eliminar_junta"),
 
     path("superadmin/asignar-cargo/", views.asignar_cargo_view, name="asignar_cargo"),
+    path("superadmin/juntas/<uuid:id_junta>/vecinos/", views.vecinos_junta_view, name="vecinos_junta"),
+    path("superadmin/juntas/<uuid:id_junta>/vecinos/asignar/", views.asignar_vecino_junta_view, name="asignar_vecino_junta"),   
     ]
 
 

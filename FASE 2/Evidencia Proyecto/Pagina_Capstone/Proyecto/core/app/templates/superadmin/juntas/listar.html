@@ -24,7 +24,8 @@
             <td>{{ junta.fecha_creacion }}</td>
             <td>
                 <a href="{% url 'editar_junta' junta.id_junta %}">Editar</a> |
-                <a href="{% url 'eliminar_junta' junta.id_junta %}">Eliminar</a>
+                <a href="{% url 'eliminar_junta' junta.id_junta %}">Eliminar</a> |
+                <a href="{% url 'vecinos_junta' junta.id_junta %}">Ver vecinos</a>
             </td>
         </tr>
         {% endfor %}
