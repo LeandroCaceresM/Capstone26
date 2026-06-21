@@ -309,14 +309,27 @@ def vecinos_junta_view(request, id_junta):
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
 
-    vecinos_junta = HistVivienda.objects.filter(
+    registros = HistVivienda.objects.filter(
         id_vivienda__id_junta=junta,
         fecha_ter__isnull=True
     ).select_related("id_vecino", "id_vivienda")
 
+    vecinos_data = []
+
+    for registro in registros:
+        cargo_actual = HistCargo.objects.filter(
+            id_vecino=registro.id_vecino,
+            fecha_cargo_fin_real__isnull=True
+        ).select_related("id_cargo").first()
+
+        vecinos_data.append({
+            "registro": registro,
+            "cargo_actual": cargo_actual.id_cargo.nombre_cargo if cargo_actual else "Sin cargo",
+        })
+
     return render(request, "superadmin/juntas/vecinos.html", {
         "junta": junta,
-        "vecinos_junta": vecinos_junta
+        "vecinos_data": vecinos_data
     })
 
 
@@ -361,4 +374,64 @@ def asignar_vecino_junta_view(request, id_junta):
     return render(request, "superadmin/juntas/asignar_vecino.html", {
         "junta": junta,
         "vecinos": vecinos
+    })
+    
+def editar_vecino_junta_view(request, id_junta, id_vecino):
+    if request.session.get("rol") != "Superadmin":
+        return redirect("login")
+
+    junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
+    vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
+
+    registro = get_object_or_404(
+        HistVivienda,
+        id_vecino=vecino,
+        id_vivienda__id_junta=junta,
+        fecha_ter__isnull=True
+    )
+
+    vivienda = registro.id_vivienda
+
+    if request.method == "POST":
+        vivienda.tipo_vivienda = request.POST.get("tipo_vivienda")
+        vivienda.nombre_calle = request.POST.get("nombre_calle")
+        vivienda.numero_calle = request.POST.get("numero_calle")
+        vivienda.num_block = request.POST.get("num_block") or None
+        vivienda.num_dpto = request.POST.get("num_dpto") or None
+        vivienda.save()
+
+        messages.success(request, "Datos de vivienda actualizados correctamente.")
+        return redirect("vecinos_junta", id_junta=junta.id_junta)
+
+    return render(request, "superadmin/juntas/editar_vecino.html", {
+        "junta": junta,
+        "vecino": vecino,
+        "vivienda": vivienda
+    })
+    
+def quitar_vecino_junta_view(request, id_junta, id_vecino):
+    if request.session.get("rol") != "Superadmin":
+        return redirect("login")
+
+    junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
+    vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
+
+    registro = get_object_or_404(
+        HistVivienda,
+        id_vecino=vecino,
+        id_vivienda__id_junta=junta,
+        fecha_ter__isnull=True
+    )
+
+    if request.method == "POST":
+        registro.fecha_ter = timezone.now().date()
+        registro.save()
+
+        messages.success(request, "Vecino quitado de la junta correctamente.")
+        return redirect("vecinos_junta", id_junta=junta.id_junta)
+
+    return render(request, "superadmin/juntas/quitar_vecino.html", {
+        "junta": junta,
+        "vecino": vecino,
+        "registro": registro
     })

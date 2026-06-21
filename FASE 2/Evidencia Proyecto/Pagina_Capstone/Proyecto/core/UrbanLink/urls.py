@@ -27,6 +27,16 @@ urlpatterns = [
     path("superadmin/asignar-cargo/", views.asignar_cargo_view, name="asignar_cargo"),
     path("superadmin/juntas/<uuid:id_junta>/vecinos/", views.vecinos_junta_view, name="vecinos_junta"),
     path("superadmin/juntas/<uuid:id_junta>/vecinos/asignar/", views.asignar_vecino_junta_view, name="asignar_vecino_junta"),   
+    path(
+        "superadmin/juntas/<uuid:id_junta>/vecinos/<uuid:id_vecino>/editar/",
+        views.editar_vecino_junta_view,
+        name="editar_vecino_junta"
+    ),
+    path(
+        "superadmin/juntas/<uuid:id_junta>/vecinos/<uuid:id_vecino>/quitar/",
+        views.quitar_vecino_junta_view,
+        name="quitar_vecino_junta"
+    ),
     ]
 
 

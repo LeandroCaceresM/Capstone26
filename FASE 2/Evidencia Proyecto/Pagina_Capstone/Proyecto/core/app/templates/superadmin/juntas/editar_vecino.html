@@ -1,0 +1,48 @@
+<h1>Editar vivienda del vecino</h1>
+
+<p>
+    Vecino:
+    {{ vecino.pri_nombre }}
+    {{ vecino.apell_paterno }}
+    {{ vecino.apell_materno }}
+</p>
+
+<p>Junta: {{ junta.nombre }}</p>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Tipo vivienda</label><br>
+    <select name="tipo_vivienda" required>
+        <option value="C" {% if vivienda.tipo_vivienda == "C" %}selected{% endif %}>Casa</option>
+        <option value="D" {% if vivienda.tipo_vivienda == "D" %}selected{% endif %}>Departamento</option>
+    </select>
+
+    <br><br>
+
+    <label>Nombre calle</label><br>
+    <input type="text" name="nombre_calle" value="{{ vivienda.nombre_calle }}" required>
+
+    <br><br>
+
+    <label>Número calle</label><br>
+    <input type="number" name="numero_calle" value="{{ vivienda.numero_calle }}" required>
+
+    <br><br>
+
+    <label>Número block</label><br>
+    <input type="number" name="num_block" value="{{ vivienda.num_block|default_if_none:'' }}">
+
+    <br><br>
+
+    <label>Número departamento</label><br>
+    <input type="number" name="num_dpto" value="{{ vivienda.num_dpto|default_if_none:'' }}">
+
+    <br><br>
+
+    <button type="submit">Guardar cambios</button>
+</form>
+
+<br>
+
+<a href="{% url 'vecinos_junta' junta.id_junta %}">Volver</a>

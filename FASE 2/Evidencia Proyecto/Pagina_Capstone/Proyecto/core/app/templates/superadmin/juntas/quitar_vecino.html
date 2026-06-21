@@ -1,0 +1,22 @@
+<h1>Quitar vecino de junta</h1>
+
+<p>
+    ¿Seguro que deseas quitar a
+    <strong>
+        {{ vecino.pri_nombre }}
+        {{ vecino.apell_paterno }}
+        {{ vecino.apell_materno }}
+    </strong>
+    de la junta <strong>{{ junta.nombre }}</strong>?
+</p>
+
+<p>Esto no elimina al vecino, solo termina su residencia actual en esta junta.</p>
+
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit">Sí, quitar vecino</button>
+</form>
+
+<br>
+
+<a href="{% url 'vecinos_junta' junta.id_junta %}">Cancelar</a>

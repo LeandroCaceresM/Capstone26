@@ -6,38 +6,50 @@
 
 <br><br>
 
-{% if vecinos_junta %}
+{% if vecinos_data %}
     <table border="1" cellpadding="8">
         <tr>
             <th>Nombre</th>
             <th>RUT</th>
             <th>Correo</th>
             <th>Dirección</th>
+            <th>Cargo actual</th>
             <th>Fecha inicio</th>
+            <th>Acciones</th>
         </tr>
 
-        {% for registro in vecinos_junta %}
+        {% for item in vecinos_data %}
         <tr>
             <td>
-                {{ registro.id_vecino.pri_nombre }}
-                {{ registro.id_vecino.apell_paterno }}
-                {{ registro.id_vecino.apell_materno }}
+                {{ item.registro.id_vecino.pri_nombre }}
+                {{ item.registro.id_vecino.apell_paterno }}
+                {{ item.registro.id_vecino.apell_materno }}
             </td>
-            <td>{{ registro.id_vecino.rut }}</td>
-            <td>{{ registro.id_vecino.correo }}</td>
+            <td>{{ item.registro.id_vecino.rut }}</td>
+            <td>{{ item.registro.id_vecino.correo }}</td>
             <td>
-                {{ registro.id_vivienda.nombre_calle }}
-                {{ registro.id_vivienda.numero_calle }}
+                {{ item.registro.id_vivienda.nombre_calle }}
+                {{ item.registro.id_vivienda.numero_calle }}
 
-                {% if registro.id_vivienda.num_block %}
-                    Block {{ registro.id_vivienda.num_block }}
+                {% if item.registro.id_vivienda.num_block %}
+                    Block {{ item.registro.id_vivienda.num_block }}
                 {% endif %}
 
-                {% if registro.id_vivienda.num_dpto %}
-                    Dpto {{ registro.id_vivienda.num_dpto }}
+                {% if item.registro.id_vivienda.num_dpto %}
+                    Dpto {{ item.registro.id_vivienda.num_dpto }}
                 {% endif %}
             </td>
-            <td>{{ registro.fecha_ini }}</td>
+            <td>{{ item.cargo_actual }}</td>
+            <td>{{ item.registro.fecha_ini }}</td>
+            <td>
+                <a href="{% url 'editar_vecino_junta' junta.id_junta item.registro.id_vecino.id_vecino %}">
+                    Editar
+                </a>
+                |
+                <a href="{% url 'quitar_vecino_junta' junta.id_junta item.registro.id_vecino.id_vecino %}">
+                    Quitar
+                </a>
+            </td>
         </tr>
         {% endfor %}
     </table>
