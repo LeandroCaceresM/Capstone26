@@ -10,5 +10,9 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('registro/', views.registro_view, name='registro'),
     path('logout/', views.logout_view, name='logout'),
+    
+    path("panel-vecino/", views.panel_vecino_view, name="panel_vecino"),
+    path("panel-presidente/", views.panel_presidente_view, name="panel_presidente"),
+    path("panel-superadmin/", views.panel_superadmin_view, name="panel_superadmin"),
     ]
 

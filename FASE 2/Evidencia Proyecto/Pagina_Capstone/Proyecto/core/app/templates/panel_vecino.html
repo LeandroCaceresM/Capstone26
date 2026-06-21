@@ -1,0 +1,11 @@
+_<h1>Panel Vecino</h1>
+
+<p>Bienvenido, {{ request.session.nombre }}</p>
+
+<ul>
+    <li>Generar solicitudes</li>
+    <li>Descargar certificado de residencia</li>
+    <li>Ver estado de solicitudes</li>
+</ul>
+
+<a href="{% url 'logout' %}">Cerrar sesión</a>

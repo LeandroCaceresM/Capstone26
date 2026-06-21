@@ -1,0 +1,12 @@
+_<h1>Panel Presidente de Junta</h1>
+
+<p>Bienvenido, {{ request.session.nombre }}</p>
+
+<ul>
+    <li>Aprobar solicitudes</li>
+    <li>Rechazar solicitudes</li>
+    <li>Subir firma digital</li>
+    <li>Gestionar certificados</li>
+</ul>
+
+<a href="{% url 'logout' %}">Cerrar sesión</a>

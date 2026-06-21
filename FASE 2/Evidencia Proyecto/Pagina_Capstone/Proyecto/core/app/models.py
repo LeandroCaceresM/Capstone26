@@ -110,7 +110,7 @@ class Region(models.Model):
         managed = False
         db_table = 'region'
 
-#Rol de un vecino en el sf (Usuario, Admin, SuperAdmin)
+#Rol de un vecino en el sf (Usuario, Admin, Superadmin)
 class Rol(models.Model):
     id_rol = models.UUIDField(primary_key=True)
     nombre_rol = models.CharField(max_length=50)

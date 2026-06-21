@@ -88,7 +88,20 @@ def login_view(request):
             request.session["nombre"] = vecino.pri_nombre
             request.session["rol"] = vecino.id_rol.nombre_rol
 
-            return redirect("home")
+            rol = vecino.id_rol.nombre_rol
+
+            if rol == "Usuario":
+                return redirect("panel_vecino")
+
+            elif rol == "Admin":
+                return redirect("panel_presidente")
+
+            elif rol == "Superadmin":
+                return redirect("panel_superadmin")
+
+            else:
+                messages.error(request, "Rol no reconocido.")
+                return redirect("login")
 
         except Vecino.DoesNotExist:
             messages.error(request, "El usuario existe en Auth, pero no está registrado como vecino.")
@@ -99,7 +112,6 @@ def login_view(request):
             return redirect("login")
 
     return render(request, "login.html")
-
 
 def logout_view(request):
     request.session.flush()
@@ -112,3 +124,35 @@ def home_view(request):
         return redirect("login")
 
     return render(request, "home.html")
+
+def panel_vecino_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    if request.session.get("rol") != "Usuario":
+        messages.error(request, "No tienes permiso para entrar a esa sección.")
+        return redirect("login")
+
+    return render(request, "panel_vecino.html")
+
+
+def panel_presidente_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    if request.session.get("rol") != "Admin":
+        messages.error(request, "No tienes permiso para entrar a esa sección.")
+        return redirect("login")
+
+    return render(request, "panel_presidente.html")
+
+
+def panel_superadmin_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    if request.session.get("rol") != "Superadmin":
+        messages.error(request, "No tienes permiso para entrar a esa sección.")
+        return redirect("login")
+
+    return render(request, "panel_superadmin.html")
