@@ -11,6 +11,12 @@ urlpatterns = [
     path('registro/', views.registro_view, name='registro'),
     path('logout/', views.logout_view, name='logout'),
     
+    #Vistas de recuperación de contraseña
+    path('recuperar_contrasenia/', views.recuperar_contrasenia, name='recuperar_contrasenia'),
+    path('cambiar_contrasenia/', views.cambiar_contrasenia, name='cambiar_contrasenia'),
+    path('enviar_recuperacion/', views.enviar_recuperacion, name='enviar_recuperacion'),
+    
+    #Vistas de USUARIO
     path("panel-vecino/", views.panel_vecino_view, name="panel_vecino"),
     
     #Vistas de ADMIN
@@ -36,6 +42,16 @@ urlpatterns = [
         "superadmin/juntas/<uuid:id_junta>/vecinos/<uuid:id_vecino>/quitar/",
         views.quitar_vecino_junta_view,
         name="quitar_vecino_junta"
+    ),
+    path(
+        "superadmin/juntas/<uuid:id_junta>/directiva/crear/",
+        views.crear_directiva_view,
+        name="crear_directiva"
+    ),
+    path(
+        "superadmin/juntas/<uuid:id_junta>/cargos/asignar/",
+        views.asignar_cargo_junta_view,
+        name="asignar_cargo_junta"
     ),
     ]
 

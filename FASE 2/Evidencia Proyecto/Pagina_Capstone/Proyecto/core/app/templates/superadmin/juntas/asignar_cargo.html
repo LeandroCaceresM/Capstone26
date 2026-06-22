@@ -1,0 +1,52 @@
+<h1>Asignar cargo en {{ junta.nombre }}</h1>
+
+<p>
+    Directiva actual:
+    {{ directiva.fecha_inicio_direct }} hasta {{ directiva.fecha_fin_direct }}
+</p>
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Vecino</label><br>
+    <select name="id_vecino" required>
+        <option value="">Seleccione un vecino</option>
+        {% for vecino in vecinos %}
+            <option value="{{ vecino.id_vecino }}">
+                {{ vecino.pri_nombre }} {{ vecino.apell_paterno }} {{ vecino.apell_materno }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <br><br>
+
+    <label>Cargo</label><br>
+    <select name="id_cargo" required>
+        <option value="">Seleccione cargo</option>
+        {% for cargo in cargos %}
+            <option value="{{ cargo.id_cargo }}">
+                {{ cargo.nombre_cargo }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <br><br>
+
+    <label>Fecha inicio cargo</label><br>
+    <input type="date" name="fecha_inicio" required><br><br>
+
+    <label>Fecha fin cargo</label><br>
+    <input type="date" name="fecha_fin" required><br><br>
+
+    <button type="submit">Asignar cargo</button>
+</form>
+
+<br>
+
+<a href="{% url 'vecinos_junta' junta.id_junta %}">Volver</a>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Recuperar Contraseña</title>
+</head>
+<body>
+
+<h1>Recuperar Contraseña</h1>
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<form method="POST" action="{% url 'enviar_recuperacion' %}">
+
+    {% csrf_token %}
+
+    <label>Correo</label><br>
+
+    <input 
+        type="email" 
+        name="correo" 
+        placeholder="Tucorreo@ejemplo.com" 
+        required
+    >
+
+    <br><br>
+
+    <button type="submit">
+        Enviar recuperación
+    </button>
+
+</form>
+
+</body>
+</html>

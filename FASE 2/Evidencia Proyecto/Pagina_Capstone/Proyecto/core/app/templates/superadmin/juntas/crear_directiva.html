@@ -1,0 +1,23 @@
+<h1>Crear directiva para {{ junta.nombre }}</h1>
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Fecha inicio</label><br>
+    <input type="date" name="fecha_inicio" required><br><br>
+
+    <label>Fecha fin</label><br>
+    <input type="date" name="fecha_fin" required><br><br>
+
+    <button type="submit">Crear directiva</button>
+</form>
+
+<br>
+
+<a href="{% url 'vecinos_junta' junta.id_junta %}">Volver</a>

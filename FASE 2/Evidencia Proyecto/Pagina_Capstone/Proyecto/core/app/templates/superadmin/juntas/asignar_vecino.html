@@ -1,5 +1,13 @@
 <h1>Asignar vecino a {{ junta.nombre }}</h1>
 
+{% if messages %}
+    {% for message in messages %}
+        <div style="padding:10px; margin-bottom:10px; border:1px solid #ccc;">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
 <form method="POST">
     {% csrf_token %}
 
@@ -16,7 +24,7 @@
     <br><br>
 
     <label>Tipo vivienda</label><br>
-    <select name="tipo_vivienda" required>
+    <select name="tipo_vivienda" id="tipo_vivienda" required>
         <option value="C">Casa</option>
         <option value="D">Departamento</option>
     </select>
@@ -33,13 +41,41 @@
 
     <br><br>
 
-    <label>Número block</label><br>
-    <input type="number" name="num_block">
+    <div id="campos_departamento" style="display: none;">
+        <label>Número block</label><br>
+        <input type="number" name="num_block" id="num_block">
 
-    <br><br>
+        <br><br>
 
-    <label>Número departamento</label><br>
-    <input type="number" name="num_dpto">
+        <label>Número departamento</label><br>
+        <input type="number" name="num_dpto" id="num_dpto">
+
+        <br><br>
+    </div>
+
+    <script>
+        const tipoVivienda = document.getElementById("tipo_vivienda");
+        const camposDepartamento = document.getElementById("campos_departamento");
+        const numBlock = document.getElementById("num_block");
+        const numDpto = document.getElementById("num_dpto");
+
+        function actualizarCampos() {
+            if (tipoVivienda.value === "D") {
+                camposDepartamento.style.display = "block";
+                numBlock.required = true;
+                numDpto.required = true;
+            } else {
+                camposDepartamento.style.display = "none";
+                numBlock.required = false;
+                numDpto.required = false;
+                numBlock.value = "";
+                numDpto.value = "";
+            }
+        }
+
+        tipoVivienda.addEventListener("change", actualizarCampos);
+        actualizarCampos();
+    </script>
 
     <br><br>
 

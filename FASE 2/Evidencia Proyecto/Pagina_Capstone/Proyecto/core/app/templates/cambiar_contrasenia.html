@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cambiar Contraseña</title>
+</head>
+
+<body>
+
+<h1>Cambiar Contraseña</h1>
+
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+
+<form method="POST">
+
+    {% csrf_token %}
+
+    <label>Nueva contraseña</label><br>
+
+    <input 
+        type="password"
+        name="password"
+        placeholder="Nueva contraseña"
+        required
+    >
+
+    <br><br>
+
+    <button type="submit">
+        Cambiar contraseña
+    </button>
+
+</form>
+
+
+<script>
+
+    // Obtener tokens desde el # de Supabase
+    const hash = window.location.hash.substring(1);
+
+    const params = new URLSearchParams(hash);
+
+    const access_token = params.get("access_token");
+    const refresh_token = params.get("refresh_token");
+
+
+    // Si vienen desde Supabase, mandarlos a Django
+    if(access_token && refresh_token){
+
+        window.location.href =
+        `/cambiar_contrasenia/?access_token=${access_token}&refresh_token=${refresh_token}`;
+
+    }
+
+</script>
+
+
+</body>
+</html>

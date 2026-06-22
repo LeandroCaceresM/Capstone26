@@ -116,7 +116,67 @@ def logout_view(request):
     messages.success(request, "Sesión cerrada correctamente.")
     return redirect("login")
 
+#RECUPERAR / CAMBIAR CONTRASEÑA
+def recuperar_contrasenia(request):
+    return render(request, "recuperar_contrasenia.html")
 
+def enviar_recuperacion(request):
+    if request.method == "POST":
+        correo = request.POST.get("correo")
+        supabase.auth.reset_password_email(
+            correo,
+            {
+                "redirect_to": "http://127.0.0.1:8000/cambiar_contrasenia/"
+            }
+        )
+        messages.success(
+            request,
+            "Revisa tu correo para cambiar la contraseña."
+        )
+    return redirect("recuperar_contrasenia")
+
+
+def cambiar_contrasenia(request):
+    access_token = request.GET.get("access_token")
+    refresh_token = request.GET.get("refresh_token")
+    if access_token and refresh_token:
+        try:
+            supabase.auth.set_session(
+                access_token,
+                refresh_token
+            )
+
+        except Exception as e:
+            messages.error(
+                request,
+                f"Error creando sesión: {e}"
+            )
+
+    if request.method == "POST":
+        password = request.POST.get("password")
+        try:
+            supabase.auth.update_user({
+                "password": password
+            })
+
+            messages.success(
+                request,
+                "Contraseña actualizada correctamente."
+            )
+
+            return redirect("login")
+        except Exception as e:
+
+            messages.error(
+                request,
+                f"Error al cambiar contraseña: {e}"
+            )
+    return render(
+        request,
+        "cambiar_contrasenia.html"
+    )
+
+#
 def panel_vecino_view(request):
     if not request.session.get("vecino_id"):
         return redirect("login")
@@ -341,6 +401,37 @@ def asignar_vecino_junta_view(request, id_junta):
         num_dpto = request.POST.get("num_dpto") or None
 
         vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
+        
+        residencia_activa = HistVivienda.objects.filter(
+            id_vecino=vecino,
+            fecha_ter__isnull=True
+        ).select_related("id_vivienda__id_junta").first()
+
+        if residencia_activa:
+            messages.error(
+                request,
+                f"El vecino ya pertenece a la junta '{residencia_activa.id_vivienda.id_junta.nombre}'. Primero debe ser removido de esa junta."
+            )
+            return redirect("asignar_vecino_junta", id_junta=junta.id_junta)
+
+        ya_existe = HistVivienda.objects.filter(
+            id_vecino=vecino,
+            id_vivienda__id_junta=junta,
+            fecha_ter__isnull=True
+        ).exists()
+
+        if ya_existe:
+            messages.error(request, "Este vecino ya pertenece actualmente a esta junta.")
+            return redirect("asignar_vecino_junta", id_junta=junta.id_junta)
+
+        if tipo_vivienda == "C":
+            num_block = None
+            num_dpto = None
+
+        if tipo_vivienda == "D":
+            if not num_block or not num_dpto:
+                messages.error(request, "Para departamento debes ingresar número de block y departamento.")
+                return redirect("asignar_vecino_junta", id_junta=junta.id_junta)
 
         vivienda = Vivienda.objects.create(
             id_vivienda=uuid.uuid4(),
@@ -367,6 +458,7 @@ def asignar_vecino_junta_view(request, id_junta):
         "vecinos": vecinos
     })
     
+        
 def editar_vecino_junta_view(request, id_junta, id_vecino):
     if request.session.get("rol") != "Superadmin":
         return redirect("login")
@@ -384,14 +476,39 @@ def editar_vecino_junta_view(request, id_junta, id_vecino):
     vivienda = registro.id_vivienda
 
     if request.method == "POST":
-        vivienda.tipo_vivienda = request.POST.get("tipo_vivienda")
+        vecino.pri_nombre = request.POST.get("pri_nombre")
+        vecino.seg_nombre = request.POST.get("seg_nombre") or None
+        vecino.apell_paterno = request.POST.get("apell_paterno")
+        vecino.apell_materno = request.POST.get("apell_materno")
+        vecino.correo = request.POST.get("correo") or None
+        vecino.telefono = request.POST.get("telefono")
+        vecino.save()
+
+        tipo_vivienda = request.POST.get("tipo_vivienda")
+        num_block = request.POST.get("num_block") or None
+        num_dpto = request.POST.get("num_dpto") or None
+
+        if tipo_vivienda == "C":
+            num_block = None
+            num_dpto = None
+
+        if tipo_vivienda == "D":
+            if not num_block or not num_dpto:
+                messages.error(request, "Para departamento debes ingresar número de block y departamento.")
+                return redirect(
+                    "editar_vecino_junta",
+                    id_junta=junta.id_junta,
+                    id_vecino=vecino.id_vecino
+                )
+
+        vivienda.tipo_vivienda = tipo_vivienda
         vivienda.nombre_calle = request.POST.get("nombre_calle")
         vivienda.numero_calle = request.POST.get("numero_calle")
-        vivienda.num_block = request.POST.get("num_block") or None
-        vivienda.num_dpto = request.POST.get("num_dpto") or None
+        vivienda.num_block = num_block
+        vivienda.num_dpto = num_dpto
         vivienda.save()
 
-        messages.success(request, "Datos de vivienda actualizados correctamente.")
+        messages.success(request, "Datos del vecino actualizados correctamente.")
         return redirect("vecinos_junta", id_junta=junta.id_junta)
 
     return render(request, "superadmin/juntas/editar_vecino.html", {
@@ -425,4 +542,104 @@ def quitar_vecino_junta_view(request, id_junta, id_vecino):
         "junta": junta,
         "vecino": vecino,
         "registro": registro
+    })
+
+def crear_directiva_view(request, id_junta):
+    if request.session.get("rol") != "Superadmin":
+        return redirect("login")
+
+    junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
+
+    if request.method == "POST":
+        fecha_inicio = request.POST.get("fecha_inicio")
+        fecha_fin = request.POST.get("fecha_fin")
+
+        Directiva.objects.create(
+            id_directiva=uuid.uuid4(),
+            fecha_inicio_direct=fecha_inicio,
+            fecha_fin_direct=fecha_fin,
+            id_junta=junta
+        )
+
+        messages.success(request, "Directiva creada correctamente.")
+        return redirect("vecinos_junta", id_junta=junta.id_junta)
+
+    return render(request, "superadmin/juntas/crear_directiva.html", {
+        "junta": junta
+    })
+
+
+def asignar_cargo_junta_view(request, id_junta):
+    if request.session.get("rol") != "Superadmin":
+        return redirect("login")
+
+    junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
+
+    directiva = Directiva.objects.filter(
+        id_junta=junta
+    ).order_by("-fecha_inicio_direct").first()
+
+    if not directiva:
+        messages.error(request, "Esta junta aún no tiene una directiva creada.")
+        return redirect("crear_directiva", id_junta=junta.id_junta)
+
+    vecinos_registros = HistVivienda.objects.filter(
+        id_vivienda__id_junta=junta,
+        fecha_ter__isnull=True
+    ).select_related("id_vecino")
+
+    vecinos = [registro.id_vecino for registro in vecinos_registros]
+
+    cargos = Cargo.objects.all()
+
+    if request.method == "POST":
+        id_vecino = request.POST.get("id_vecino")
+        id_cargo = request.POST.get("id_cargo")
+        fecha_inicio = request.POST.get("fecha_inicio")
+        fecha_fin = request.POST.get("fecha_fin")
+
+        vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
+        cargo = get_object_or_404(Cargo, id_cargo=id_cargo)
+
+        ya_tiene_cargo = HistCargo.objects.filter(
+            id_vecino=vecino,
+            fecha_cargo_fin_real__isnull=True
+        ).exists()
+
+        if ya_tiene_cargo:
+            messages.error(request, "Este vecino ya tiene un cargo activo.")
+            return redirect("asignar_cargo_junta", id_junta=junta.id_junta)
+
+        cargo_ocupado = HistCargo.objects.filter(
+            id_directiva=directiva,
+            id_cargo=cargo,
+            fecha_cargo_fin_real__isnull=True
+        ).exists()
+
+        if cargo_ocupado:
+            messages.error(request, f"El cargo {cargo.nombre_cargo} ya está ocupado en esta directiva.")
+            return redirect("asignar_cargo_junta", id_junta=junta.id_junta)
+
+        HistCargo.objects.create(
+            id_vecino=vecino,
+            id_cargo=cargo,
+            id_directiva=directiva,
+            fecha_cargo_tentativa=fecha_inicio,
+            fecha_cargo_fin=fecha_fin,
+            fecha_cargo_fin_real=None
+        )
+
+        if cargo.nombre_cargo.lower() == "presidente":
+            rol_admin = Rol.objects.get(nombre_rol="Admin")
+            vecino.id_rol = rol_admin
+            vecino.save()
+
+        messages.success(request, "Cargo asignado correctamente.")
+        return redirect("vecinos_junta", id_junta=junta.id_junta)
+
+    return render(request, "superadmin/juntas/asignar_cargo.html", {
+        "junta": junta,
+        "directiva": directiva,
+        "vecinos": vecinos,
+        "cargos": cargos
     })
