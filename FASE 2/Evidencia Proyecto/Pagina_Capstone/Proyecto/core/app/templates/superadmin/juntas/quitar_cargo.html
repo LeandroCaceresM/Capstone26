@@ -1,0 +1,19 @@
+<h1>Retirar cargo</h1>
+
+<p>
+    ¿Seguro que deseas retirar el cargo
+    <strong>{{ cargo_actual.id_cargo.nombre_cargo }}</strong>
+    a
+    <strong>{{ vecino.pri_nombre }} {{ vecino.apell_paterno }} {{ vecino.apell_materno }}</strong>?
+</p>
+
+<p>Junta: {{ junta.nombre }}</p>
+
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit">Sí, retirar cargo</button>
+</form>
+
+<br>
+
+<a href="{% url 'asignar_cargo_junta' junta.id_junta %}">Cancelar</a>

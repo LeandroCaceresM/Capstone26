@@ -54,10 +54,12 @@ class EstadoSolicitud(models.Model):
 
 #Historia de cargo de un vecino por ej: o sea si fue presidente de junta en algun momento pero ya no 
 class HistCargo(models.Model):
-    pk = models.CompositePrimaryKey('id_vecino', 'id_cargo')
+    id_hist_cargo = models.UUIDField(primary_key=True)
+
     fecha_cargo_tentativa = models.DateField()
-    fecha_cargo_fin = models.DateField()
+    fecha_cargo_fin = models.DateField(blank=True, null=True)
     fecha_cargo_fin_real = models.DateField(blank=True, null=True)
+
     id_vecino = models.ForeignKey('Vecino', models.DO_NOTHING, db_column='id_vecino')
     id_cargo = models.ForeignKey(Cargo, models.DO_NOTHING, db_column='id_cargo')
     id_directiva = models.ForeignKey(Directiva, models.DO_NOTHING, db_column='id_directiva')

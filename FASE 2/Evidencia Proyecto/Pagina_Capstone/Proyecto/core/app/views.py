@@ -312,48 +312,6 @@ def eliminar_junta_view(request, id_junta):
     })
 
 
-def asignar_cargo_view(request):
-    if not es_superadmin(request):
-        return redirect("login")
-
-    vecinos = Vecino.objects.all()
-    cargos = Cargo.objects.all()
-    directivas = Directiva.objects.all()
-
-    if request.method == "POST":
-        id_vecino = request.POST.get("id_vecino")
-        id_cargo = request.POST.get("id_cargo")
-        id_directiva = request.POST.get("id_directiva")
-        fecha_inicio = request.POST.get("fecha_inicio")
-        fecha_fin = request.POST.get("fecha_fin")
-
-        vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
-        cargo = get_object_or_404(Cargo, id_cargo=id_cargo)
-        directiva = get_object_or_404(Directiva, id_directiva=id_directiva)
-
-        HistCargo.objects.create(
-            id_vecino=vecino,
-            id_cargo=cargo,
-            id_directiva=directiva,
-            fecha_cargo_tentativa=fecha_inicio,
-            fecha_cargo_fin=fecha_fin,
-            fecha_cargo_fin_real=None
-        )
-
-        if cargo.nombre_cargo.lower() == "presidente":
-            rol_admin = Rol.objects.get(nombre_rol="Admin")
-            vecino.id_rol = rol_admin
-            vecino.save()
-
-        messages.success(request, "Cargo asignado correctamente.")
-        return redirect("panel_superadmin")
-
-    return render(request, "superadmin/asignar_cargo.html", {
-        "vecinos": vecinos,
-        "cargos": cargos,
-        "directivas": directivas
-    })
-    
 def vecinos_junta_view(request, id_junta):
     if request.session.get("rol") != "Superadmin":
         return redirect("login")
@@ -375,7 +333,7 @@ def vecinos_junta_view(request, id_junta):
 
         vecinos_data.append({
             "registro": registro,
-            "cargo_actual": cargo_actual.id_cargo.nombre_cargo if cargo_actual else "Sin cargo",
+            "cargo_actual": cargo_actual.id_cargo.nombre_cargo if cargo_actual else "Vecino",
         })
 
     return render(request, "superadmin/juntas/vecinos.html", {
@@ -568,7 +526,6 @@ def crear_directiva_view(request, id_junta):
         "junta": junta
     })
 
-
 def asignar_cargo_junta_view(request, id_junta):
     if request.session.get("rol") != "Superadmin":
         return redirect("login")
@@ -583,20 +540,16 @@ def asignar_cargo_junta_view(request, id_junta):
         messages.error(request, "Esta junta aún no tiene una directiva creada.")
         return redirect("crear_directiva", id_junta=junta.id_junta)
 
-    vecinos_registros = HistVivienda.objects.filter(
+    registros = HistVivienda.objects.filter(
         id_vivienda__id_junta=junta,
         fecha_ter__isnull=True
-    ).select_related("id_vecino")
-
-    vecinos = [registro.id_vecino for registro in vecinos_registros]
+    ).select_related("id_vecino", "id_vivienda")
 
     cargos = Cargo.objects.all()
 
     if request.method == "POST":
         id_vecino = request.POST.get("id_vecino")
         id_cargo = request.POST.get("id_cargo")
-        fecha_inicio = request.POST.get("fecha_inicio")
-        fecha_fin = request.POST.get("fecha_fin")
 
         vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
         cargo = get_object_or_404(Cargo, id_cargo=id_cargo)
@@ -617,15 +570,16 @@ def asignar_cargo_junta_view(request, id_junta):
         ).exists()
 
         if cargo_ocupado:
-            messages.error(request, f"El cargo {cargo.nombre_cargo} ya está ocupado en esta directiva.")
+            messages.error(request, f"El cargo {cargo.nombre_cargo} ya está ocupado.")
             return redirect("asignar_cargo_junta", id_junta=junta.id_junta)
 
         HistCargo.objects.create(
+            id_hist_cargo=uuid.uuid4(),
             id_vecino=vecino,
             id_cargo=cargo,
             id_directiva=directiva,
-            fecha_cargo_tentativa=fecha_inicio,
-            fecha_cargo_fin=fecha_fin,
+            fecha_cargo_tentativa=timezone.now().date(),
+            fecha_cargo_fin=None,
             fecha_cargo_fin_real=None
         )
 
@@ -635,11 +589,58 @@ def asignar_cargo_junta_view(request, id_junta):
             vecino.save()
 
         messages.success(request, "Cargo asignado correctamente.")
-        return redirect("vecinos_junta", id_junta=junta.id_junta)
+        return redirect("asignar_cargo_junta", id_junta=junta.id_junta)
+
+    vecinos_data = []
+
+    for registro in registros:
+        cargo_actual = HistCargo.objects.filter(
+            id_vecino=registro.id_vecino,
+            fecha_cargo_fin_real__isnull=True
+        ).select_related("id_cargo").first()
+
+        vecinos_data.append({
+            "vecino": registro.id_vecino,
+            "vivienda": registro.id_vivienda,
+            "cargo_actual": cargo_actual,
+        })
 
     return render(request, "superadmin/juntas/asignar_cargo.html", {
         "junta": junta,
         "directiva": directiva,
-        "vecinos": vecinos,
+        "vecinos_data": vecinos_data,
         "cargos": cargos
+    })
+    
+def quitar_cargo_vecino_view(request, id_junta, id_vecino):
+    if request.session.get("rol") != "Superadmin":
+        return redirect("login")
+
+    junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
+    vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
+
+    cargo_actual = get_object_or_404(
+        HistCargo,
+        id_vecino=vecino,
+        fecha_cargo_fin_real__isnull=True
+    )
+
+    if request.method == "POST":
+        nombre_cargo = cargo_actual.id_cargo.nombre_cargo.lower()
+
+        cargo_actual.fecha_cargo_fin_real = timezone.now().date()
+        cargo_actual.save()
+
+        if nombre_cargo == "presidente":
+            rol_usuario = Rol.objects.get(nombre_rol="Usuario")
+            vecino.id_rol = rol_usuario
+            vecino.save()
+
+        messages.success(request, "Cargo retirado correctamente.")
+        return redirect("asignar_cargo_junta", id_junta=junta.id_junta)
+
+    return render(request, "superadmin/juntas/quitar_cargo.html", {
+        "junta": junta,
+        "vecino": vecino,
+        "cargo_actual": cargo_actual
     })

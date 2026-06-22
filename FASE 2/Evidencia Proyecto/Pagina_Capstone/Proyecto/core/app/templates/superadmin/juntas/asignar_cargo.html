@@ -1,4 +1,4 @@
-<h1>Asignar cargo en {{ junta.nombre }}</h1>
+<h1>Asignar cargos - {{ junta.nombre }}</h1>
 
 <p>
     Directiva actual:
@@ -11,41 +11,66 @@
     {% endfor %}
 {% endif %}
 
-<form method="POST">
-    {% csrf_token %}
+{% if vecinos_data %}
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Vecino</th>
+            <th>Dirección</th>
+            <th>Cargo actual</th>
+            <th>Asignar cargo</th>
+        </tr>
 
-    <label>Vecino</label><br>
-    <select name="id_vecino" required>
-        <option value="">Seleccione un vecino</option>
-        {% for vecino in vecinos %}
-            <option value="{{ vecino.id_vecino }}">
-                {{ vecino.pri_nombre }} {{ vecino.apell_paterno }} {{ vecino.apell_materno }}
-            </option>
+        {% for item in vecinos_data %}
+        <tr>
+            <td>
+                {{ item.vecino.pri_nombre }}
+                {{ item.vecino.apell_paterno }}
+                {{ item.vecino.apell_materno }}
+            </td>
+
+            <td>
+                {{ item.vivienda.nombre_calle }}
+                {{ item.vivienda.numero_calle }}
+            </td>
+
+            <td>
+                {% if item.cargo_actual %}
+                    {{ item.cargo_actual.id_cargo.nombre_cargo }}
+                {% else %}
+                    Vecino
+                {% endif %}
+            </td>
+
+            <td>
+                {% if item.cargo_actual %}
+                    <a href="{% url 'quitar_cargo_vecino' junta.id_junta item.vecino.id_vecino %}">
+                        Retirar cargo
+                    </a>
+                {% else %}
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <input type="hidden" name="id_vecino" value="{{ item.vecino.id_vecino }}">
+
+                        <select name="id_cargo" required>
+                            <option value="">Seleccione cargo</option>
+                            {% for cargo in cargos %}
+                                <option value="{{ cargo.id_cargo }}">
+                                    {{ cargo.nombre_cargo }}
+                                </option>
+                            {% endfor %}
+                        </select>
+
+                        <button type="submit">Asignar</button>
+                    </form>
+                {% endif %}
+            </td>
+        </tr>
         {% endfor %}
-    </select>
-
-    <br><br>
-
-    <label>Cargo</label><br>
-    <select name="id_cargo" required>
-        <option value="">Seleccione cargo</option>
-        {% for cargo in cargos %}
-            <option value="{{ cargo.id_cargo }}">
-                {{ cargo.nombre_cargo }}
-            </option>
-        {% endfor %}
-    </select>
-
-    <br><br>
-
-    <label>Fecha inicio cargo</label><br>
-    <input type="date" name="fecha_inicio" required><br><br>
-
-    <label>Fecha fin cargo</label><br>
-    <input type="date" name="fecha_fin" required><br><br>
-
-    <button type="submit">Asignar cargo</button>
-</form>
+    </table>
+{% else %}
+    <p>Esta junta no tiene vecinos asignados actualmente.</p>
+{% endif %}
 
 <br>
 

@@ -30,7 +30,6 @@ urlpatterns = [
     path("superadmin/juntas/editar/<uuid:id_junta>/", views.editar_junta_view, name="editar_junta"),
     path("superadmin/juntas/eliminar/<uuid:id_junta>/", views.eliminar_junta_view, name="eliminar_junta"),
 
-    path("superadmin/asignar-cargo/", views.asignar_cargo_view, name="asignar_cargo"),
     path("superadmin/juntas/<uuid:id_junta>/vecinos/", views.vecinos_junta_view, name="vecinos_junta"),
     path("superadmin/juntas/<uuid:id_junta>/vecinos/asignar/", views.asignar_vecino_junta_view, name="asignar_vecino_junta"),   
     path(
@@ -52,6 +51,11 @@ urlpatterns = [
         "superadmin/juntas/<uuid:id_junta>/cargos/asignar/",
         views.asignar_cargo_junta_view,
         name="asignar_cargo_junta"
+    ),
+    path(
+        "superadmin/juntas/<uuid:id_junta>/vecinos/<uuid:id_vecino>/quitar-cargo/",
+        views.quitar_cargo_vecino_view,
+        name="quitar_cargo_vecino"
     ),
     ]
 
