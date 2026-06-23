@@ -1,0 +1,24 @@
+<h1>Mis datos</h1>
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<p><strong>Nombre:</strong> {{ vecino.pri_nombre }} {{ vecino.apell_paterno }} {{ vecino.apell_materno }}</p>
+<p><strong>RUT:</strong> {{ vecino.rut }}</p>
+<p><strong>Correo:</strong> {{ vecino.correo|default:"Sin correo registrado" }}</p>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Teléfono</label><br>
+    <input type="number" name="telefono" value="{{ vecino.telefono }}" required><br><br>
+
+    <button type="submit">Actualizar teléfono</button>
+</form>
+
+<br>
+
+<a href="{% url 'panel_vecino' %}">Volver al panel</a>

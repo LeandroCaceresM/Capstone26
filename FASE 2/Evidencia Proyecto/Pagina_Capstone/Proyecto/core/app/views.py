@@ -3,6 +3,7 @@ import uuid
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
+from django.views.decorators.cache import never_cache
 
 from .models import *
 from .supabase_client import supabase
@@ -176,7 +177,27 @@ def cambiar_contrasenia(request):
         "cambiar_contrasenia.html"
     )
 
+@never_cache
+def mis_datos_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+
+    if request.method == "POST":
+        vecino.telefono = request.POST.get("telefono")
+        vecino.save()
+
+        messages.success(request, "Teléfono actualizado correctamente.")
+        return redirect("mis_datos")
+
+    return render(request, "mis_datos.html", {
+        "vecino": vecino
+    })
+
+
 #
+@never_cache
 def panel_vecino_view(request):
     if not request.session.get("vecino_id"):
         return redirect("login")
@@ -185,9 +206,19 @@ def panel_vecino_view(request):
         messages.error(request, "No tienes permiso para entrar a esa sección.")
         return redirect("login")
 
-    return render(request, "panel_vecino.html")
+    vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
 
+    residencia_activa = HistVivienda.objects.filter(
+        id_vecino=vecino,
+        fecha_ter__isnull=True
+    ).select_related("id_vivienda__id_junta").first()
 
+    return render(request, "panel_vecino.html", {
+        "vecino": vecino,
+        "residencia_activa": residencia_activa
+    })
+
+@never_cache
 def panel_presidente_view(request):
     if not request.session.get("vecino_id"):
         return redirect("login")
@@ -198,22 +229,11 @@ def panel_presidente_view(request):
 
     return render(request, "panel_presidente.html")
 
-#Views del SUPERADIN
-def panel_superadmin_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
-
-    if request.session.get("rol") != "Superadmin":
-        messages.error(request, "No tienes permiso para entrar a esa sección.")
-        return redirect("login")
-
-    return render(request, "panel_superadmin.html")
-
-
+#Views del SUPERADMIN
 def es_superadmin(request):
     return request.session.get("rol") == "Superadmin"
 
-
+@never_cache
 def panel_superadmin_view(request):
     if not request.session.get("vecino_id"):
         return redirect("login")

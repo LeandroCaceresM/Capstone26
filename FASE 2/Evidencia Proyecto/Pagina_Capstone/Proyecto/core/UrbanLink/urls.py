@@ -10,6 +10,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('registro/', views.registro_view, name='registro'),
     path('logout/', views.logout_view, name='logout'),
+    path("mis-datos/", views.mis_datos_view, name="mis_datos"),
     
     #Vistas de recuperación de contraseña
     path('recuperar_contrasenia/', views.recuperar_contrasenia, name='recuperar_contrasenia'),
@@ -35,8 +36,7 @@ urlpatterns = [
     path(
         "superadmin/juntas/<uuid:id_junta>/vecinos/<uuid:id_vecino>/editar/",
         views.editar_vecino_junta_view,
-        name="editar_vecino_junta"
-    ),
+        name="editar_vecino_junta"),
     path(
         "superadmin/juntas/<uuid:id_junta>/vecinos/<uuid:id_vecino>/quitar/",
         views.quitar_vecino_junta_view,

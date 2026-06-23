@@ -1,11 +1,21 @@
-_<h1>Panel Vecino</h1>
+<h1>Panel Vecino</h1>
 
-<p>Bienvenido, {{ request.session.nombre }}</p>
+<p>Bienvenido, {{ vecino.pri_nombre }}</p>
 
 <ul>
-    <li>Generar solicitudes</li>
-    <li>Descargar certificado de residencia</li>
-    <li>Ver estado de solicitudes</li>
+    <li><a href="{% url 'mis_datos' %}">Mis datos</a></li>
 </ul>
+
+{% if not residencia_activa %}
+    <p>Debe unirse a una junta para poder comenzar usar UrbanLink.</p>
+{% else %}
+    <h2>Servicios disponibles</h2>
+
+    <ul>
+        <li>Crear solicitud</li>
+        <li>Ver mis solicitudes</li>
+        <li>Descargar certificado de residencia</li>
+    </ul>
+{% endif %}
 
 <a href="{% url 'logout' %}">Cerrar sesión</a>
