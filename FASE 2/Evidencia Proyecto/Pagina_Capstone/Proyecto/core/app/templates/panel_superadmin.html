@@ -6,8 +6,11 @@
 <p>Total vecinos: {{ total_vecinos }}</p>
 
 <ul>
-    <li><a href="{% url 'listar_juntas' %}">Gestionar juntas de vecinos</a></li>
-    <li><a href="{% url 'asignar_cargo' %}">Asignar cargo a vecino</a></li>
+    <li>
+        <a href="{% url 'listar_juntas' %}">
+            Gestionar juntas de vecinos
+        </a>
+    </li>
 </ul>
 
 <a href="{% url 'logout' %}">Cerrar sesión</a>
