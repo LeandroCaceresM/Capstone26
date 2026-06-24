@@ -1,5 +1,8 @@
 import uuid
 import os
+import requests
+
+from io import BytesIO
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -14,7 +17,7 @@ from reportlab.lib.utils import ImageReader
 
 from .models import *
 from .supabase_client import supabase
-
+from .supabase_storage_client import supabase_storage
 
 
 #VISTAS GENERALES 
@@ -289,18 +292,21 @@ def generar_certificado_view(request):
 
     # Firma
     y -= 110
-    ruta_firma = os.path.join(settings.MEDIA_ROOT, presidente.firma_digital)
+    if presidente.firma_digital:
+        respuesta = requests.get(presidente.firma_digital)
 
-    if os.path.exists(ruta_firma):
-        c.drawImage(
-            ImageReader(ruta_firma),
-            width / 2 - 90,
-            y,
-            width=180,
-            height=70,
-            preserveAspectRatio=True,
-            mask="auto"
-        )
+        if respuesta.status_code == 200:
+            firma_img = ImageReader(BytesIO(respuesta.content))
+
+            c.drawImage(
+                firma_img,
+                width / 2 - 90,
+                y,
+                width=180,
+                height=70,
+                preserveAspectRatio=True,
+                mask="auto"
+            )
 
     y -= 25
     c.setFont("Helvetica-BoldOblique", 11)
@@ -691,7 +697,6 @@ def cerrar_solicitud_view(request, id_solicitud):
         "solicitud": solicitud
     })
     
-
 @never_cache
 def subir_firma_view(request):
     if not request.session.get("vecino_id"):
@@ -710,17 +715,23 @@ def subir_firma_view(request):
             messages.error(request, "Debe seleccionar una imagen.")
             return redirect("subir_firma")
 
-        carpeta_firmas = os.path.join(settings.MEDIA_ROOT, "firmas")
-        os.makedirs(carpeta_firmas, exist_ok=True)
+        extension = firma.name.split(".")[-1].lower()
+        nombre_archivo = f"presidentes/firma_{presidente.id_vecino}.{extension}"
 
-        nombre_archivo = f"firma_{presidente.id_vecino}.png"
-        ruta_archivo = os.path.join(carpeta_firmas, nombre_archivo)
+        archivo_bytes = firma.read()
 
-        with open(ruta_archivo, "wb+") as destino:
-            for chunk in firma.chunks():
-                destino.write(chunk)
+        supabase_storage.storage.from_("firmas").upload(
+            path=nombre_archivo,
+            file=archivo_bytes,
+            file_options={
+                "content-type": firma.content_type,
+                "upsert": "true"
+            }
+        )
 
-        presidente.firma_digital = f"firmas/{nombre_archivo}"
+        firma_url = supabase_storage.storage.from_("firmas").get_public_url(nombre_archivo)
+
+        presidente.firma_digital = firma_url
         presidente.save()
 
         messages.success(request, "Firma digital subida correctamente.")
@@ -751,7 +762,6 @@ def panel_superadmin_view(request):
         "total_vecinos": total_vecinos,
     })
 
-
 def listar_juntas_view(request):
     if not es_superadmin(request):
         return redirect("login")
@@ -761,7 +771,6 @@ def listar_juntas_view(request):
     return render(request, "superadmin/juntas/listar.html", {
         "juntas": juntas
     })
-
 
 def crear_junta_view(request):
     if not es_superadmin(request):
@@ -791,7 +800,6 @@ def crear_junta_view(request):
         "sectores": sectores
     })
 
-
 def editar_junta_view(request, id_junta):
     if not es_superadmin(request):
         return redirect("login")
@@ -816,7 +824,6 @@ def editar_junta_view(request, id_junta):
         "sectores": sectores
     })
 
-
 def eliminar_junta_view(request, id_junta):
     if not es_superadmin(request):
         return redirect("login")
@@ -831,7 +838,6 @@ def eliminar_junta_view(request, id_junta):
     return render(request, "superadmin/juntas/eliminar.html", {
         "junta": junta
     })
-
 
 def vecinos_junta_view(request, id_junta):
     if request.session.get("rol") != "Superadmin":
@@ -861,7 +867,6 @@ def vecinos_junta_view(request, id_junta):
         "junta": junta,
         "vecinos_data": vecinos_data
     })
-
 
 def asignar_vecino_junta_view(request, id_junta):
     if request.session.get("rol") != "Superadmin":
@@ -936,8 +941,7 @@ def asignar_vecino_junta_view(request, id_junta):
         "junta": junta,
         "vecinos": vecinos
     })
-    
-        
+      
 def editar_vecino_junta_view(request, id_junta, id_vecino):
     if request.session.get("rol") != "Superadmin":
         return redirect("login")

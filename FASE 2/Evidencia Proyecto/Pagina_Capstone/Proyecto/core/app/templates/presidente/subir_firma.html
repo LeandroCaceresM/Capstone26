@@ -8,7 +8,7 @@
 
 {% if presidente.firma_digital %}
     <p>Firma actual:</p>
-    <img src="/media/{{ presidente.firma_digital }}" width="200">
+    <img src="{{ presidente.firma_digital }}" width="200">
 {% endif %}
 
 <form method="POST" enctype="multipart/form-data">
