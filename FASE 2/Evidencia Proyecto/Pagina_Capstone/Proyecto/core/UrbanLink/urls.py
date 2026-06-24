@@ -2,6 +2,9 @@ from django.contrib import admin
 from django.urls import include, path
 from app import views
 
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
     #Vista para admin.
     path("admin/", admin.site.urls),
@@ -22,12 +25,16 @@ urlpatterns = [
     path("panel-vecino/", views.panel_vecino_view, name="panel_vecino"),
     path("vecino/solicitudes/crear/", views.crear_solicitud_view, name="crear_solicitud"),
     path("vecino/solicitudes/", views.mis_solicitudes_view, name="mis_solicitudes"),
+    path("vecino/certificado/", views.generar_certificado_view, name="generar_certificado"),
+
 
     #Vistas de PRESIDENTE
     path("panel-presidente/", views.panel_presidente_view, name="panel_presidente"),
     path("presidente/solicitudes/", views.solicitudes_presidente_view, name="solicitudes_presidente"),
     path("presidente/solicitudes/<uuid:id_solicitud>/cerrar/", views.cerrar_solicitud_view, name="cerrar_solicitud"),
-    
+    path("presidente/firma/", views.subir_firma_view, name="subir_firma"),
+
+
     #Vistas de SUPERADMIN
     path("panel-superadmin/", views.panel_superadmin_view, name="panel_superadmin"),
 
@@ -65,3 +72,4 @@ urlpatterns = [
     ]
 
 
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

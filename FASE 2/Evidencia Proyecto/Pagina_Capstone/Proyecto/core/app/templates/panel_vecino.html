@@ -14,8 +14,7 @@
     <ul>
         <li><a href="{% url 'mis_solicitudes' %}">Mis solicitudes</a></li>
         <li><a href="{% url 'vecinos_mi_junta' %}">Vecinos de la junta</a></li>
-        <li>Descargar certificado de residencia</li>
-    </ul>
+        <li><a href="{% url 'generar_certificado' %}">Descargar certificado de residencia</a></li>    </ul>
 {% endif %}
 
 <a href="{% url 'logout' %}">Cerrar sesión</a>

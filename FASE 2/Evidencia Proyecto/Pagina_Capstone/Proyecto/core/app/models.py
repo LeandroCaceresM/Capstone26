@@ -179,6 +179,7 @@ class Vecino(models.Model):
     fecha_de_nacimiento = models.DateField()
     vigencia = models.CharField(max_length=1)
     fecha_registro = models.DateTimeField()
+    firma_digital = models.CharField(max_length=255, blank=True, null=True)
     id_rol = models.ForeignKey(Rol, models.DO_NOTHING, db_column='id_rol')
 
     class Meta:

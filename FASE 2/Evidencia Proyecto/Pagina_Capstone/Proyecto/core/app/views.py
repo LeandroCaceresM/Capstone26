@@ -1,12 +1,20 @@
 import uuid
+import os
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
+from django.conf import settings
+from django.http import FileResponse
+
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.utils import ImageReader
 
 from .models import *
 from .supabase_client import supabase
+
 
 
 #VISTAS GENERALES 
@@ -117,6 +125,7 @@ def logout_view(request):
     return redirect("login")
 
     #RECUPERAR / CAMBIAR CONTRASEÑA
+
 def recuperar_contrasenia(request):
     return render(request, "recuperar_contrasenia.html")
 
@@ -134,7 +143,6 @@ def enviar_recuperacion(request):
             "Revisa tu correo para cambiar la contraseña."
         )
     return redirect("recuperar_contrasenia")
-
 
 def cambiar_contrasenia(request):
     access_token = request.GET.get("access_token")
@@ -175,6 +183,154 @@ def cambiar_contrasenia(request):
         request,
         "cambiar_contrasenia.html"
     )
+
+@never_cache
+def generar_certificado_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+
+    residencia = HistVivienda.objects.filter(
+        id_vecino=vecino,
+        fecha_ter__isnull=True
+    ).select_related("id_vivienda__id_junta").first()
+
+    if not residencia:
+        messages.error(request, "Debe pertenecer a una junta para generar el certificado.")
+        return redirect("panel_vecino")
+
+    junta = residencia.id_vivienda.id_junta
+    vivienda = residencia.id_vivienda
+
+    presidente_cargo = HistCargo.objects.filter(
+        id_directiva__id_junta=junta,
+        id_cargo__nombre_cargo__iexact="Presidente",
+        fecha_cargo_fin_real__isnull=True
+    ).select_related("id_vecino").first()
+
+    if not presidente_cargo:
+        messages.error(request, "La junta aún no tiene presidente asignado.")
+        return redirect("panel_vecino")
+
+    presidente = presidente_cargo.id_vecino
+
+    if not presidente.firma_digital:
+        messages.error(request, "El presidente aún no ha subido su firma digital.")
+        return redirect("panel_vecino")
+
+    carpeta_certificados = os.path.join(settings.MEDIA_ROOT, "certificados")
+    os.makedirs(carpeta_certificados, exist_ok=True)
+
+    nombre_pdf = f"certificado_{vecino.id_vecino}.pdf"
+    ruta_pdf = os.path.join(carpeta_certificados, nombre_pdf)
+
+    c = canvas.Canvas(ruta_pdf, pagesize=letter)
+    width, height = letter
+
+    # Márgenes
+    x_left = 80
+    y = height - 70
+
+    # Encabezado
+    c.setFont("Helvetica-BoldOblique", 12)
+    c.drawCentredString(width / 2, y, f"JUNTA DE VECINOS {junta.nombre.upper()}")
+    y -= 20
+    c.drawCentredString(width / 2, y, "URBANLINK")
+
+    # Título
+    y -= 70
+    c.setFont("Helvetica-BoldOblique", 14)
+    c.drawCentredString(width / 2, y, "CERTIFICADO DE RESIDENCIA")
+    c.line(width / 2 - 105, y - 3, width / 2 + 105, y - 3)
+
+    # Cuerpo
+    y -= 60
+    c.setFont("Helvetica-Oblique", 12)
+
+    lineas = [
+        f"Quien suscribe, presidente de la Junta de Vecinos {junta.nombre},",
+        "certifica mediante el presente documento que:",
+    ]
+
+    for linea in lineas:
+        c.drawString(x_left, y, linea)
+        y -= 28
+
+    # Datos vecino
+    c.setFont("Helvetica-BoldOblique", 12)
+    c.drawString(x_left, y, "Don(a):")
+    c.setFont("Helvetica-Oblique", 12)
+    c.drawString(x_left + 70, y, f"{vecino.pri_nombre} {vecino.apell_paterno} {vecino.apell_materno}")
+    y -= 28
+
+    c.setFont("Helvetica-BoldOblique", 12)
+    c.drawString(x_left, y, "RUT Nº:")
+    c.setFont("Helvetica-Oblique", 12)
+    c.drawString(x_left + 70, y, str(vecino.rut))
+    y -= 28
+
+    direccion = f"{vivienda.nombre_calle} {vivienda.numero_calle}"
+    if vivienda.num_block:
+        direccion += f", Block {vivienda.num_block}"
+    if vivienda.num_dpto:
+        direccion += f", Dpto {vivienda.num_dpto}"
+
+    c.drawString(x_left, y, f"Tiene su domicilio en {direccion},")
+    y -= 28
+    c.drawString(x_left, y, f"perteneciente a la junta de vecinos {junta.nombre}.")
+    y -= 50
+
+    # Texto final
+    c.setFont("Helvetica-Oblique", 12)
+    c.drawString(x_left, y, "Se extiende el presente certificado a petición del interesado(a),")
+    y -= 25
+    c.drawString(x_left, y, "para los fines que estime pertinente.")
+
+    # Firma
+    y -= 110
+    ruta_firma = os.path.join(settings.MEDIA_ROOT, presidente.firma_digital)
+
+    if os.path.exists(ruta_firma):
+        c.drawImage(
+            ImageReader(ruta_firma),
+            width / 2 - 90,
+            y,
+            width=180,
+            height=70,
+            preserveAspectRatio=True,
+            mask="auto"
+        )
+
+    y -= 25
+    c.setFont("Helvetica-BoldOblique", 11)
+    c.drawCentredString(
+        width / 2,
+        y,
+        f"PRESIDENTE JJ.VV. {junta.nombre.upper()}"
+    )
+    y -= 18
+    c.drawCentredString(
+        width / 2,
+        y,
+        f"{presidente.pri_nombre.upper()} {presidente.apell_paterno.upper()} {presidente.apell_materno.upper()}"
+    )
+
+    # Fecha inferior
+    c.setFont("Helvetica-Oblique", 11)
+    fecha_actual = timezone.localtime(timezone.now()).strftime("%d/%m/%Y")
+    c.drawCentredString(width / 2, 70, f"Emitido con fecha {fecha_actual}")
+
+    c.save()
+
+    CertificadoDeResidencia.objects.create(
+        id_certificado=uuid.uuid4(),
+        fecha_emision=timezone.now(),
+        id_vecino=vecino,
+        id_vecino2=presidente
+    )
+
+    return FileResponse(open(ruta_pdf, "rb"), as_attachment=True, filename="certificado_residencia.pdf")
 
 #VISTAS GENERALES (SERVICIOS)
 
@@ -535,6 +691,44 @@ def cerrar_solicitud_view(request, id_solicitud):
         "solicitud": solicitud
     })
     
+
+@never_cache
+def subir_firma_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    if request.session.get("rol") != "Admin":
+        messages.error(request, "No tienes permiso para subir firma.")
+        return redirect("login")
+
+    presidente = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+
+    if request.method == "POST":
+        firma = request.FILES.get("firma")
+
+        if not firma:
+            messages.error(request, "Debe seleccionar una imagen.")
+            return redirect("subir_firma")
+
+        carpeta_firmas = os.path.join(settings.MEDIA_ROOT, "firmas")
+        os.makedirs(carpeta_firmas, exist_ok=True)
+
+        nombre_archivo = f"firma_{presidente.id_vecino}.png"
+        ruta_archivo = os.path.join(carpeta_firmas, nombre_archivo)
+
+        with open(ruta_archivo, "wb+") as destino:
+            for chunk in firma.chunks():
+                destino.write(chunk)
+
+        presidente.firma_digital = f"firmas/{nombre_archivo}"
+        presidente.save()
+
+        messages.success(request, "Firma digital subida correctamente.")
+        return redirect("panel_presidente")
+
+    return render(request, "presidente/subir_firma.html", {
+        "presidente": presidente
+    })
 
 #Views del SUPERADMIN
 def es_superadmin(request):
