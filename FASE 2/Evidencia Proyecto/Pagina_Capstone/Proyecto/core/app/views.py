@@ -386,15 +386,27 @@ def solicitudes_presidente_view(request):
 
     junta = residencia_presidente.id_vivienda.id_junta
 
-    filtro_estado = request.GET.get("estado", "EN PROCESO")
+    filtro_estado = request.GET.get("estado", "Todas")
+    filtro_vecino = request.GET.get("vecino", "Todos")
+
+    registros_vecinos = HistVivienda.objects.filter(
+        id_vivienda__id_junta=junta,
+        fecha_ter__isnull=True
+    ).select_related("id_vecino")
+
+    vecinos_junta = [registro.id_vecino for registro in registros_vecinos]
+
+    ids_vecinos_junta = [vecino.id_vecino for vecino in vecinos_junta]
 
     solicitudes = Solicitud.objects.filter(
-        id_vecino__histvivienda__id_vivienda__id_junta=junta,
-        id_vecino__histvivienda__fecha_ter__isnull=True
-    ).select_related("id_vecino", "id_tsolicitud").distinct().order_by("-fecha_solicitud")
+        id_vecino__id_vecino__in=ids_vecinos_junta
+    ).select_related("id_vecino", "id_tsolicitud").order_by("-fecha_solicitud")
 
     if filtro_estado != "Todas":
         solicitudes = solicitudes.filter(estado=filtro_estado)
+
+    if filtro_vecino != "Todos":
+        solicitudes = solicitudes.filter(id_vecino__id_vecino=filtro_vecino)
 
     solicitudes_data = []
 
@@ -412,7 +424,9 @@ def solicitudes_presidente_view(request):
     return render(request, "presidente/solicitudes.html", {
         "junta": junta,
         "solicitudes_data": solicitudes_data,
-        "filtro_estado": filtro_estado
+        "filtro_estado": filtro_estado,
+        "filtro_vecino": filtro_vecino,
+        "vecinos_junta": vecinos_junta,
     })
 
 @never_cache
