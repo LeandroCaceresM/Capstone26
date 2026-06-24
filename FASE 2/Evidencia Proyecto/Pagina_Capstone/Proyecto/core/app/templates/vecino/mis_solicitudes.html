@@ -1,0 +1,32 @@
+<h1>Mis solicitudes</h1>
+
+{% if solicitudes_data %}
+    {% for item in solicitudes_data %}
+        <div style="border:1px solid #ccc; padding:15px; margin-bottom:15px;">
+            <p><strong>Tipo solicitud:</strong> {{ item.solicitud.id_tsolicitud.tipo_solicitud }}</p>
+            <p><strong>Descripción:</strong> {{ item.solicitud.comentario }}</p>
+            <p><strong>Emitido:</strong> {{ item.solicitud.fecha_solicitud }}</p>
+
+            <p>
+                <strong>Resuelto:</strong>
+                {% if item.fecha_resuelta %}
+                    {{ item.fecha_resuelta }}
+                {% else %}
+                    -
+                {% endif %}
+            </p>
+
+            <p><strong>Estado:</strong> {{ item.solicitud.estado }}</p>
+
+            {% if item.solicitud.estado != "En Proceso" %}
+                <p><strong>Comentario Presidente:</strong> {{ item.solicitud.comentario }}</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+{% else %}
+    <p>No tienes solicitudes registradas.</p>
+{% endif %}
+
+<a href="{% url 'crear_solicitud' %}">+ Crear nueva solicitud</a>
+<br><br>
+<a href="{% url 'panel_vecino' %}">Volver</a>

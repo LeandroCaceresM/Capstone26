@@ -1,0 +1,26 @@
+<h1>Solicitudes pendientes - {{ junta.nombre }}</h1>
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+{% if solicitudes %}
+    {% for solicitud in solicitudes %}
+        <div style="border:1px solid #ccc; padding:15px; margin-bottom:15px;">
+            <p><strong>Vecino:</strong> {{ solicitud.id_vecino.pri_nombre }} {{ solicitud.id_vecino.apell_paterno }}</p>
+            <p><strong>Tipo solicitud:</strong> {{ solicitud.id_tsolicitud.tipo_solicitud }}</p>
+            <p><strong>Descripción:</strong> {{ solicitud.comentario }}</p>
+            <p><strong>Emitido:</strong> {{ solicitud.fecha_solicitud }}</p>
+
+            <a href="{% url 'cerrar_solicitud' solicitud.id_solicitud %}">
+                Revisar / Cerrar solicitud
+            </a>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>No hay solicitudes pendientes actualmente.</p>
+{% endif %}
+
+<a href="{% url 'panel_presidente' %}">Volver</a>

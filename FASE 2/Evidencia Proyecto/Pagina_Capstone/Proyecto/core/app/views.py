@@ -195,8 +195,55 @@ def mis_datos_view(request):
         "vecino": vecino
     })
 
+@never_cache
+def crear_solicitud_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
 
-#
+    vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+
+    residencia_activa = HistVivienda.objects.filter(
+        id_vecino=vecino,
+        fecha_ter__isnull=True
+    ).first()
+
+    if not residencia_activa:
+        messages.error(request, "Debe unirse a una junta para poder crear solicitudes.")
+        return redirect("panel_vecino")
+
+    tipos = Tiposolicitud.objects.all()
+
+    if request.method == "POST":
+        id_tsolicitud = request.POST.get("id_tsolicitud")
+        descripcion = request.POST.get("descripcion")
+
+        tipo = get_object_or_404(Tiposolicitud, id_tsolicitud=id_tsolicitud)
+
+        solicitud = Solicitud.objects.create(
+            id_solicitud=uuid.uuid4(),
+            fecha_solicitud=timezone.now(),
+            estado="En Proceso",
+            comentario=descripcion,
+            id_vecino=vecino,
+            id_tsolicitud=tipo
+        )
+
+        estado_en_proceso = EstadoSolicitud.objects.get(nomb_est_sol="En Proceso")
+
+        HistEstSol.objects.create(
+            id_solicitud=solicitud,
+            id_est=estado_en_proceso,
+            fecha_cb_estado=timezone.now()
+        )
+
+        messages.success(request, "Solicitud enviada correctamente.")
+        return redirect("mis_solicitudes")
+
+    return render(request, "vecino/crear_solicitud.html", {
+        "tipos": tipos
+    })
+
+#VISTA DE VECINO (USUARIO)
 @never_cache
 def panel_vecino_view(request):
     if not request.session.get("vecino_id"):
@@ -219,6 +266,35 @@ def panel_vecino_view(request):
     })
 
 @never_cache
+def mis_solicitudes_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+
+    solicitudes = Solicitud.objects.filter(
+        id_vecino=vecino
+    ).select_related("id_tsolicitud").order_by("-fecha_solicitud")
+
+    solicitudes_data = []
+
+    for solicitud in solicitudes:
+        hist_cierre = HistEstSol.objects.filter(
+            id_solicitud=solicitud,
+            id_est__nomb_est_sol__in=["Aprobada", "Rechazada"]
+        ).order_by("-fecha_cb_estado").first()
+
+        solicitudes_data.append({
+            "solicitud": solicitud,
+            "fecha_resuelta": hist_cierre.fecha_cb_estado if hist_cierre else None
+        })
+
+    return render(request, "vecino/mis_solicitudes.html", {
+        "solicitudes_data": solicitudes_data
+    })
+
+#VISTA DEL PRESIDENTE (ADMIN)
+@never_cache
 def panel_presidente_view(request):
     if not request.session.get("vecino_id"):
         return redirect("login")
@@ -229,6 +305,82 @@ def panel_presidente_view(request):
 
     return render(request, "panel_presidente.html")
 
+@never_cache
+def solicitudes_presidente_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    if request.session.get("rol") != "Admin":
+        messages.error(request, "No tienes permiso para entrar a esta sección.")
+        return redirect("login")
+
+    presidente = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+
+    residencia_presidente = HistVivienda.objects.filter(
+        id_vecino=presidente,
+        fecha_ter__isnull=True
+    ).select_related("id_vivienda__id_junta").first()
+
+    if not residencia_presidente:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia_presidente.id_vivienda.id_junta
+
+    solicitudes = Solicitud.objects.filter(
+        id_vecino__histvivienda__id_vivienda__id_junta=junta,
+        id_vecino__histvivienda__fecha_ter__isnull=True,
+        estado="En Proceso"
+    ).select_related("id_vecino", "id_tsolicitud").distinct().order_by("-fecha_solicitud")
+
+    return render(request, "presidente/solicitudes.html", {
+        "junta": junta,
+        "solicitudes": solicitudes
+    })
+    
+@never_cache
+def cerrar_solicitud_view(request, id_solicitud):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    if request.session.get("rol") != "Admin":
+        messages.error(request, "No tienes permiso para realizar esta acción.")
+        return redirect("login")
+
+    solicitud = get_object_or_404(Solicitud, id_solicitud=id_solicitud)
+
+    if request.method == "POST":
+        accion = request.POST.get("accion")
+        comentario_presidente = request.POST.get("comentario_presidente")
+
+        if accion == "aprobar":
+            nuevo_estado = "Aprobada"
+        elif accion == "rechazar":
+            nuevo_estado = "Rechazada"
+        else:
+            messages.error(request, "Acción no válida.")
+            return redirect("solicitudes_presidente")
+
+        solicitud.estado = nuevo_estado
+        solicitud.comentario = comentario_presidente
+        solicitud.save()
+
+        estado_obj = EstadoSolicitud.objects.get(nomb_est_sol=nuevo_estado)
+
+        HistEstSol.objects.create(
+            id_solicitud=solicitud,
+            id_est=estado_obj,
+            fecha_cb_estado=timezone.now()
+        )
+
+        messages.success(request, "Solicitud cerrada correctamente.")
+        return redirect("solicitudes_presidente")
+
+    return render(request, "presidente/cerrar_solicitud.html", {
+        "solicitud": solicitud
+    })
+    
+    
 #Views del SUPERADMIN
 def es_superadmin(request):
     return request.session.get("rol") == "Superadmin"
