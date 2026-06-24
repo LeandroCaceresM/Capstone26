@@ -1,32 +1,34 @@
 <h1>Mis solicitudes</h1>
 
+<a href="{% url 'panel_vecino' %}">Volver al panel</a>
+<br><br>
+
+<a href="{% url 'crear_solicitud' %}">+ Crear nueva solicitud</a>
+
+<br><br>
+
 {% if messages %}
     {% for message in messages %}
         <p>{{ message }}</p>
     {% endfor %}
 {% endif %}
 
-<a href="{% url 'crear_solicitud' %}">+ Crear nueva solicitud</a>
+<div style="max-height: 650px; overflow-y: auto; border: 1px solid #ccc; padding: 15px;">
+    {% if solicitudes_data %}
+        {% for item in solicitudes_data %}
+            <div style="border:1px solid #ccc; padding:15px; margin-bottom:15px;">
+                <p><strong>Tipo solicitud:</strong> {{ item.solicitud.id_tsolicitud.tipo_solicitud }}</p>
+                <p><strong>Descripción:</strong> {{ item.solicitud.descripcion }}</p>
+                <p><strong>Emitido:</strong> {{ item.solicitud.fecha_solicitud }}</p>
+                <p><strong>Estado:</strong> {{ item.solicitud.estado }}</p>
 
-<br><br>
-
-{% if solicitudes_data %}
-    {% for item in solicitudes_data %}
-        <div style="border:1px solid #ccc; padding:15px; margin-bottom:15px;">
-            <p><strong>Tipo solicitud:</strong> {{ item.solicitud.id_tsolicitud.tipo_solicitud }}</p>
-            <p><strong>Descripción:</strong> {{ item.solicitud.descripcion }}</p>
-            <p><strong>Emitido:</strong> {{ item.solicitud.fecha_solicitud }}</p>
-
-            <p><strong>Estado:</strong> {{ item.solicitud.estado }}</p>
-
-            {% if item.solicitud.estado != "EN PROCESO" %}
-                <p><strong>Resuelto:</strong> {{ item.fecha_resuelta }}</p>
-                <p><strong>Comentario presidente:</strong> {{ item.solicitud.comentario_presidente }}</p>
-            {% endif %}
-        </div>
-    {% endfor %}
-{% else %}
-    <p>No tienes solicitudes registradas.</p>
-{% endif %}
-
-<a href="{% url 'panel_vecino' %}">Volver al panel</a>
+                {% if item.solicitud.estado != "EN PROCESO" %}
+                    <p><strong>Resuelto:</strong> {{ item.fecha_resuelta }}</p>
+                    <p><strong>Comentario presidente:</strong> {{ item.solicitud.comentario_presidente }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No tienes solicitudes registradas.</p>
+    {% endif %}
+</div>
