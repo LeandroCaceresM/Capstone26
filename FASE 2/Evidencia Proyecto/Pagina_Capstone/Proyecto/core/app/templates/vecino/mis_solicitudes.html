@@ -19,11 +19,11 @@
             <div style="border:1px solid #ccc; padding:15px; margin-bottom:15px;">
                 <p><strong>Tipo solicitud:</strong> {{ item.solicitud.id_tsolicitud.tipo_solicitud }}</p>
                 <p><strong>Descripción:</strong> {{ item.solicitud.descripcion }}</p>
-                <p><strong>Emitido:</strong> {{ item.solicitud.fecha_solicitud }}</p>
+                <p><strong>Emitido:</strong> {{ item.solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</p>
                 <p><strong>Estado:</strong> {{ item.solicitud.estado }}</p>
 
                 {% if item.solicitud.estado != "EN PROCESO" %}
-                    <p><strong>Resuelto:</strong> {{ item.fecha_resuelta }}</p>
+                    <p><strong>Resuelto:</strong> {{ item.fecha_resuelta|date:"d/m/Y H:i" }}</p>
                     <p><strong>Comentario presidente:</strong> {{ item.solicitud.comentario_presidente }}</p>
                 {% endif %}
             </div>
