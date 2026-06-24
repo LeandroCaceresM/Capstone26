@@ -9,10 +9,11 @@
 {% if not residencia_activa %}
     <p>Debe unirse a una junta para poder comenzar usar UrbanLink.</p>
 {% else %}
-    <h2>Servicios disponibles</h2>
+    <h2>Servicios</h2>
 
     <ul>
         <li><a href="{% url 'mis_solicitudes' %}">Mis solicitudes</a></li>
+        <li><a href="{% url 'vecinos_mi_junta' %}">Vecinos de la junta</a></li>
         <li>Descargar certificado de residencia</li>
     </ul>
 {% endif %}

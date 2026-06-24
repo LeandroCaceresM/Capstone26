@@ -10,6 +10,15 @@
 <p><strong>RUT:</strong> {{ vecino.rut }}</p>
 <p><strong>Correo:</strong> {{ vecino.correo|default:"Sin correo registrado" }}</p>
 
+<p>
+    <strong>Cargo actual:</strong>
+    {% if cargo_actual %}
+        {{ cargo_actual.id_cargo.nombre_cargo }}
+    {% else %}
+        Vecino
+    {% endif %}
+</p>
+
 <form method="POST">
     {% csrf_token %}
 

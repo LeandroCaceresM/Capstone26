@@ -3,7 +3,14 @@ _<h1>Panel Presidente de Junta</h1>
 <p>Bienvenido, {{ request.session.nombre }}</p>
 
 <ul>
+    <li><a href="{% url 'mis_datos' %}">Mis datos</a></li>
+</ul>
+
+<h2>Servicios disponibles</h2>
+
+<ul>
     <li><a href="{% url 'solicitudes_presidente' %}">Solicitudes</a></li>
+    <li><a href="{% url 'vecinos_mi_junta' %}">Vecinos de la junta</a></li>
     <li>Subir firma digital</li>
     <li>Gestionar certificados</li>
 </ul>

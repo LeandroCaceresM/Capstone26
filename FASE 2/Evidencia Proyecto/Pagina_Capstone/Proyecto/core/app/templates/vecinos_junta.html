@@ -1,0 +1,39 @@
+<h1>Vecinos de la junta</h1>
+
+<p><strong>Junta:</strong> {{ junta.nombre }}</p>
+
+{% if rol == "Admin" %}
+    <a href="{% url 'panel_presidente' %}">Volver al panel</a>
+{% else %}
+    <a href="{% url 'panel_vecino' %}">Volver al panel</a>
+{% endif %}
+
+<br><br>
+
+{% if vecinos_data %}
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Nombre</th>
+            <th>RUT</th>
+            <th>Correo</th>
+            <th>Teléfono</th>
+            <th>Cargo</th>
+        </tr>
+
+        {% for item in vecinos_data %}
+            <tr>
+                <td>
+                    {{ item.vecino.pri_nombre }}
+                    {{ item.vecino.apell_paterno }}
+                    {{ item.vecino.apell_materno }}
+                </td>
+                <td>{{ item.vecino.rut }}</td>
+                <td>{{ item.vecino.correo }}</td>
+                <td>{{ item.vecino.telefono }}</td>
+                <td>{{ item.cargo }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No hay vecinos registrados actualmente en esta junta.</p>
+{% endif %}

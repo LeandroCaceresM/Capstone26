@@ -9,7 +9,7 @@ from .models import *
 from .supabase_client import supabase
 
 
-# Views para usuarios
+#VISTAS GENERALES 
 def registro_view(request):
     if request.method == "POST":
         correo = request.POST.get("correo")
@@ -61,7 +61,6 @@ def registro_view(request):
             return redirect("registro")
 
     return render(request, "registro.html")
-
 
 def login_view(request):
     if request.method == "POST":
@@ -117,7 +116,7 @@ def logout_view(request):
     messages.success(request, "Sesión cerrada correctamente.")
     return redirect("login")
 
-#RECUPERAR / CAMBIAR CONTRASEÑA
+    #RECUPERAR / CAMBIAR CONTRASEÑA
 def recuperar_contrasenia(request):
     return render(request, "recuperar_contrasenia.html")
 
@@ -177,12 +176,19 @@ def cambiar_contrasenia(request):
         "cambiar_contrasenia.html"
     )
 
+#VISTAS GENERALES (SERVICIOS)
+
 @never_cache
 def mis_datos_view(request):
     if not request.session.get("vecino_id"):
         return redirect("login")
 
     vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+
+    cargo_actual = HistCargo.objects.filter(
+        id_vecino=vecino,
+        fecha_cargo_fin_real__isnull=True
+    ).select_related("id_cargo").first()
 
     if request.method == "POST":
         vecino.telefono = request.POST.get("telefono")
@@ -192,7 +198,8 @@ def mis_datos_view(request):
         return redirect("mis_datos")
 
     return render(request, "mis_datos.html", {
-        "vecino": vecino
+        "vecino": vecino,
+        "cargo_actual": cargo_actual
     })
 
 @never_cache
@@ -241,6 +248,57 @@ def crear_solicitud_view(request):
 
     return render(request, "vecino/crear_solicitud.html", {
         "tipos": tipos
+    })
+
+@never_cache
+def vecinos_mi_junta_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    if request.session.get("rol") not in ["Usuario", "Admin"]:
+        messages.error(request, "No tienes permiso para ver esta sección.")
+        return redirect("login")
+
+    vecino_actual = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia_activa = HistVivienda.objects.filter(
+        id_vecino=vecino_actual,
+        fecha_ter__isnull=True
+    ).select_related("id_vivienda__id_junta").first()
+
+    if not residencia_activa:
+        messages.error(request, "Debe pertenecer a una junta para ver los vecinos.")
+        if request.session.get("rol") == "Admin":
+            return redirect("panel_presidente")
+        return redirect("panel_vecino")
+
+    junta = residencia_activa.id_vivienda.id_junta
+
+    registros = HistVivienda.objects.filter(
+        id_vivienda__id_junta=junta,
+        fecha_ter__isnull=True
+    ).select_related("id_vecino", "id_vivienda")
+
+    vecinos_data = []
+
+    for registro in registros:
+        cargo_actual = HistCargo.objects.filter(
+            id_vecino=registro.id_vecino,
+            fecha_cargo_fin_real__isnull=True
+        ).select_related("id_cargo").first()
+
+        vecinos_data.append({
+            "vecino": registro.id_vecino,
+            "cargo": cargo_actual.id_cargo.nombre_cargo if cargo_actual else "Vecino"
+        })
+
+    return render(request, "vecinos_junta.html", {
+        "junta": junta,
+        "vecinos_data": vecinos_data,
+        "rol": request.session.get("rol")
     })
 
 
@@ -351,6 +409,8 @@ def crear_solicitud_view(request):
     return render(request, "vecino/crear_solicitud.html", {
         "tipos": tipos
     })
+
+
 
 #VISTA DEL PRESIDENTE (ADMIN)
 @never_cache
@@ -474,6 +534,7 @@ def cerrar_solicitud_view(request, id_solicitud):
     return render(request, "presidente/cerrar_solicitud.html", {
         "solicitud": solicitud
     })
+    
 
 #Views del SUPERADMIN
 def es_superadmin(request):

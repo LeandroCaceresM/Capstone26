@@ -5,29 +5,28 @@ from app import views
 urlpatterns = [
     #Vista para admin.
     path("admin/", admin.site.urls),
-    #Vista Usuarios
+    #Vista para todos los Usuarios
     path('', views.login_view, name='login'),
     path('login/', views.login_view, name='login'),
     path('registro/', views.registro_view, name='registro'),
     path('logout/', views.logout_view, name='logout'),
     path("mis-datos/", views.mis_datos_view, name="mis_datos"),
+    path("mi-junta/vecinos/", views.vecinos_mi_junta_view, name="vecinos_mi_junta"),
     
     #Vistas de recuperación de contraseña
     path('recuperar_contrasenia/', views.recuperar_contrasenia, name='recuperar_contrasenia'),
     path('cambiar_contrasenia/', views.cambiar_contrasenia, name='cambiar_contrasenia'),
     path('enviar_recuperacion/', views.enviar_recuperacion, name='enviar_recuperacion'),
     
-    #Vistas de USUARIO
+    #Vistas de VECINO
     path("panel-vecino/", views.panel_vecino_view, name="panel_vecino"),
     path("vecino/solicitudes/crear/", views.crear_solicitud_view, name="crear_solicitud"),
     path("vecino/solicitudes/", views.mis_solicitudes_view, name="mis_solicitudes"),
 
-
-    #Vistas de ADMIN
+    #Vistas de PRESIDENTE
     path("panel-presidente/", views.panel_presidente_view, name="panel_presidente"),
     path("presidente/solicitudes/", views.solicitudes_presidente_view, name="solicitudes_presidente"),
     path("presidente/solicitudes/<uuid:id_solicitud>/cerrar/", views.cerrar_solicitud_view, name="cerrar_solicitud"),
-
     
     #Vistas de SUPERADMIN
     path("panel-superadmin/", views.panel_superadmin_view, name="panel_superadmin"),
