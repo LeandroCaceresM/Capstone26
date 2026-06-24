@@ -1,4 +1,4 @@
-<h1>Solicitudes pendientes - {{ junta.nombre }}</h1>
+<h1>Solicitudes - {{ junta.nombre }}</h1>
 
 {% if messages %}
     {% for message in messages %}
@@ -6,21 +6,58 @@
     {% endfor %}
 {% endif %}
 
-{% if solicitudes %}
-    {% for solicitud in solicitudes %}
-        <div style="border:1px solid #ccc; padding:15px; margin-bottom:15px;">
-            <p><strong>Vecino:</strong> {{ solicitud.id_vecino.pri_nombre }} {{ solicitud.id_vecino.apell_paterno }}</p>
-            <p><strong>Tipo solicitud:</strong> {{ solicitud.id_tsolicitud.tipo_solicitud }}</p>
-            <p><strong>Descripción:</strong> {{ solicitud.comentario }}</p>
-            <p><strong>Emitido:</strong> {{ solicitud.fecha_solicitud }}</p>
+<form method="GET">
+    <label>Filtrar por estado:</label>
+    <select name="estado">
+        <option value="EN PROCESO" {% if filtro_estado == "EN PROCESO" %}selected{% endif %}>En Proceso</option>
+        <option value="APROBADO" {% if filtro_estado == "APROBADO" %}selected{% endif %}>Aprobada</option>
+        <option value="RECHAZADO" {% if filtro_estado == "RECHAZADO" %}selected{% endif %}>Rechazada</option>
+        <option value="Todas" {% if filtro_estado == "Todas" %}selected{% endif %}>Todas</option>
+    </select>
 
-            <a href="{% url 'cerrar_solicitud' solicitud.id_solicitud %}">
-                Revisar / Cerrar solicitud
-            </a>
+    <button type="submit">Filtrar</button>
+</form>
+
+<br>
+
+{% if solicitudes_data %}
+    {% for item in solicitudes_data %}
+        <div style="border:1px solid #ccc; padding:15px; margin-bottom:15px;">
+            <p>
+                <strong>Vecino:</strong>
+                {{ item.solicitud.id_vecino.pri_nombre }}
+                {{ item.solicitud.id_vecino.apell_paterno }}
+                {{ item.solicitud.id_vecino.apell_materno }}
+            </p>
+
+            <p><strong>Tipo solicitud:</strong> {{ item.solicitud.id_tsolicitud.tipo_solicitud }}</p>
+            <p><strong>Descripción:</strong> {{ item.solicitud.descripcion }}</p>
+            <p><strong>Emitido:</strong> {{ item.solicitud.fecha_solicitud }}</p>
+
+            <p>
+                <strong>Resuelto:</strong>
+                {% if item.fecha_resuelta %}
+                    {{ item.fecha_resuelta }}
+                {% else %}
+                    -
+                {% endif %}
+            </p>
+
+            <p><strong>Estado:</strong> {{ item.solicitud.estado }}</p>
+
+            {% if item.solicitud.estado != "EN PROCESO" %}
+                <p><strong>Comentario presidente:</strong> {{ item.solicitud.comentario_presidente }}</p>
+            {% endif %}
+
+            {% if item.solicitud.estado == "EN PROCESO" %}
+                <a href="{% url 'cerrar_solicitud' item.solicitud.id_solicitud %}">
+                    Revisar / Cerrar solicitud
+                </a>
+            {% endif %}
         </div>
     {% endfor %}
 {% else %}
-    <p>No hay solicitudes pendientes actualmente.</p>
+    <p>No hay solicitudes para este filtro.</p>
 {% endif %}
 
-<a href="{% url 'panel_presidente' %}">Volver</a>
+<a href="{% url 'panel_presidente' %}">Volver al panel</a>

@@ -22,6 +22,7 @@ urlpatterns = [
     path("vecino/solicitudes/crear/", views.crear_solicitud_view, name="crear_solicitud"),
     path("vecino/solicitudes/", views.mis_solicitudes_view, name="mis_solicitudes"),
 
+
     #Vistas de ADMIN
     path("panel-presidente/", views.panel_presidente_view, name="panel_presidente"),
     path("presidente/solicitudes/", views.solicitudes_presidente_view, name="solicitudes_presidente"),

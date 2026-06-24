@@ -3,8 +3,7 @@ _<h1>Panel Presidente de Junta</h1>
 <p>Bienvenido, {{ request.session.nombre }}</p>
 
 <ul>
-    <li>Aprobar solicitudes</li>
-    <li>Rechazar solicitudes</li>
+    <li><a href="{% url 'solicitudes_presidente' %}">Solicitudes</a></li>
     <li>Subir firma digital</li>
     <li>Gestionar certificados</li>
 </ul>

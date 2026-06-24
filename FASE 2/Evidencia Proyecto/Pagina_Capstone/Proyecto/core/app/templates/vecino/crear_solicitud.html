@@ -11,7 +11,7 @@
 
     <label>Tipo de solicitud</label><br>
     <select name="id_tsolicitud" required>
-        <option value="">Seleccione</option>
+        <option value="">Seleccione un tipo</option>
         {% for tipo in tipos %}
             <option value="{{ tipo.id_tsolicitud }}">
                 {{ tipo.tipo_solicitud }}
@@ -31,4 +31,4 @@
 
 <br>
 
-<a href="{% url 'panel_vecino' %}">Volver</a>
+<a href="{% url 'mis_solicitudes' %}">Volver</a>

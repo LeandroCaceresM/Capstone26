@@ -222,13 +222,13 @@ def crear_solicitud_view(request):
         solicitud = Solicitud.objects.create(
             id_solicitud=uuid.uuid4(),
             fecha_solicitud=timezone.now(),
-            estado="En Proceso",
+            estado="EN PROCESO",
             comentario=descripcion,
             id_vecino=vecino,
             id_tsolicitud=tipo
         )
 
-        estado_en_proceso = EstadoSolicitud.objects.get(nomb_est_sol="En Proceso")
+        estado_en_proceso = EstadoSolicitud.objects.get(nomb_est_sol="EN PROCESO")
 
         HistEstSol.objects.create(
             id_solicitud=solicitud,
@@ -242,6 +242,7 @@ def crear_solicitud_view(request):
     return render(request, "vecino/crear_solicitud.html", {
         "tipos": tipos
     })
+
 
 #VISTA DE VECINO (USUARIO)
 @never_cache
@@ -272,6 +273,15 @@ def mis_solicitudes_view(request):
 
     vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
 
+    residencia_activa = HistVivienda.objects.filter(
+        id_vecino=vecino,
+        fecha_ter__isnull=True
+    ).first()
+
+    if not residencia_activa:
+        messages.error(request, "Debe unirse a una junta para poder usar las solicitudes.")
+        return redirect("panel_vecino")
+
     solicitudes = Solicitud.objects.filter(
         id_vecino=vecino
     ).select_related("id_tsolicitud").order_by("-fecha_solicitud")
@@ -281,7 +291,7 @@ def mis_solicitudes_view(request):
     for solicitud in solicitudes:
         hist_cierre = HistEstSol.objects.filter(
             id_solicitud=solicitud,
-            id_est__nomb_est_sol__in=["Aprobada", "Rechazada"]
+            id_est__nomb_est_sol__in=["APROBADO", "RECHAZADO"]
         ).order_by("-fecha_cb_estado").first()
 
         solicitudes_data.append({
@@ -291,6 +301,55 @@ def mis_solicitudes_view(request):
 
     return render(request, "vecino/mis_solicitudes.html", {
         "solicitudes_data": solicitudes_data
+    })
+
+@never_cache
+def crear_solicitud_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+
+    residencia_activa = HistVivienda.objects.filter(
+        id_vecino=vecino,
+        fecha_ter__isnull=True
+    ).first()
+
+    if not residencia_activa:
+        messages.error(request, "Debe unirse a una junta para poder crear solicitudes.")
+        return redirect("panel_vecino")
+
+    tipos = Tiposolicitud.objects.all()
+
+    if request.method == "POST":
+        tipo = get_object_or_404(
+            Tiposolicitud,
+            id_tsolicitud=request.POST.get("id_tsolicitud")
+        )
+
+        solicitud = Solicitud.objects.create(
+            id_solicitud=uuid.uuid4(),
+            fecha_solicitud=timezone.now(),
+            estado="EN PROCESO",
+            descripcion=request.POST.get("descripcion"),
+            comentario_presidente=None,
+            id_vecino=vecino,
+            id_tsolicitud=tipo
+        )
+
+        estado_en_proceso = EstadoSolicitud.objects.get(nomb_est_sol="EN PROCESO")
+
+        HistEstSol.objects.create(
+            id_solicitud=solicitud,
+            id_est=estado_en_proceso,
+            fecha_cb_estado=timezone.now()
+        )
+
+        messages.success(request, "Solicitud creada correctamente.")
+        return redirect("mis_solicitudes")
+
+    return render(request, "vecino/crear_solicitud.html", {
+        "tipos": tipos
     })
 
 #VISTA DEL PRESIDENTE (ADMIN)
@@ -311,7 +370,7 @@ def solicitudes_presidente_view(request):
         return redirect("login")
 
     if request.session.get("rol") != "Admin":
-        messages.error(request, "No tienes permiso para entrar a esta sección.")
+        messages.error(request, "No tienes permiso para acceder a solicitudes.")
         return redirect("login")
 
     presidente = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
@@ -327,42 +386,64 @@ def solicitudes_presidente_view(request):
 
     junta = residencia_presidente.id_vivienda.id_junta
 
+    filtro_estado = request.GET.get("estado", "EN PROCESO")
+
     solicitudes = Solicitud.objects.filter(
         id_vecino__histvivienda__id_vivienda__id_junta=junta,
-        id_vecino__histvivienda__fecha_ter__isnull=True,
-        estado="En Proceso"
+        id_vecino__histvivienda__fecha_ter__isnull=True
     ).select_related("id_vecino", "id_tsolicitud").distinct().order_by("-fecha_solicitud")
+
+    if filtro_estado != "Todas":
+        solicitudes = solicitudes.filter(estado=filtro_estado)
+
+    solicitudes_data = []
+
+    for solicitud in solicitudes:
+        hist_cierre = HistEstSol.objects.filter(
+            id_solicitud=solicitud,
+            id_est__nomb_est_sol__in=["APROBADO", "RECHAZADO"]
+        ).order_by("-fecha_cb_estado").first()
+
+        solicitudes_data.append({
+            "solicitud": solicitud,
+            "fecha_resuelta": hist_cierre.fecha_cb_estado if hist_cierre else None
+        })
 
     return render(request, "presidente/solicitudes.html", {
         "junta": junta,
-        "solicitudes": solicitudes
+        "solicitudes_data": solicitudes_data,
+        "filtro_estado": filtro_estado
     })
-    
+
 @never_cache
 def cerrar_solicitud_view(request, id_solicitud):
     if not request.session.get("vecino_id"):
         return redirect("login")
 
     if request.session.get("rol") != "Admin":
-        messages.error(request, "No tienes permiso para realizar esta acción.")
+        messages.error(request, "No tienes permiso para cerrar solicitudes.")
         return redirect("login")
 
     solicitud = get_object_or_404(Solicitud, id_solicitud=id_solicitud)
+
+    if solicitud.estado != "EN PROCESO":
+        messages.error(request, "Esta solicitud ya fue cerrada.")
+        return redirect("solicitudes_presidente")
 
     if request.method == "POST":
         accion = request.POST.get("accion")
         comentario_presidente = request.POST.get("comentario_presidente")
 
         if accion == "aprobar":
-            nuevo_estado = "Aprobada"
+            nuevo_estado = "APROBADO"
         elif accion == "rechazar":
-            nuevo_estado = "Rechazada"
+            nuevo_estado = "RECHAZADO"
         else:
             messages.error(request, "Acción no válida.")
             return redirect("solicitudes_presidente")
 
         solicitud.estado = nuevo_estado
-        solicitud.comentario = comentario_presidente
+        solicitud.comentario_presidente = comentario_presidente
         solicitud.save()
 
         estado_obj = EstadoSolicitud.objects.get(nomb_est_sol=nuevo_estado)
@@ -379,8 +460,7 @@ def cerrar_solicitud_view(request, id_solicitud):
     return render(request, "presidente/cerrar_solicitud.html", {
         "solicitud": solicitud
     })
-    
-    
+
 #Views del SUPERADMIN
 def es_superadmin(request):
     return request.session.get("rol") == "Superadmin"

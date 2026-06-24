@@ -137,7 +137,8 @@ class Solicitud(models.Model):
     id_solicitud = models.UUIDField(primary_key=True)
     fecha_solicitud = models.DateTimeField()
     estado = models.CharField(max_length=50)
-    comentario = models.CharField(max_length=500, blank=True, null=True)
+    descripcion = models.TextField()
+    comentario_presidente = models.TextField(blank=True, null=True)
     id_vecino = models.ForeignKey('Vecino', models.DO_NOTHING, db_column='id_vecino')
     id_tsolicitud = models.ForeignKey('Tiposolicitud', models.DO_NOTHING, db_column='id_tsolicitud')
 
