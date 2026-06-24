@@ -10,4 +10,6 @@ supabase
 # Reportlab
 reportlab
 
+# python-dotenv
+
 #py -m pip install -r requirements.txt
