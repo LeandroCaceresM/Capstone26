@@ -9,15 +9,34 @@
     <label>Dirección</label><br>
     <input type="text" name="direccion" value="{{ junta.direccion }}" required><br><br>
 
-    <label>Sector</label><br>
-    <select name="id_sector" required>
-        {% for sector in sectores %}
-            <option value="{{ sector.id_sector }}"
-                {% if sector.id_sector == junta.id_sector.id_sector %}selected{% endif %}>
-                {{ sector.nom_sector }}
+    <label>Región</label><br>
+    <select id="region_select" required>
+        <option value="">Seleccione una región</option>
+        {% for region in regiones %}
+            <option value="{{ region.id_region }}"
+                {% if region.id_region == junta.id_comuna.id_region.id_region %}selected{% endif %}>
+                {{ region.nom_region }}
             </option>
         {% endfor %}
-    </select><br><br>
+    </select>
+
+    <br><br>
+
+    <label>Comuna</label><br>
+    <select name="id_comuna" id="comuna_select" required>
+        <option value="">Seleccione una comuna</option>
+        {% for comuna in comunas %}
+            <option 
+                value="{{ comuna.id_comuna }}"
+                data-region="{{ comuna.id_region.id_region }}"
+                {% if comuna.id_comuna == junta.id_comuna.id_comuna %}selected{% endif %}
+            >
+                {{ comuna.nom_comuna }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <br><br>
 
     <button type="submit">Actualizar Junta</button>
 </form>
@@ -25,3 +44,41 @@
 <br>
 
 <a href="{% url 'listar_juntas' %}">Volver</a>
+
+<script>
+    const regionSelect = document.getElementById("region_select");
+    const comunaSelect = document.getElementById("comuna_select");
+    const comunaActual = "{{ junta.id_comuna.id_comuna }}";
+
+    const comunaOptions = Array.from(comunaSelect.options).map(option => option.cloneNode(true));
+
+    function filtrarComunas() {
+        const regionId = regionSelect.value;
+
+        comunaSelect.innerHTML = "";
+
+        const opcionInicial = document.createElement("option");
+        opcionInicial.value = "";
+        opcionInicial.textContent = "Seleccione una comuna";
+        comunaSelect.appendChild(opcionInicial);
+
+        comunaOptions.forEach(option => {
+            if (!option.value) return;
+
+            if (option.dataset.region === regionId) {
+                comunaSelect.appendChild(option.cloneNode(true));
+            }
+        });
+
+        if (comunaActual) {
+            comunaSelect.value = comunaActual;
+        }
+    }
+
+    regionSelect.addEventListener("change", function () {
+        filtrarComunas();
+        comunaSelect.value = "";
+    });
+
+    filtrarComunas();
+</script>

@@ -100,6 +100,14 @@ def login_view(request):
                 return redirect("login")
 
             vecino = Vecino.objects.get(supabase_uid=user.id)
+                        
+            if vecino.vigencia != "S":
+                request.session.flush()
+                messages.error(
+                    request,
+                    "Tu cuenta se encuentra inactiva. Contacta al administrador del sistema."
+                )
+                return redirect("login")
 
             request.session["supabase_uid"] = str(user.id)
             request.session["vecino_id"] = str(vecino.id_vecino)
@@ -323,8 +331,8 @@ def generar_certificado_view(request):
         fecha_ter__isnull=True
     ).select_related(
         "id_vivienda__id_junta",
-        "id_vivienda__id_junta__id_sector",
-        "id_vivienda__id_junta__id_sector__id_comuna"
+        "id_vivienda__id_junta__id_comuna",
+        "id_vivienda__id_junta__id_comuna__id_region"
     ).first()
 
     if not residencia:
@@ -333,7 +341,7 @@ def generar_certificado_view(request):
 
     junta = residencia.id_vivienda.id_junta
     vivienda = residencia.id_vivienda
-    comuna = junta.id_sector.id_comuna.nom_comuna
+    comuna = junta.id_comuna.nom_comuna
 
     presidente_cargo = HistCargo.objects.filter(
         id_directiva__id_junta=junta,
@@ -813,28 +821,30 @@ def crear_junta_view(request):
     if not es_superadmin(request):
         return redirect("login")
 
-    sectores = Sector.objects.all()
+    regiones = Region.objects.all().order_by("nom_region")
+    comunas = Comuna.objects.select_related("id_region").all().order_by("nom_comuna")
 
     if request.method == "POST":
         nombre = request.POST.get("nombre")
         direccion = request.POST.get("direccion")
-        id_sector = request.POST.get("id_sector")
+        id_comuna = request.POST.get("id_comuna")
 
-        sector = get_object_or_404(Sector, id_sector=id_sector)
+        comuna = get_object_or_404(Comuna, id_comuna=id_comuna)
 
         Juntavecinos.objects.create(
             id_junta=uuid.uuid4(),
             nombre=nombre,
             direccion=direccion,
             fecha_creacion=timezone.now(),
-            id_sector=sector
+            id_comuna=comuna
         )
 
         messages.success(request, "Junta creada correctamente.")
         return redirect("listar_juntas")
 
     return render(request, "superadmin/juntas/crear.html", {
-        "sectores": sectores
+        "regiones": regiones,
+        "comunas": comunas
     })
 
 @never_cache
@@ -843,14 +853,15 @@ def editar_junta_view(request, id_junta):
         return redirect("login")
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
-    sectores = Sector.objects.all()
+    regiones = Region.objects.all().order_by("nom_region")
+    comunas = Comuna.objects.select_related("id_region").all().order_by("nom_comuna")
 
     if request.method == "POST":
         junta.nombre = request.POST.get("nombre")
         junta.direccion = request.POST.get("direccion")
 
-        id_sector = request.POST.get("id_sector")
-        junta.id_sector = get_object_or_404(Sector, id_sector=id_sector)
+        id_comuna = request.POST.get("id_comuna")
+        junta.id_comuna = get_object_or_404(Comuna, id_comuna=id_comuna)
 
         junta.save()
 
@@ -859,7 +870,8 @@ def editar_junta_view(request, id_junta):
 
     return render(request, "superadmin/juntas/editar.html", {
         "junta": junta,
-        "sectores": sectores
+        "regiones": regiones,
+        "comunas": comunas
     })
 
 @never_cache

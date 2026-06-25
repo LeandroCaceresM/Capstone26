@@ -11,7 +11,8 @@
         <tr>
             <th>Nombre</th>
             <th>Dirección</th>
-            <th>Sector</th>
+            <th>Comuna</th>
+            <th>Región</th>
             <th>Fecha creación</th>
             <th>Acciones</th>
         </tr>
@@ -20,7 +21,8 @@
         <tr>
             <td>{{ junta.nombre }}</td>
             <td>{{ junta.direccion }}</td>
-            <td>{{ junta.id_sector.nom_sector }}</td>
+            <td>{{ junta.id_comuna.nom_comuna }}</td>
+            <td>{{ junta.id_comuna.id_region.nom_region }}</td>
             <td>{{ junta.fecha_creacion }}</td>
             <td>
                 <a href="{% url 'editar_junta' junta.id_junta %}">Editar</a> |
