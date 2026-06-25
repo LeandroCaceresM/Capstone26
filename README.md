@@ -29,13 +29,13 @@ cd Capstone26
 ```
 
 
-## Acceder al Proyecto 
+## 2. Acceder al Proyecto 
 
 ```bash
 cd Capstone26\FASE 2\Evidencia Proyecto\Pagina_Capstone\Proyecto\core
 ```
 
-## Ejecutar:
+## 3. Ejecutar:
 
 ```bash
 py -m pip install -r requirements.txt
@@ -49,7 +49,7 @@ py -m pip install -r requirements.txt
 .env
 ```
 
-## Agregar credenciales de Supabase:
+## 5. Agregar credenciales de Supabase:
 
 ```bash
 SUPABASE_URL=
@@ -59,7 +59,7 @@ SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-## 5. Ejecutar aplicación
+## 6. Ejecutar aplicación
 
 ```bash
 python manage.py runserver
