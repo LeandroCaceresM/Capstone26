@@ -1,3 +1,6 @@
+# =========================
+# IMPORTS
+# =========================
 import uuid
 import os
 import requests
@@ -21,7 +24,10 @@ from .supabase_client import supabase
 from .supabase_storage_client import supabase_storage
 
 
-#VISTAS GENERALES 
+# =========================
+# AUTENTICACION
+# =========================
+
 def registro_view(request):
     if request.method == "POST":
         correo = request.POST.get("correo")
@@ -130,6 +136,10 @@ def logout_view(request):
 
     #RECUPERAR / CAMBIAR CONTRASEÑA
 
+# =========================
+# RECUPERAR CONTRASEÑA
+# =========================
+
 def recuperar_contrasenia(request):
     return render(request, "recuperar_contrasenia.html")
 
@@ -187,6 +197,91 @@ def cambiar_contrasenia(request):
         request,
         "cambiar_contrasenia.html"
     )
+
+
+# =========================
+# SERVICIOS GENERALES
+# =========================
+
+@never_cache
+def mis_datos_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+
+    cargo_actual = HistCargo.objects.filter(
+        id_vecino=vecino,
+        fecha_cargo_fin_real__isnull=True
+    ).select_related("id_cargo").first()
+
+    if request.method == "POST":
+        vecino.telefono = request.POST.get("telefono")
+        vecino.save()
+
+        messages.success(request, "Teléfono actualizado correctamente.")
+        return redirect("mis_datos")
+
+    return render(request, "mis_datos.html", {
+        "vecino": vecino,
+        "cargo_actual": cargo_actual
+    })
+
+@never_cache
+def vecinos_mi_junta_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    if request.session.get("rol") not in ["Usuario", "Admin"]:
+        messages.error(request, "No tienes permiso para ver esta sección.")
+        return redirect("login")
+
+    vecino_actual = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia_activa = HistVivienda.objects.filter(
+        id_vecino=vecino_actual,
+        fecha_ter__isnull=True
+    ).select_related("id_vivienda__id_junta").first()
+
+    if not residencia_activa:
+        messages.error(request, "Debe pertenecer a una junta para ver los vecinos.")
+        if request.session.get("rol") == "Admin":
+            return redirect("panel_presidente")
+        return redirect("panel_vecino")
+
+    junta = residencia_activa.id_vivienda.id_junta
+
+    registros = HistVivienda.objects.filter(
+        id_vivienda__id_junta=junta,
+        fecha_ter__isnull=True
+    ).select_related("id_vecino", "id_vivienda")
+
+    vecinos_data = []
+
+    for registro in registros:
+        cargo_actual = HistCargo.objects.filter(
+            id_vecino=registro.id_vecino,
+            fecha_cargo_fin_real__isnull=True
+        ).select_related("id_cargo").first()
+
+        condiciones = VecinoDiscap.objects.filter(
+            id_vecino=registro.id_vecino
+        ).select_related("id_tipo_discap")
+
+        vecinos_data.append({
+            "vecino": registro.id_vecino,
+            "cargo": cargo_actual.id_cargo.nombre_cargo if cargo_actual else "Vecino",
+            "condiciones": condiciones
+        })
+
+    return render(request, "vecinos_junta.html", {
+        "junta": junta,
+        "vecinos_data": vecinos_data,
+        "rol": request.session.get("rol")
+    })
 
 @never_cache
 def generar_certificado_view(request):
@@ -339,138 +434,11 @@ def generar_certificado_view(request):
 
     return FileResponse(open(ruta_pdf, "rb"), as_attachment=True, filename="certificado_residencia.pdf")
 
-#VISTAS GENERALES (SERVICIOS)
 
-@never_cache
-def mis_datos_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
+# =========================
+# VISTAS VECINO
+# =========================
 
-    vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
-
-    cargo_actual = HistCargo.objects.filter(
-        id_vecino=vecino,
-        fecha_cargo_fin_real__isnull=True
-    ).select_related("id_cargo").first()
-
-    if request.method == "POST":
-        vecino.telefono = request.POST.get("telefono")
-        vecino.save()
-
-        messages.success(request, "Teléfono actualizado correctamente.")
-        return redirect("mis_datos")
-
-    return render(request, "mis_datos.html", {
-        "vecino": vecino,
-        "cargo_actual": cargo_actual
-    })
-
-@never_cache
-def crear_solicitud_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
-
-    vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
-
-    residencia_activa = HistVivienda.objects.filter(
-        id_vecino=vecino,
-        fecha_ter__isnull=True
-    ).first()
-
-    if not residencia_activa:
-        messages.error(request, "Debe unirse a una junta para poder crear solicitudes.")
-        return redirect("panel_vecino")
-
-    tipos = Tiposolicitud.objects.all()
-
-    if request.method == "POST":
-        id_tsolicitud = request.POST.get("id_tsolicitud")
-        descripcion = request.POST.get("descripcion")
-
-        tipo = get_object_or_404(Tiposolicitud, id_tsolicitud=id_tsolicitud)
-
-        solicitud = Solicitud.objects.create(
-            id_solicitud=uuid.uuid4(),
-            fecha_solicitud=timezone.now(),
-            estado="EN PROCESO",
-            comentario=descripcion,
-            id_vecino=vecino,
-            id_tsolicitud=tipo
-        )
-
-        estado_en_proceso = EstadoSolicitud.objects.get(nomb_est_sol="EN PROCESO")
-
-        HistEstSol.objects.create(
-            id_solicitud=solicitud,
-            id_est=estado_en_proceso,
-            fecha_cb_estado=timezone.now()
-        )
-
-        messages.success(request, "Solicitud enviada correctamente.")
-        return redirect("mis_solicitudes")
-
-    return render(request, "vecino/crear_solicitud.html", {
-        "tipos": tipos
-    })
-
-@never_cache
-def vecinos_mi_junta_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
-
-    if request.session.get("rol") not in ["Usuario", "Admin"]:
-        messages.error(request, "No tienes permiso para ver esta sección.")
-        return redirect("login")
-
-    vecino_actual = get_object_or_404(
-        Vecino,
-        id_vecino=request.session.get("vecino_id")
-    )
-
-    residencia_activa = HistVivienda.objects.filter(
-        id_vecino=vecino_actual,
-        fecha_ter__isnull=True
-    ).select_related("id_vivienda__id_junta").first()
-
-    if not residencia_activa:
-        messages.error(request, "Debe pertenecer a una junta para ver los vecinos.")
-        if request.session.get("rol") == "Admin":
-            return redirect("panel_presidente")
-        return redirect("panel_vecino")
-
-    junta = residencia_activa.id_vivienda.id_junta
-
-    registros = HistVivienda.objects.filter(
-        id_vivienda__id_junta=junta,
-        fecha_ter__isnull=True
-    ).select_related("id_vecino", "id_vivienda")
-
-    vecinos_data = []
-
-    for registro in registros:
-        cargo_actual = HistCargo.objects.filter(
-            id_vecino=registro.id_vecino,
-            fecha_cargo_fin_real__isnull=True
-        ).select_related("id_cargo").first()
-
-        condiciones = VecinoDiscap.objects.filter(
-            id_vecino=registro.id_vecino
-        ).select_related("id_tipo_discap")
-
-        vecinos_data.append({
-            "vecino": registro.id_vecino,
-            "cargo": cargo_actual.id_cargo.nombre_cargo if cargo_actual else "Vecino",
-            "condiciones": condiciones
-        })
-
-    return render(request, "vecinos_junta.html", {
-        "junta": junta,
-        "vecinos_data": vecinos_data,
-        "rol": request.session.get("rol")
-    })
-
-
-#VISTA DE VECINO (USUARIO)
 @never_cache
 def panel_vecino_view(request):
     if not request.session.get("vecino_id"):
@@ -579,8 +547,10 @@ def crear_solicitud_view(request):
     })
 
 
+# =========================
+# VISTAS PRESIDENTE
+# =========================
 
-#VISTA DEL PRESIDENTE (ADMIN)
 @never_cache
 def panel_presidente_view(request):
     if not request.session.get("vecino_id"):
@@ -747,7 +717,10 @@ def subir_firma_view(request):
         "presidente": presidente
     })
 
-#Views del SUPERADMIN
+# =========================
+# SUPERADMIN - GENERAL
+# =========================
+
 def es_superadmin(request):
     return request.session.get("rol") == "Superadmin"
 
@@ -768,7 +741,10 @@ def panel_superadmin_view(request):
         "total_vecinos": total_vecinos,
     })
 
-#Gestion de juntas
+
+# =========================
+# SUPERADMIN - GESTIÓN DE JUNTAS
+# =========================
 
 def listar_juntas_view(request):
     if not es_superadmin(request):
@@ -846,6 +822,10 @@ def eliminar_junta_view(request, id_junta):
     return render(request, "superadmin/juntas/eliminar.html", {
         "junta": junta
     })
+
+# =========================
+# SUPERADMIN - VECINOS EN JUNTA
+# =========================
 
 def vecinos_junta_view(request, id_junta):
     if request.session.get("rol") != "Superadmin":
@@ -950,64 +930,6 @@ def asignar_vecino_junta_view(request, id_junta):
         "vecinos": vecinos
     })
     
-def editar_vecino_junta_view(request, id_junta, id_vecino):
-    if request.session.get("rol") != "Superadmin":
-        return redirect("login")
-
-    junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
-    vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
-
-    registro = get_object_or_404(
-        HistVivienda,
-        id_vecino=vecino,
-        id_vivienda__id_junta=junta,
-        fecha_ter__isnull=True
-    )
-
-    vivienda = registro.id_vivienda
-
-    if request.method == "POST":
-        vecino.pri_nombre = request.POST.get("pri_nombre")
-        vecino.seg_nombre = request.POST.get("seg_nombre") or None
-        vecino.apell_paterno = request.POST.get("apell_paterno")
-        vecino.apell_materno = request.POST.get("apell_materno")
-        vecino.correo = request.POST.get("correo") or None
-        vecino.telefono = request.POST.get("telefono")
-        vecino.save()
-
-        tipo_vivienda = request.POST.get("tipo_vivienda")
-        num_block = request.POST.get("num_block") or None
-        num_dpto = request.POST.get("num_dpto") or None
-
-        if tipo_vivienda == "C":
-            num_block = None
-            num_dpto = None
-
-        if tipo_vivienda == "D":
-            if not num_block or not num_dpto:
-                messages.error(request, "Para departamento debes ingresar número de block y departamento.")
-                return redirect(
-                    "editar_vecino_junta",
-                    id_junta=junta.id_junta,
-                    id_vecino=vecino.id_vecino
-                )
-
-        vivienda.tipo_vivienda = tipo_vivienda
-        vivienda.nombre_calle = request.POST.get("nombre_calle")
-        vivienda.numero_calle = request.POST.get("numero_calle")
-        vivienda.num_block = num_block
-        vivienda.num_dpto = num_dpto
-        vivienda.save()
-
-        messages.success(request, "Datos del vecino actualizados correctamente.")
-        return redirect("vecinos_junta", id_junta=junta.id_junta)
-
-    return render(request, "superadmin/juntas/editar_vecino.html", {
-        "junta": junta,
-        "vecino": vecino,
-        "vivienda": vivienda
-    })
-    
 def quitar_vecino_junta_view(request, id_junta, id_vecino):
     if request.session.get("rol") != "Superadmin":
         return redirect("login")
@@ -1034,6 +956,10 @@ def quitar_vecino_junta_view(request, id_junta, id_vecino):
         "vecino": vecino,
         "registro": registro
     })
+
+# =========================
+# SUPERADMIN - DIRECTIVA Y CARGOS
+# =========================
 
 def crear_directiva_view(request, id_junta):
     if request.session.get("rol") != "Superadmin":
@@ -1179,63 +1105,9 @@ def quitar_cargo_vecino_view(request, id_junta, id_vecino):
     })
     
 
-#gestion de vecinos    
-
-@never_cache
-def vecinos_prioritarios_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
-
-    if request.session.get("rol") != "Superadmin":
-        return redirect("login")
-
-    vecinos = Vecino.objects.filter(vigencia="S").order_by("pri_nombre", "apell_paterno")
-
-    return render(request, "superadmin/vecinos_prioritarios.html", {
-        "vecinos": vecinos
-    })
-
-@never_cache
-def gestionar_discapacidad_vecino_view(request, id_vecino):
-    
-
-    if not request.session.get("vecino_id"):
-        return redirect("login")
-
-    if request.session.get("rol") != "Superadmin":
-        return redirect("login")
-
-    vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
-    tipos = TipoDiscapacidad.objects.all()
-
-    discapacidades_actuales = VecinoDiscap.objects.filter(
-        id_vecino=vecino
-    ).select_related("id_tipo_discap")
-
-    ids_actuales = [str(item.id_tipo_discap.id_tipo_discap) for item in discapacidades_actuales]
-
-    if request.method == "POST":
-        seleccionadas = request.POST.getlist("discapacidades")
-
-        VecinoDiscap.objects.filter(id_vecino=vecino).delete()
-
-        for id_tipo in seleccionadas:
-            tipo = get_object_or_404(TipoDiscapacidad, id_tipo_discap=id_tipo)
-
-            VecinoDiscap.objects.create(
-                id_tipo_discap=tipo,
-                id_vecino=vecino,
-                fecha_registro_discap=timezone.now().date()
-            )
-
-        messages.success(request, "Condiciones prioritarias actualizadas correctamente.")
-        return redirect("vecinos_prioritarios")
-
-    return render(request, "superadmin/gestionar_discapacidad_vecino.html", {
-        "vecino": vecino,
-        "tipos": tipos,
-        "ids_actuales": ids_actuales
-    })
+# =========================
+# SUPERADMIN - GESTIÓN DE VECINOS
+# ========================= 
 
 @never_cache
 def gestionar_vecinos_view(request):
