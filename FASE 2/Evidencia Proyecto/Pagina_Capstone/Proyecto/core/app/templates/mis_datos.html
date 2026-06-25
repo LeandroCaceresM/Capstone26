@@ -19,13 +19,11 @@
     {% endif %}
 </p>
 
-<form method="POST" enctype="multipart/form-data">    
+<form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
 
     <label>Teléfono</label><br>
     <input type="number" name="telefono" value="{{ vecino.telefono }}" required><br><br>
-
-    <button type="submit">Actualizar teléfono</button>
 
     {% if request.session.rol == "Admin" %}
         <h3>Firma digital</h3>
@@ -43,6 +41,8 @@
         <input type="file" name="firma" accept="image/*">
         <br><br>
     {% endif %}
+
+    <button type="submit">Guardar cambios</button>
 </form>
 <br>
 

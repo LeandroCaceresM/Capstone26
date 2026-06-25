@@ -139,8 +139,6 @@ def logout_view(request):
     messages.success(request, "Sesión cerrada correctamente.")
     return redirect("login")
 
-    #RECUPERAR / CAMBIAR CONTRASEÑA
-
 # =========================
 # RECUPERAR CONTRASEÑA
 # =========================

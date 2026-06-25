@@ -10,9 +10,7 @@
 
     {% if messages %}
         {% for message in messages %}
-            {% if "login" in message.tags or "success" in message.tags %}
-                <p>{{ message }}</p>
-            {% endif %}
+            <p>{{ message }}</p>
         {% endfor %}
     {% endif %}
 
