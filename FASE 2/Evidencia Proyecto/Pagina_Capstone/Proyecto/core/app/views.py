@@ -28,7 +28,7 @@ from .supabase_storage_client import supabase_storage
 # =========================
 # AUTENTICACION
 # =========================
-
+@never_cache
 def registro_view(request):
     if request.method == "POST":
         correo = request.POST.get("correo")
@@ -81,6 +81,7 @@ def registro_view(request):
 
     return render(request, "registro.html")
 
+@never_cache
 def login_view(request):
     if request.method == "POST":
         correo = request.POST.get("correo")
@@ -130,6 +131,7 @@ def login_view(request):
 
     return render(request, "login.html")
 
+@never_cache
 def logout_view(request):
     storage = get_messages(request)
     for _ in storage:
@@ -143,9 +145,11 @@ def logout_view(request):
 # RECUPERAR CONTRASEÑA
 # =========================
 
+@never_cache
 def recuperar_contrasenia(request):
     return render(request, "recuperar_contrasenia.html")
 
+@never_cache
 def enviar_recuperacion(request):
     if request.method == "POST":
         correo = request.POST.get("correo")
@@ -161,6 +165,7 @@ def enviar_recuperacion(request):
         )
     return redirect("recuperar_contrasenia")
 
+@never_cache
 def cambiar_contrasenia(request):
     access_token = request.GET.get("access_token")
     refresh_token = request.GET.get("refresh_token")
@@ -792,6 +797,7 @@ def panel_superadmin_view(request):
 # SUPERADMIN - GESTIÓN DE JUNTAS
 # =========================
 
+@never_cache
 def listar_juntas_view(request):
     if not es_superadmin(request):
         return redirect("login")
@@ -802,6 +808,7 @@ def listar_juntas_view(request):
         "juntas": juntas
     })
 
+@never_cache
 def crear_junta_view(request):
     if not es_superadmin(request):
         return redirect("login")
@@ -830,6 +837,7 @@ def crear_junta_view(request):
         "sectores": sectores
     })
 
+@never_cache
 def editar_junta_view(request, id_junta):
     if not es_superadmin(request):
         return redirect("login")
@@ -854,6 +862,7 @@ def editar_junta_view(request, id_junta):
         "sectores": sectores
     })
 
+@never_cache
 def eliminar_junta_view(request, id_junta):
     if not es_superadmin(request):
         return redirect("login")
@@ -872,7 +881,7 @@ def eliminar_junta_view(request, id_junta):
 # =========================
 # SUPERADMIN - VECINOS EN JUNTA
 # =========================
-
+@never_cache
 def vecinos_junta_view(request, id_junta):
     if request.session.get("rol") != "Superadmin":
         return redirect("login")
@@ -902,6 +911,7 @@ def vecinos_junta_view(request, id_junta):
         "vecinos_data": vecinos_data
     })
 
+@never_cache
 def asignar_vecino_junta_view(request, id_junta):
     if request.session.get("rol") != "Superadmin":
         return redirect("login")
@@ -975,7 +985,8 @@ def asignar_vecino_junta_view(request, id_junta):
         "junta": junta,
         "vecinos": vecinos
     })
-    
+
+@never_cache    
 def quitar_vecino_junta_view(request, id_junta, id_vecino):
     if request.session.get("rol") != "Superadmin":
         return redirect("login")
@@ -1007,6 +1018,7 @@ def quitar_vecino_junta_view(request, id_junta, id_vecino):
 # SUPERADMIN - DIRECTIVA Y CARGOS
 # =========================
 
+@never_cache
 def crear_directiva_view(request, id_junta):
     if request.session.get("rol") != "Superadmin":
         return redirect("login")
@@ -1031,6 +1043,7 @@ def crear_directiva_view(request, id_junta):
         "junta": junta
     })
 
+@never_cache
 def asignar_cargo_junta_view(request, id_junta):
     if request.session.get("rol") != "Superadmin":
         return redirect("login")
@@ -1116,7 +1129,8 @@ def asignar_cargo_junta_view(request, id_junta):
         "vecinos_data": vecinos_data,
         "cargos": cargos
     })
-    
+
+@never_cache    
 def quitar_cargo_vecino_view(request, id_junta, id_vecino):
     if request.session.get("rol") != "Superadmin":
         return redirect("login")
