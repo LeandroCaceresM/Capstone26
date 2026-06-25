@@ -6,7 +6,8 @@ Proyecto de Titulación Duoc UC 2026
 - Leandro Caceres Mayorinca
 - Edinson Delgado Reinoso
 
-🏘️ UrbanLink - Sistema de Gestión para Juntas de Vecinos
+
+# 🏘️ UrbanLink - Sistema de Gestión para Juntas de Vecinos
 
 Proyecto de desarrollo web - Plataforma para la administración y comunicación comunitaria.
 
