@@ -217,9 +217,29 @@ def mis_datos_view(request):
 
     if request.method == "POST":
         vecino.telefono = request.POST.get("telefono")
-        vecino.save()
 
-        messages.success(request, "Teléfono actualizado correctamente.")
+        if request.session.get("rol") == "Admin":
+            firma = request.FILES.get("firma")
+
+            if firma:
+                extension = firma.name.split(".")[-1].lower()
+                nombre_archivo = f"presidentes/firma_{vecino.id_vecino}.{extension}"
+                archivo_bytes = firma.read()
+
+                supabase_storage.storage.from_("firmas").upload(
+                    path=nombre_archivo,
+                    file=archivo_bytes,
+                    file_options={
+                        "content-type": firma.content_type,
+                        "upsert": "true"
+                    }
+                )
+
+                firma_url = supabase_storage.storage.from_("firmas").get_public_url(nombre_archivo)
+                vecino.firma_digital = firma_url
+
+        vecino.save()
+        messages.success(request, "Datos actualizados correctamente.")
         return redirect("mis_datos")
 
     return render(request, "mis_datos.html", {
@@ -585,8 +605,8 @@ def solicitudes_presidente_view(request):
     junta = residencia_presidente.id_vivienda.id_junta
 
     filtro_estado = request.GET.get("estado", "Todas")
-    filtro_vecino = request.GET.get("vecino", "Todos")
-
+    busqueda = request.GET.get("q", "")
+    
     registros_vecinos = HistVivienda.objects.filter(
         id_vivienda__id_junta=junta,
         fecha_ter__isnull=True
@@ -603,8 +623,14 @@ def solicitudes_presidente_view(request):
     if filtro_estado != "Todas":
         solicitudes = solicitudes.filter(estado=filtro_estado)
 
-    if filtro_vecino != "Todos":
-        solicitudes = solicitudes.filter(id_vecino__id_vecino=filtro_vecino)
+    if busqueda:
+        solicitudes = solicitudes.filter(
+            models.Q(id_vecino__pri_nombre__icontains=busqueda) |
+            models.Q(id_vecino__seg_nombre__icontains=busqueda) |
+            models.Q(id_vecino__apell_paterno__icontains=busqueda) |
+            models.Q(id_vecino__apell_materno__icontains=busqueda) |
+            models.Q(id_vecino__rut__icontains=busqueda)
+        )
 
     solicitudes_data = []
 
@@ -623,8 +649,7 @@ def solicitudes_presidente_view(request):
         "junta": junta,
         "solicitudes_data": solicitudes_data,
         "filtro_estado": filtro_estado,
-        "filtro_vecino": filtro_vecino,
-        "vecinos_junta": vecinos_junta,
+        "busqueda": busqueda,
     })
 
 @never_cache
@@ -673,49 +698,7 @@ def cerrar_solicitud_view(request, id_solicitud):
         "solicitud": solicitud
     })
     
-@never_cache
-def subir_firma_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
 
-    if request.session.get("rol") != "Admin":
-        messages.error(request, "No tienes permiso para subir firma.")
-        return redirect("login")
-
-    presidente = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
-
-    if request.method == "POST":
-        firma = request.FILES.get("firma")
-
-        if not firma:
-            messages.error(request, "Debe seleccionar una imagen.")
-            return redirect("subir_firma")
-
-        extension = firma.name.split(".")[-1].lower()
-        nombre_archivo = f"presidentes/firma_{presidente.id_vecino}.{extension}"
-
-        archivo_bytes = firma.read()
-
-        supabase_storage.storage.from_("firmas").upload(
-            path=nombre_archivo,
-            file=archivo_bytes,
-            file_options={
-                "content-type": firma.content_type,
-                "upsert": "true"
-            }
-        )
-
-        firma_url = supabase_storage.storage.from_("firmas").get_public_url(nombre_archivo)
-
-        presidente.firma_digital = firma_url
-        presidente.save()
-
-        messages.success(request, "Firma digital subida correctamente.")
-        return redirect("panel_presidente")
-
-    return render(request, "presidente/subir_firma.html", {
-        "presidente": presidente
-    })
 
 # =========================
 # SUPERADMIN - GENERAL

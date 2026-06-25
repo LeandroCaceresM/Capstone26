@@ -19,20 +19,22 @@
         <option value="RECHAZADO" {% if filtro_estado == "RECHAZADO" %}selected{% endif %}>RECHAZADO</option>
     </select>
 
-    <label>Filtrar por vecino:</label>
-    <select name="vecino">
-        <option value="Todos" {% if filtro_vecino == "Todos" %}selected{% endif %}>Todos</option>
-        {% for vecino in vecinos_junta %}
-            <option value="{{ vecino.id_vecino }}" {% if filtro_vecino == vecino.id_vecino|stringformat:"s" %}selected{% endif %}>
-                {{ vecino.pri_nombre }} {{ vecino.apell_paterno }} {{ vecino.apell_materno }}
-            </option>
-        {% endfor %}
-    </select>
+    <label>Buscar vecino:</label>
+    <input
+        type="text"
+        name="q"
+        value="{{ busqueda }}"
+        placeholder="Nombre, apellido o RUT"
+    >
 
     <button type="submit">Filtrar</button>
+
+    <a href="{% url 'solicitudes_presidente' %}">Limpiar filtros</a>
 </form>
 
 <br>
+
+<p>Total solicitudes encontradas: {{ solicitudes_data|length }}</p>
 
 <div style="max-height: 650px; overflow-y: auto; border: 1px solid #ccc; padding: 15px;">
     {% if solicitudes_data %}

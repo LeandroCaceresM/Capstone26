@@ -51,8 +51,7 @@ urlpatterns = [
         views.cerrar_solicitud_view,
         name="cerrar_solicitud"
     ),
-    path("presidente/firma/", views.subir_firma_view, name="subir_firma"),
-
+    
     # =========================
     # SUPERADMIN - PANEL
     # =========================
