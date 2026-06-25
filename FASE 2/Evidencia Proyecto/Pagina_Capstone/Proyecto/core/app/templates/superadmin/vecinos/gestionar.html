@@ -1,0 +1,68 @@
+<h1>Gestionar vecinos</h1>
+
+<a href="{% url 'panel_superadmin' %}">Volver al panel</a>
+
+<br><br>
+
+<form method="GET">
+    <label>Buscar por nombre o RUT:</label>
+    <input type="text" name="q" value="{{ busqueda }}">
+
+    <label>Filtrar por junta:</label>
+    <select name="junta">
+        <option value="Todas" {% if filtro_junta == "Todas" %}selected{% endif %}>Todas</option>
+        {% for junta in juntas %}
+            <option value="{{ junta.id_junta }}" {% if filtro_junta == junta.id_junta|stringformat:"s" %}selected{% endif %}>
+                {{ junta.nombre }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Filtrar</button>
+</form>
+
+<br>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Nombre</th>
+        <th>RUT</th>
+        <th>Correo</th>
+        <th>Teléfono</th>
+        <th>Junta</th>
+        <th>Cargo</th>
+        <th>Condiciones</th>
+        <th>Acciones</th>
+    </tr>
+
+    {% for item in vecinos_data %}
+        <tr>
+            <td>
+                {{ item.vecino.pri_nombre }}
+                {{ item.vecino.apell_paterno }}
+                {{ item.vecino.apell_materno }}
+            </td>
+            <td>{{ item.vecino.rut }}</td>
+            <td>{{ item.vecino.correo }}</td>
+            <td>{{ item.vecino.telefono }}</td>
+            <td>{{ item.junta }}</td>
+            <td>{{ item.cargo }}</td>
+            <td>
+                {% if item.condiciones %}
+                    {% for condicion in item.condiciones %}
+                        {{ condicion.id_tipo_discap.nom_tipo_discap }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                {% else %}
+                    Sin condiciones
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'editar_vecino_superadmin' item.vecino.id_vecino %}">Editar</a>
+            </td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="8">No se encontraron vecinos.</td>
+        </tr>
+    {% endfor %}
+</table>

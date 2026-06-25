@@ -72,6 +72,9 @@ urlpatterns = [
     
     path("superadmin/vecinos-prioritarios/", views.vecinos_prioritarios_view, name="vecinos_prioritarios"),
     path("superadmin/vecinos/<uuid:id_vecino>/discapacidad/", views.gestionar_discapacidad_vecino_view, name="gestionar_discapacidad_vecino"),
+
+    path("superadmin/vecinos/", views.gestionar_vecinos_view, name="gestionar_vecinos"),
+    path("superadmin/vecinos/<uuid:id_vecino>/editar/", views.editar_vecino_superadmin_view, name="editar_vecino_superadmin"),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

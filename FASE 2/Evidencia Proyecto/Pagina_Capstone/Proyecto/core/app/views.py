@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.conf import settings
 from django.http import FileResponse
+from django.db import models
 
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
@@ -767,6 +768,8 @@ def panel_superadmin_view(request):
         "total_vecinos": total_vecinos,
     })
 
+#Gestion de juntas
+
 def listar_juntas_view(request):
     if not es_superadmin(request):
         return redirect("login")
@@ -1175,6 +1178,9 @@ def quitar_cargo_vecino_view(request, id_junta, id_vecino):
         "cargo_actual": cargo_actual
     })
     
+
+#gestion de vecinos    
+
 @never_cache
 def vecinos_prioritarios_view(request):
     if not request.session.get("vecino_id"):
@@ -1191,6 +1197,8 @@ def vecinos_prioritarios_view(request):
 
 @never_cache
 def gestionar_discapacidad_vecino_view(request, id_vecino):
+    
+
     if not request.session.get("vecino_id"):
         return redirect("login")
 
@@ -1229,45 +1237,106 @@ def gestionar_discapacidad_vecino_view(request, id_vecino):
         "ids_actuales": ids_actuales
     })
 
-
-    if not request.session.get("vecino_id"):
+@never_cache
+def gestionar_vecinos_view(request):
+    if not es_superadmin(request):
         return redirect("login")
 
-    if request.session.get("rol") != "Admin":
-        return redirect("login")
+    busqueda = request.GET.get("q", "")
+    filtro_junta = request.GET.get("junta", "Todas")
 
-    presidente = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+    vecinos = Vecino.objects.filter(vigencia="S").order_by("pri_nombre", "apell_paterno")
+    juntas = Juntavecinos.objects.all().order_by("nombre")
 
-    residencia_presidente = HistVivienda.objects.filter(
-        id_vecino=presidente,
-        fecha_ter__isnull=True
-    ).select_related("id_vivienda__id_junta").first()
+    if busqueda:
+        vecinos = vecinos.filter(
+            models.Q(pri_nombre__icontains=busqueda) |
+            models.Q(seg_nombre__icontains=busqueda) |
+            models.Q(apell_paterno__icontains=busqueda) |
+            models.Q(apell_materno__icontains=busqueda) |
+            models.Q(rut__icontains=busqueda)
+        )
 
-    if not residencia_presidente:
-        messages.error(request, "No perteneces a ninguna junta.")
-        return redirect("panel_presidente")
+    if filtro_junta != "Todas":
+        vecinos_ids = HistVivienda.objects.filter(
+            id_vivienda__id_junta__id_junta=filtro_junta,
+            fecha_ter__isnull=True
+        ).values_list("id_vecino", flat=True)
 
-    junta = residencia_presidente.id_vivienda.id_junta
-
-    registros = HistVivienda.objects.filter(
-        id_vivienda__id_junta=junta,
-        fecha_ter__isnull=True,
-        id_vecino__vecinodiscap__isnull=False
-    ).select_related("id_vecino").distinct()
+        vecinos = vecinos.filter(id_vecino__in=vecinos_ids)
 
     vecinos_data = []
 
-    for registro in registros:
+    for vecino in vecinos:
+        residencia = HistVivienda.objects.filter(
+            id_vecino=vecino,
+            fecha_ter__isnull=True
+        ).select_related("id_vivienda__id_junta").first()
+
+        cargo_actual = HistCargo.objects.filter(
+            id_vecino=vecino,
+            fecha_cargo_fin_real__isnull=True
+        ).select_related("id_cargo").first()
+
         condiciones = VecinoDiscap.objects.filter(
-            id_vecino=registro.id_vecino
+            id_vecino=vecino
         ).select_related("id_tipo_discap")
 
         vecinos_data.append({
-            "vecino": registro.id_vecino,
-            "condiciones": condiciones
+            "vecino": vecino,
+            "junta": residencia.id_vivienda.id_junta.nombre if residencia else "Sin junta",
+            "cargo": cargo_actual.id_cargo.nombre_cargo if cargo_actual else "Vecino",
+            "condiciones": condiciones,
         })
 
-    return render(request, "presidente/vecinos_prioritarios.html", {
-        "junta": junta,
-        "vecinos_data": vecinos_data
+    return render(request, "superadmin/vecinos/gestionar.html", {
+        "vecinos_data": vecinos_data,
+        "juntas": juntas,
+        "busqueda": busqueda,
+        "filtro_junta": filtro_junta,
+    })
+    
+@never_cache
+def editar_vecino_superadmin_view(request, id_vecino):
+    if not es_superadmin(request):
+        return redirect("login")
+
+    vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
+    tipos = TipoDiscapacidad.objects.all()
+
+    condiciones_actuales = VecinoDiscap.objects.filter(id_vecino=vecino)
+    ids_actuales = [
+        str(item.id_tipo_discap.id_tipo_discap)
+        for item in condiciones_actuales
+    ]
+
+    if request.method == "POST":
+        vecino.pri_nombre = request.POST.get("pri_nombre")
+        vecino.seg_nombre = request.POST.get("seg_nombre") or None
+        vecino.apell_paterno = request.POST.get("apell_paterno")
+        vecino.apell_materno = request.POST.get("apell_materno")
+        vecino.telefono = request.POST.get("telefono")
+        vecino.vigencia = request.POST.get("vigencia")
+        vecino.save()
+
+        seleccionadas = request.POST.getlist("discapacidades")
+
+        VecinoDiscap.objects.filter(id_vecino=vecino).delete()
+
+        for id_tipo in seleccionadas:
+            tipo = get_object_or_404(TipoDiscapacidad, id_tipo_discap=id_tipo)
+
+            VecinoDiscap.objects.create(
+                id_tipo_discap=tipo,
+                id_vecino=vecino,
+                fecha_registro_discap=timezone.now().date()
+            )
+
+        messages.success(request, "Vecino actualizado correctamente.")
+        return redirect("gestionar_vecinos")
+
+    return render(request, "superadmin/vecinos/editar.html", {
+        "vecino": vecino,
+        "tipos": tipos,
+        "ids_actuales": ids_actuales,
     })

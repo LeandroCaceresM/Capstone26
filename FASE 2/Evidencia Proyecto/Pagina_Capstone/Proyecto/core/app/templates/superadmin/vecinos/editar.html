@@ -1,0 +1,54 @@
+<h1>Editar vecino</h1>
+
+<p><strong>Correo:</strong> {{ vecino.correo }}</p>
+<p><strong>RUT:</strong> {{ vecino.rut }}</p>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Primer nombre</label><br>
+    <input type="text" name="pri_nombre" value="{{ vecino.pri_nombre }}" required><br><br>
+
+    <label>Segundo nombre</label><br>
+    <input type="text" name="seg_nombre" value="{{ vecino.seg_nombre|default_if_none:'' }}"><br><br>
+
+    <label>Apellido paterno</label><br>
+    <input type="text" name="apell_paterno" value="{{ vecino.apell_paterno }}" required><br><br>
+
+    <label>Apellido materno</label><br>
+    <input type="text" name="apell_materno" value="{{ vecino.apell_materno }}" required><br><br>
+
+    <label>Teléfono</label><br>
+    <input type="number" name="telefono" value="{{ vecino.telefono }}" required><br><br>
+
+    <label>Vigencia</label><br>
+    <select name="vigencia">
+        <option value="S" {% if vecino.vigencia == "S" %}selected{% endif %}>Activo</option>
+        <option value="N" {% if vecino.vigencia == "N" %}selected{% endif %}>Inactivo</option>
+    </select>
+
+    <br><br>
+
+    <h3>Condiciones prioritarias</h3>
+
+    {% for tipo in tipos %}
+        <label>
+            <input
+                type="checkbox"
+                name="discapacidades"
+                value="{{ tipo.id_tipo_discap }}"
+                {% if tipo.id_tipo_discap|stringformat:"s" in ids_actuales %}checked{% endif %}
+            >
+            {{ tipo.nom_tipo_discap }}
+        </label>
+        <br>
+    {% endfor %}
+
+    <br>
+
+    <button type="submit">Guardar cambios</button>
+</form>
+
+<br>
+
+<a href="{% url 'gestionar_vecinos' %}">Volver</a>
