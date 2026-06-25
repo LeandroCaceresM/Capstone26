@@ -9,6 +9,7 @@ from io import BytesIO
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.messages import get_messages
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.conf import settings
@@ -130,6 +131,10 @@ def login_view(request):
     return render(request, "login.html")
 
 def logout_view(request):
+    storage = get_messages(request)
+    for _ in storage:
+        pass
+
     request.session.flush()
     messages.success(request, "Sesión cerrada correctamente.")
     return redirect("login")
@@ -313,7 +318,11 @@ def generar_certificado_view(request):
     residencia = HistVivienda.objects.filter(
         id_vecino=vecino,
         fecha_ter__isnull=True
-    ).select_related("id_vivienda__id_junta").first()
+    ).select_related(
+        "id_vivienda__id_junta",
+        "id_vivienda__id_junta__id_sector",
+        "id_vivienda__id_junta__id_sector__id_comuna"
+    ).first()
 
     if not residencia:
         messages.error(request, "Debe pertenecer a una junta para generar el certificado.")
@@ -321,6 +330,7 @@ def generar_certificado_view(request):
 
     junta = residencia.id_vivienda.id_junta
     vivienda = residencia.id_vivienda
+    comuna = junta.id_sector.id_comuna.nom_comuna
 
     presidente_cargo = HistCargo.objects.filter(
         id_directiva__id_junta=junta,
@@ -338,82 +348,110 @@ def generar_certificado_view(request):
         messages.error(request, "El presidente aún no ha subido su firma digital.")
         return redirect("panel_vecino")
 
+    hoy = timezone.localtime(timezone.now()).date()
+    anio = hoy.year
+
+    certificado = CertificadoDeResidencia.objects.filter(
+        id_vecino=vecino,
+        id_vecino2=presidente,
+        fecha_emision__date=hoy
+    ).first()
+
+    if certificado:
+        numero_certificado = certificado.numero_certificado
+    else:
+        correlativo = CertificadoDeResidencia.objects.filter(
+            fecha_emision__year=anio
+        ).count() + 1
+
+        numero_certificado = f"CERT-{anio}-{correlativo:04d}"
+
+        certificado = CertificadoDeResidencia.objects.create(
+            id_certificado=uuid.uuid4(),
+            numero_certificado=numero_certificado,
+            fecha_emision=timezone.now(),
+            id_vecino=vecino,
+            id_vecino2=presidente
+        )
+
     carpeta_certificados = os.path.join(settings.MEDIA_ROOT, "certificados")
     os.makedirs(carpeta_certificados, exist_ok=True)
 
-    nombre_pdf = f"certificado_{vecino.id_vecino}.pdf"
+    nombre_pdf = f"{numero_certificado}_{vecino.id_vecino}.pdf"
     ruta_pdf = os.path.join(carpeta_certificados, nombre_pdf)
+
+    meses = {
+        1: "enero", 2: "febrero", 3: "marzo", 4: "abril",
+        5: "mayo", 6: "junio", 7: "julio", 8: "agosto",
+        9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre",
+    }
+
+    fecha_formal = f"{comuna}, {hoy.day} de {meses[hoy.month]} de {hoy.year}"
+
+    direccion = f"{vivienda.nombre_calle} N° {vivienda.numero_calle}"
+
+    if vivienda.tipo_vivienda == "D":
+        direccion += f", Block {vivienda.num_block}, Departamento {vivienda.num_dpto}"
+
+    direccion += f", comuna de {comuna}"
 
     c = canvas.Canvas(ruta_pdf, pagesize=letter)
     width, height = letter
 
-    # Márgenes
     x_left = 80
-    y = height - 70
+    y = height - 60
 
-    # Encabezado
-    c.setFont("Helvetica-BoldOblique", 12)
-    c.drawCentredString(width / 2, y, f"JUNTA DE VECINOS {junta.nombre.upper()}")
-    y -= 20
-    c.drawCentredString(width / 2, y, "URBANLINK")
+    c.setFont("Helvetica", 9)
+    c.drawRightString(width - 70, y, numero_certificado)
 
-    # Título
-    y -= 70
-    c.setFont("Helvetica-BoldOblique", 14)
+    y -= 35
+    c.setFont("Helvetica-Bold", 13)
+    c.drawCentredString(width / 2, y, "JUNTA DE VECINOS")
+    y -= 18
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(width / 2, y, f"“{junta.nombre.upper()}”")
+    y -= 18
+    c.setFont("Helvetica", 11)
+    c.drawCentredString(width / 2, y, "UrbanLink")
+
+    y -= 65
+    c.setFont("Helvetica-Bold", 16)
     c.drawCentredString(width / 2, y, "CERTIFICADO DE RESIDENCIA")
-    c.line(width / 2 - 105, y - 3, width / 2 + 105, y - 3)
+    c.line(width / 2 - 125, y - 5, width / 2 + 125, y - 5)
 
-    # Cuerpo
-    y -= 60
-    c.setFont("Helvetica-Oblique", 12)
+    y -= 50
+    c.setFont("Helvetica", 11)
+    c.drawRightString(width - 80, y, fecha_formal)
+
+    y -= 55
+    c.setFont("Helvetica", 12)
 
     lineas = [
-        f"Quien suscribe, presidente de la Junta de Vecinos {junta.nombre},",
+        f"Quien suscribe, Presidente de la Junta de Vecinos “{junta.nombre}”,",
         "certifica mediante el presente documento que:",
+        "",
+        f"Don(a): {vecino.pri_nombre} {vecino.apell_paterno} {vecino.apell_materno}",
+        f"RUT N°: {vecino.rut}",
+        f"Registra domicilio en: {direccion}.",
+        "",
+        "El presente certificado se extiende a petición del interesado(a),",
+        "para los fines que estime pertinente.",
     ]
 
     for linea in lineas:
-        c.drawString(x_left, y, linea)
-        y -= 28
+        if linea == "":
+            y -= 15
+        else:
+            c.drawString(x_left, y, linea)
+            y -= 25
 
-    # Datos vecino
-    c.setFont("Helvetica-BoldOblique", 12)
-    c.drawString(x_left, y, "Don(a):")
-    c.setFont("Helvetica-Oblique", 12)
-    c.drawString(x_left + 70, y, f"{vecino.pri_nombre} {vecino.apell_paterno} {vecino.apell_materno}")
-    y -= 28
+    y -= 90
 
-    c.setFont("Helvetica-BoldOblique", 12)
-    c.drawString(x_left, y, "RUT Nº:")
-    c.setFont("Helvetica-Oblique", 12)
-    c.drawString(x_left + 70, y, str(vecino.rut))
-    y -= 28
-
-    direccion = f"{vivienda.nombre_calle} {vivienda.numero_calle}"
-    if vivienda.num_block:
-        direccion += f", Block {vivienda.num_block}"
-    if vivienda.num_dpto:
-        direccion += f", Dpto {vivienda.num_dpto}"
-
-    c.drawString(x_left, y, f"Tiene su domicilio en {direccion},")
-    y -= 28
-    c.drawString(x_left, y, f"perteneciente a la junta de vecinos {junta.nombre}.")
-    y -= 50
-
-    # Texto final
-    c.setFont("Helvetica-Oblique", 12)
-    c.drawString(x_left, y, "Se extiende el presente certificado a petición del interesado(a),")
-    y -= 25
-    c.drawString(x_left, y, "para los fines que estime pertinente.")
-
-    # Firma
-    y -= 110
-    if presidente.firma_digital:
-        respuesta = requests.get(presidente.firma_digital)
+    try:
+        respuesta = requests.get(presidente.firma_digital, timeout=10)
 
         if respuesta.status_code == 200:
             firma_img = ImageReader(BytesIO(respuesta.content))
-
             c.drawImage(
                 firma_img,
                 width / 2 - 90,
@@ -423,38 +461,35 @@ def generar_certificado_view(request):
                 preserveAspectRatio=True,
                 mask="auto"
             )
+    except Exception:
+        pass
 
     y -= 25
-    c.setFont("Helvetica-BoldOblique", 11)
-    c.drawCentredString(
-        width / 2,
-        y,
-        f"PRESIDENTE JJ.VV. {junta.nombre.upper()}"
-    )
+    c.line(width / 2 - 120, y, width / 2 + 120, y)
+
     y -= 18
+    c.setFont("Helvetica-Bold", 11)
     c.drawCentredString(
         width / 2,
         y,
         f"{presidente.pri_nombre.upper()} {presidente.apell_paterno.upper()} {presidente.apell_materno.upper()}"
     )
 
-    # Fecha inferior
-    c.setFont("Helvetica-Oblique", 11)
-    fecha_actual = timezone.localtime(timezone.now()).strftime("%d/%m/%Y")
-    c.drawCentredString(width / 2, 70, f"Emitido con fecha {fecha_actual}")
+    y -= 16
+    c.setFont("Helvetica", 10)
+    c.drawCentredString(width / 2, y, f"PRESIDENTE JJ.VV. “{junta.nombre.upper()}”")
+
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(width / 2, 50, "Documento emitido digitalmente a través de UrbanLink.")
 
     c.save()
 
-    CertificadoDeResidencia.objects.create(
-        id_certificado=uuid.uuid4(),
-        fecha_emision=timezone.now(),
-        id_vecino=vecino,
-        id_vecino2=presidente
+    return FileResponse(
+        open(ruta_pdf, "rb"),
+        as_attachment=True,
+        filename=f"{numero_certificado}_certificado_residencia.pdf"
     )
-
-    return FileResponse(open(ruta_pdf, "rb"), as_attachment=True, filename="certificado_residencia.pdf")
-
-
+    
 # =========================
 # VISTAS VECINO
 # =========================
@@ -699,6 +734,36 @@ def cerrar_solicitud_view(request, id_solicitud):
     })
     
 
+@never_cache
+def certificados_presidente_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    if request.session.get("rol") != "Admin":
+        messages.error(request, "No tienes permiso para ver certificados.")
+        return redirect("login")
+
+    presidente = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+
+    busqueda = request.GET.get("q", "")
+
+    certificados = CertificadoDeResidencia.objects.filter(
+        id_vecino2=presidente
+    ).select_related("id_vecino").order_by("-fecha_emision")
+
+    if busqueda:
+        certificados = certificados.filter(
+            models.Q(id_vecino__pri_nombre__icontains=busqueda) |
+            models.Q(id_vecino__seg_nombre__icontains=busqueda) |
+            models.Q(id_vecino__apell_paterno__icontains=busqueda) |
+            models.Q(id_vecino__apell_materno__icontains=busqueda) |
+            models.Q(id_vecino__rut__icontains=busqueda)
+        )
+
+    return render(request, "presidente/certificados.html", {
+        "certificados": certificados,
+        "busqueda": busqueda,
+    })
 
 # =========================
 # SUPERADMIN - GENERAL

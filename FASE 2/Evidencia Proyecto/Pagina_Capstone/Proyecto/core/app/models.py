@@ -17,6 +17,7 @@ class CertificadoDeResidencia(models.Model):
     fecha_emision = models.DateTimeField()
     id_vecino = models.ForeignKey('Vecino', models.DO_NOTHING, db_column='id_vecino')
     id_vecino2 = models.ForeignKey('Vecino', models.DO_NOTHING, db_column='id_vecino2', related_name='certificadoderesidencia_id_vecino2_set')
+    numero_certificado = models.CharField(max_length=20, blank=True, null=True)
 
     class Meta:
         managed = False

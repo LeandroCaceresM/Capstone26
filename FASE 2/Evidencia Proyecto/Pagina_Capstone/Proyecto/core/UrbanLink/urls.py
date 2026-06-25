@@ -52,6 +52,7 @@ urlpatterns = [
         name="cerrar_solicitud"
     ),
     
+    path("presidente/certificados/", views.certificados_presidente_view, name="certificados_presidente"),
     # =========================
     # SUPERADMIN - PANEL
     # =========================

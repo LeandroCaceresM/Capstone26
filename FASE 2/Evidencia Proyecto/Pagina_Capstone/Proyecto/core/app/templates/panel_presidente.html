@@ -1,5 +1,11 @@
 <h1>Panel Presidente de Junta</h1>
 
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
 <p>Bienvenido, {{ request.session.nombre }}</p>
 
 <ul>
@@ -11,7 +17,6 @@
 <ul>
     <li><a href="{% url 'solicitudes_presidente' %}">Solicitudes</a></li>
     <li><a href="{% url 'vecinos_mi_junta' %}">Vecinos de la junta</a></li>
-    <li>Gestionar certificados</li>
-</ul>
+    <li><a href="{% url 'certificados_presidente' %}">Certificados emitidos</a></li></ul>
 
 <a href="{% url 'logout' %}">Cerrar sesión</a>
