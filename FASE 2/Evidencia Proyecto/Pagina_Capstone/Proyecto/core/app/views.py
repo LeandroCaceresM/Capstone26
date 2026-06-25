@@ -452,9 +452,14 @@ def vecinos_mi_junta_view(request):
             fecha_cargo_fin_real__isnull=True
         ).select_related("id_cargo").first()
 
+        condiciones = VecinoDiscap.objects.filter(
+            id_vecino=registro.id_vecino
+        ).select_related("id_tipo_discap")
+
         vecinos_data.append({
             "vecino": registro.id_vecino,
-            "cargo": cargo_actual.id_cargo.nombre_cargo if cargo_actual else "Vecino"
+            "cargo": cargo_actual.id_cargo.nombre_cargo if cargo_actual else "Vecino",
+            "condiciones": condiciones
         })
 
     return render(request, "vecinos_junta.html", {
@@ -941,7 +946,7 @@ def asignar_vecino_junta_view(request, id_junta):
         "junta": junta,
         "vecinos": vecinos
     })
-      
+    
 def editar_vecino_junta_view(request, id_junta, id_vecino):
     if request.session.get("rol") != "Superadmin":
         return redirect("login")
@@ -1168,4 +1173,101 @@ def quitar_cargo_vecino_view(request, id_junta, id_vecino):
         "junta": junta,
         "vecino": vecino,
         "cargo_actual": cargo_actual
+    })
+    
+@never_cache
+def vecinos_prioritarios_view(request):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    if request.session.get("rol") != "Superadmin":
+        return redirect("login")
+
+    vecinos = Vecino.objects.filter(vigencia="S").order_by("pri_nombre", "apell_paterno")
+
+    return render(request, "superadmin/vecinos_prioritarios.html", {
+        "vecinos": vecinos
+    })
+
+@never_cache
+def gestionar_discapacidad_vecino_view(request, id_vecino):
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    if request.session.get("rol") != "Superadmin":
+        return redirect("login")
+
+    vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
+    tipos = TipoDiscapacidad.objects.all()
+
+    discapacidades_actuales = VecinoDiscap.objects.filter(
+        id_vecino=vecino
+    ).select_related("id_tipo_discap")
+
+    ids_actuales = [str(item.id_tipo_discap.id_tipo_discap) for item in discapacidades_actuales]
+
+    if request.method == "POST":
+        seleccionadas = request.POST.getlist("discapacidades")
+
+        VecinoDiscap.objects.filter(id_vecino=vecino).delete()
+
+        for id_tipo in seleccionadas:
+            tipo = get_object_or_404(TipoDiscapacidad, id_tipo_discap=id_tipo)
+
+            VecinoDiscap.objects.create(
+                id_tipo_discap=tipo,
+                id_vecino=vecino,
+                fecha_registro_discap=timezone.now().date()
+            )
+
+        messages.success(request, "Condiciones prioritarias actualizadas correctamente.")
+        return redirect("vecinos_prioritarios")
+
+    return render(request, "superadmin/gestionar_discapacidad_vecino.html", {
+        "vecino": vecino,
+        "tipos": tipos,
+        "ids_actuales": ids_actuales
+    })
+
+
+    if not request.session.get("vecino_id"):
+        return redirect("login")
+
+    if request.session.get("rol") != "Admin":
+        return redirect("login")
+
+    presidente = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+
+    residencia_presidente = HistVivienda.objects.filter(
+        id_vecino=presidente,
+        fecha_ter__isnull=True
+    ).select_related("id_vivienda__id_junta").first()
+
+    if not residencia_presidente:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia_presidente.id_vivienda.id_junta
+
+    registros = HistVivienda.objects.filter(
+        id_vivienda__id_junta=junta,
+        fecha_ter__isnull=True,
+        id_vecino__vecinodiscap__isnull=False
+    ).select_related("id_vecino").distinct()
+
+    vecinos_data = []
+
+    for registro in registros:
+        condiciones = VecinoDiscap.objects.filter(
+            id_vecino=registro.id_vecino
+        ).select_related("id_tipo_discap")
+
+        vecinos_data.append({
+            "vecino": registro.id_vecino,
+            "condiciones": condiciones
+        })
+
+    return render(request, "presidente/vecinos_prioritarios.html", {
+        "junta": junta,
+        "vecinos_data": vecinos_data
     })

@@ -18,6 +18,7 @@
             <th>Correo</th>
             <th>Teléfono</th>
             <th>Cargo</th>
+            <th>Condiciones</th>
         </tr>
 
         {% for item in vecinos_data %}
@@ -31,6 +32,15 @@
                 <td>{{ item.vecino.correo }}</td>
                 <td>{{ item.vecino.telefono }}</td>
                 <td>{{ item.cargo }}</td>
+                <td>
+                    {% if item.condiciones %}
+                        {% for condicion in item.condiciones %}
+                            {{ condicion.id_tipo_discap.nom_tipo_discap }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        Sin condiciones
+                    {% endif %}
+                </td>
             </tr>
         {% endfor %}
     </table>

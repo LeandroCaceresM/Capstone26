@@ -33,8 +33,8 @@ urlpatterns = [
     path("presidente/solicitudes/", views.solicitudes_presidente_view, name="solicitudes_presidente"),
     path("presidente/solicitudes/<uuid:id_solicitud>/cerrar/", views.cerrar_solicitud_view, name="cerrar_solicitud"),
     path("presidente/firma/", views.subir_firma_view, name="subir_firma"),
-
-
+    
+    
     #Vistas de SUPERADMIN
     path("panel-superadmin/", views.panel_superadmin_view, name="panel_superadmin"),
 
@@ -69,7 +69,9 @@ urlpatterns = [
         views.quitar_cargo_vecino_view,
         name="quitar_cargo_vecino"
     ),
-    ]
-
+    
+    path("superadmin/vecinos-prioritarios/", views.vecinos_prioritarios_view, name="vecinos_prioritarios"),
+    path("superadmin/vecinos/<uuid:id_vecino>/discapacidad/", views.gestionar_discapacidad_vecino_view, name="gestionar_discapacidad_vecino"),
+]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
