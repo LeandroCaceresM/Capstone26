@@ -321,8 +321,13 @@ def vecinos_mi_junta_view(request):
 
 @never_cache
 def generar_certificado_view(request):
+
     if not request.session.get("vecino_id"):
         return redirect("login")
+
+    if request.session.get("rol") not in ["Usuario", "Admin"]:
+        messages.error(request, "No tienes permiso para generar certificados.")
+        return redirect("login")   
 
     vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
 
@@ -930,7 +935,15 @@ def asignar_vecino_junta_view(request, id_junta):
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
 
-    vecinos = Vecino.objects.filter(vigencia="S")
+    vecinos_con_junta = HistVivienda.objects.filter(
+        fecha_ter__isnull=True
+    ).values_list("id_vecino", flat=True)
+
+    vecinos = Vecino.objects.filter(
+        vigencia="S"
+    ).exclude(
+        id_vecino__in=vecinos_con_junta
+    ).order_by("pri_nombre", "apell_paterno")
 
     if request.method == "POST":
         id_vecino = request.POST.get("id_vecino")

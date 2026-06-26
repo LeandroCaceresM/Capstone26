@@ -1,15 +1,16 @@
 <h1>Asignar cargos - {{ junta.nombre }}</h1>
 
-<p>
-    Directiva actual:
-    {{ directiva.fecha_inicio_direct }} hasta {{ directiva.fecha_fin_direct }}
-</p>
-
 {% if messages %}
     {% for message in messages %}
         <p>{{ message }}</p>
     {% endfor %}
 {% endif %}
+
+<p>
+    Directiva actual:
+    {{ directiva.fecha_inicio_direct }} hasta {{ directiva.fecha_fin_direct }}
+</p>
+
 
 {% if vecinos_data %}
     <table border="1" cellpadding="8">
