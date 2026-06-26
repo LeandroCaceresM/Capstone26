@@ -123,16 +123,6 @@ class Rol(models.Model):
         managed = False
         db_table = 'rol'
 
-#Sector que pertenece a una comuna, por ejemplo (Region: Biobio, Comuna: San Pedro, Sector: Michaihue)
-class Sector(models.Model):
-    id_sector = models.UUIDField(primary_key=True)
-    nom_sector = models.CharField(max_length=100)
-    id_comuna = models.ForeignKey(Comuna, models.DO_NOTHING, db_column='id_comuna')
-
-    class Meta:
-        managed = False
-        db_table = 'sector'
-
 #Solicitudes que pueden hacer los vecinos
 class Solicitud(models.Model):
     id_solicitud = models.UUIDField(primary_key=True)
