@@ -26,7 +26,7 @@ from .supabase_client import supabase
 from .supabase_storage_client import supabase_storage
 
 # =========================
-# RUT - VALIDACION
+# UTILES
 # =========================
 
 def limpiar_rut(rut):
@@ -72,6 +72,16 @@ def formatear_rut(rut):
 
     return f"{cuerpo_formateado}-{dv}"
 
+def limpiar_nombre(texto):
+    if not texto:
+        return None
+
+    # Elimina espacios repetidos
+    texto = re.sub(r"\s+", " ", texto.strip())
+
+    # Convierte a mayúsculas
+    return texto.upper()
+
 # =========================
 # AUTENTICACION
 # =========================
@@ -83,10 +93,10 @@ def registro_view(request):
         password = request.POST.get("password")
 
         rut = request.POST.get("rut")
-        pri_nombre = request.POST.get("pri_nombre")
-        seg_nombre = request.POST.get("seg_nombre")
-        apell_paterno = request.POST.get("apell_paterno")
-        apell_materno = request.POST.get("apell_materno")
+        pri_nombre = limpiar_nombre(request.POST.get("pri_nombre"))
+        seg_nombre = limpiar_nombre(request.POST.get("seg_nombre"))
+        apell_paterno = limpiar_nombre(request.POST.get("apell_paterno"))
+        apell_materno = limpiar_nombre(request.POST.get("apell_materno"))
         telefono = request.POST.get("telefono")
         fecha_de_nacimiento = request.POST.get("fecha_de_nacimiento")
 
