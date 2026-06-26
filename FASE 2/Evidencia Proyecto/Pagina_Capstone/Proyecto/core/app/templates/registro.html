@@ -39,7 +39,9 @@
     <input type="number" name="telefono" required><br><br>
 
     <label>Fecha de Nacimiento</label><br>
-    <input type="date" name="fecha_de_nacimiento" required><br><br>
+    <input type="date" name="fecha_de_nacimiento" max="{{ fecha_maxima }}" required>    
+    
+    <br><br>
 
     <label>Contraseña</label><br>
     <input type="password" name="password" required><br><br>

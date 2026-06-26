@@ -36,8 +36,10 @@ from .supabase_storage_client import supabase_storage
 
 @never_cache
 def registro_view(request):
+    fecha_maxima = date.today().replace(year=date.today().year - 16)
+
     if request.method == "POST":
-        correo = request.POST.get("correo")
+        correo = limpiar_correo(request.POST.get("correo"))
         password = request.POST.get("password")
 
         rut = request.POST.get("rut")
@@ -45,9 +47,12 @@ def registro_view(request):
         seg_nombre = limpiar_mayusculas(request.POST.get("seg_nombre"))
         apell_paterno = limpiar_mayusculas(request.POST.get("apell_paterno"))
         apell_materno = limpiar_mayusculas(request.POST.get("apell_materno"))
-
         telefono = limpiar_telefono(request.POST.get("telefono"))
         fecha_de_nacimiento = request.POST.get("fecha_de_nacimiento")
+
+        if not es_mayor_16(fecha_de_nacimiento):
+            messages.error(request, "Debes tener al menos 16 años para registrarte.")
+            return redirect("registro")
 
         if not validar_rut(rut):
             messages.error(request, "El RUT ingresado no es válido.")
@@ -57,6 +62,10 @@ def registro_view(request):
 
         if Vecino.objects.filter(rut=rut).exists():
             messages.error(request, "Ya existe un usuario registrado con ese RUT.")
+            return redirect("registro")
+
+        if Vecino.objects.filter(correo=correo).exists():
+            messages.error(request, "Ya existe un usuario registrado con ese correo.")
             return redirect("registro")
 
         try:
@@ -78,7 +87,7 @@ def registro_view(request):
                 supabase_uid=user.id,
                 rut=rut,
                 pri_nombre=pri_nombre,
-                seg_nombre=seg_nombre or None,
+                seg_nombre=seg_nombre,
                 apell_paterno=apell_paterno,
                 apell_materno=apell_materno,
                 correo=correo,
@@ -96,7 +105,9 @@ def registro_view(request):
             messages.error(request, f"Error al registrar: {e}")
             return redirect("registro")
 
-    return render(request, "registro.html")
+    return render(request, "registro.html", {
+        "fecha_maxima": fecha_maxima.isoformat()
+    })
 
 @never_cache
 def login_view(request):
@@ -1108,47 +1119,73 @@ def asignar_cargo_junta_view(request, id_junta):
     cargos = Cargo.objects.all()
 
     if request.method == "POST":
-        id_vecino = request.POST.get("id_vecino")
-        id_cargo = request.POST.get("id_cargo")
+        asignados = 0
+        errores = 0
 
-        vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
-        cargo = get_object_or_404(Cargo, id_cargo=id_cargo)
+        for registro in registros:
+            vecino = registro.id_vecino
+            id_cargo = request.POST.get(f"cargo_{vecino.id_vecino}")
 
-        ya_tiene_cargo = HistCargo.objects.filter(
-            id_vecino=vecino,
-            fecha_cargo_fin_real__isnull=True
-        ).exists()
+            if not id_cargo:
+                continue
 
-        if ya_tiene_cargo:
-            messages.error(request, "Este vecino ya tiene un cargo activo.")
-            return redirect("asignar_cargo_junta", id_junta=junta.id_junta)
+            cargo = get_object_or_404(Cargo, id_cargo=id_cargo)
 
-        cargo_ocupado = HistCargo.objects.filter(
-            id_directiva=directiva,
-            id_cargo=cargo,
-            fecha_cargo_fin_real__isnull=True
-        ).exists()
+            ya_tiene_cargo = HistCargo.objects.filter(
+                id_vecino=vecino,
+                fecha_cargo_fin_real__isnull=True
+            ).exists()
 
-        if cargo_ocupado:
-            messages.error(request, f"El cargo {cargo.nombre_cargo} ya está ocupado.")
-            return redirect("asignar_cargo_junta", id_junta=junta.id_junta)
+            if ya_tiene_cargo:
+                errores += 1
+                continue
 
-        HistCargo.objects.create(
-            id_hist_cargo=uuid.uuid4(),
-            id_vecino=vecino,
-            id_cargo=cargo,
-            id_directiva=directiva,
-            fecha_cargo_tentativa=timezone.now().date(),
-            fecha_cargo_fin=None,
-            fecha_cargo_fin_real=None
-        )
+            cargo_ocupado = HistCargo.objects.filter(
+                id_directiva=directiva,
+                id_cargo=cargo,
+                fecha_cargo_fin_real__isnull=True
+            ).exists()
 
-        if cargo.nombre_cargo.lower() == "presidente":
-            rol_admin = Rol.objects.get(nombre_rol="Admin")
-            vecino.id_rol = rol_admin
-            vecino.save()
+            if cargo_ocupado:
+                messages.error(
+                    request,
+                    f"El cargo {cargo.nombre_cargo} ya está ocupado."
+                )
+                errores += 1
+                continue
 
-        messages.success(request, "Cargo asignado correctamente.")
+            HistCargo.objects.create(
+                id_hist_cargo=uuid.uuid4(),
+                id_vecino=vecino,
+                id_cargo=cargo,
+                id_directiva=directiva,
+                fecha_cargo_tentativa=timezone.now().date(),
+                fecha_cargo_fin=None,
+                fecha_cargo_fin_real=None
+            )
+
+            if cargo.nombre_cargo.lower() == "presidente":
+                rol_admin = Rol.objects.get(nombre_rol="Admin")
+                vecino.id_rol = rol_admin
+                vecino.save()
+
+            asignados += 1
+
+        if asignados > 0:
+            messages.success(
+                request,
+                f"Se asignaron {asignados} cargo(s) correctamente."
+            )
+
+        if errores > 0:
+            messages.warning(
+                request,
+                f"{errores} cargo(s) no pudieron asignarse."
+            )
+
+        if asignados == 0 and errores == 0:
+            messages.error(request, "No seleccionaste ningún cargo.")
+
         return redirect("asignar_cargo_junta", id_junta=junta.id_junta)
 
     vecinos_data = []

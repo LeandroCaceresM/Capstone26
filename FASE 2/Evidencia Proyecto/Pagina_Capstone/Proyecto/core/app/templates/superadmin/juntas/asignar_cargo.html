@@ -11,64 +11,63 @@
     {{ directiva.fecha_inicio_direct }} hasta {{ directiva.fecha_fin_direct }}
 </p>
 
-
 {% if vecinos_data %}
-    <table border="1" cellpadding="8">
-        <tr>
-            <th>Vecino</th>
-            <th>Dirección</th>
-            <th>Cargo actual</th>
-            <th>Asignar cargo</th>
-        </tr>
+    <form method="POST">
+        {% csrf_token %}
 
-        {% for item in vecinos_data %}
-        <tr>
-            <td>
-                {{ item.vecino.pri_nombre }}
-                {{ item.vecino.apell_paterno }}
-                {{ item.vecino.apell_materno }}
-            </td>
+        <table border="1" cellpadding="8">
+            <tr>
+                <th>Vecino</th>
+                <th>Dirección</th>
+                <th>Cargo actual</th>
+                <th>Asignar cargo</th>
+            </tr>
 
-            <td>
-                {{ item.vivienda.nombre_calle }}
-                {{ item.vivienda.numero_calle }}
-            </td>
+            {% for item in vecinos_data %}
+                <tr>
+                    <td>
+                        {{ item.vecino.pri_nombre }}
+                        {{ item.vecino.apell_paterno }}
+                        {{ item.vecino.apell_materno }}
+                    </td>
 
-            <td>
-                {% if item.cargo_actual %}
-                    {{ item.cargo_actual.id_cargo.nombre_cargo }}
-                {% else %}
-                    Vecino
-                {% endif %}
-            </td>
+                    <td>
+                        {{ item.vivienda.nombre_calle }}
+                        {{ item.vivienda.numero_calle }}
+                    </td>
 
-            <td>
-                {% if item.cargo_actual %}
-                    <a href="{% url 'quitar_cargo_vecino' junta.id_junta item.vecino.id_vecino %}">
-                        Retirar cargo
-                    </a>
-                {% else %}
-                    <form method="POST">
-                        {% csrf_token %}
+                    <td>
+                        {% if item.cargo_actual %}
+                            {{ item.cargo_actual.id_cargo.nombre_cargo }}
+                        {% else %}
+                            Vecino
+                        {% endif %}
+                    </td>
 
-                        <input type="hidden" name="id_vecino" value="{{ item.vecino.id_vecino }}">
+                    <td>
+                        {% if item.cargo_actual %}
+                            <a href="{% url 'quitar_cargo_vecino' junta.id_junta item.vecino.id_vecino %}">
+                                Retirar cargo
+                            </a>
+                        {% else %}
+                            <select name="cargo_{{ item.vecino.id_vecino }}">
+                                <option value="">Seleccione cargo</option>
+                                {% for cargo in cargos %}
+                                    <option value="{{ cargo.id_cargo }}">
+                                        {{ cargo.nombre_cargo }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
 
-                        <select name="id_cargo" required>
-                            <option value="">Seleccione cargo</option>
-                            {% for cargo in cargos %}
-                                <option value="{{ cargo.id_cargo }}">
-                                    {{ cargo.nombre_cargo }}
-                                </option>
-                            {% endfor %}
-                        </select>
+        <br>
 
-                        <button type="submit">Asignar</button>
-                    </form>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+        <button type="submit">Guardar cargos seleccionados</button>
+    </form>
 {% else %}
     <p>Esta junta no tiene vecinos asignados actualmente.</p>
 {% endif %}
