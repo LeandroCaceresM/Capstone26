@@ -8,6 +8,9 @@ import re
 
 from io import BytesIO
 
+from .utils import *
+from .validators import *
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.messages import get_messages
@@ -25,62 +28,7 @@ from .models import *
 from .supabase_client import supabase
 from .supabase_storage_client import supabase_storage
 
-# =========================
-# UTILES
-# =========================
 
-def limpiar_rut(rut):
-    return rut.upper().replace(".", "").replace("-", "").strip()
-
-def validar_rut(rut):
-    rut = limpiar_rut(rut)
-
-    if not re.match(r"^\d+[0-9K]$", rut):
-        return False
-
-    cuerpo = rut[:-1]
-    dv = rut[-1]
-
-    suma = 0
-    multiplicador = 2
-
-    for digito in reversed(cuerpo):
-        suma += int(digito) * multiplicador
-        multiplicador += 1
-
-        if multiplicador > 7:
-            multiplicador = 2
-
-    resto = 11 - (suma % 11)
-
-    if resto == 11:
-        dv_calculado = "0"
-    elif resto == 10:
-        dv_calculado = "K"
-    else:
-        dv_calculado = str(resto)
-
-    return dv == dv_calculado
-
-def formatear_rut(rut):
-    rut = limpiar_rut(rut)
-
-    cuerpo = rut[:-1]
-    dv = rut[-1]
-
-    cuerpo_formateado = f"{int(cuerpo):,}".replace(",", ".")
-
-    return f"{cuerpo_formateado}-{dv}"
-
-def limpiar_nombre(texto):
-    if not texto:
-        return None
-
-    # Elimina espacios repetidos
-    texto = re.sub(r"\s+", " ", texto.strip())
-
-    # Convierte a mayúsculas
-    return texto.upper()
 
 # =========================
 # AUTENTICACION
@@ -93,11 +41,12 @@ def registro_view(request):
         password = request.POST.get("password")
 
         rut = request.POST.get("rut")
-        pri_nombre = limpiar_nombre(request.POST.get("pri_nombre"))
-        seg_nombre = limpiar_nombre(request.POST.get("seg_nombre"))
-        apell_paterno = limpiar_nombre(request.POST.get("apell_paterno"))
-        apell_materno = limpiar_nombre(request.POST.get("apell_materno"))
-        telefono = request.POST.get("telefono")
+        pri_nombre = limpiar_mayusculas(request.POST.get("pri_nombre"))
+        seg_nombre = limpiar_mayusculas(request.POST.get("seg_nombre"))
+        apell_paterno = limpiar_mayusculas(request.POST.get("apell_paterno"))
+        apell_materno = limpiar_mayusculas(request.POST.get("apell_materno"))
+
+        telefono = limpiar_telefono(request.POST.get("telefono"))
         fecha_de_nacimiento = request.POST.get("fecha_de_nacimiento")
 
         if not validar_rut(rut):
@@ -664,7 +613,7 @@ def crear_solicitud_view(request):
             id_solicitud=uuid.uuid4(),
             fecha_solicitud=timezone.now(),
             estado="EN PROCESO",
-            descripcion=request.POST.get("descripcion"),
+            descripcion = limpiar_texto(request.POST.get("descripcion")),
             comentario_presidente=None,
             id_vecino=vecino,
             id_tsolicitud=tipo
@@ -898,8 +847,8 @@ def crear_junta_view(request):
     comunas = Comuna.objects.select_related("id_region").all().order_by("nom_comuna")
 
     if request.method == "POST":
-        nombre = request.POST.get("nombre")
-        direccion = request.POST.get("direccion")
+        nombre = limpiar_mayusculas(request.POST.get("nombre"))
+        direccion = limpiar_titulo(request.POST.get("direccion"))
         id_comuna = request.POST.get("id_comuna")
 
         comuna = get_object_or_404(Comuna, id_comuna=id_comuna)
@@ -1016,7 +965,7 @@ def asignar_vecino_junta_view(request, id_junta):
     if request.method == "POST":
         id_vecino = request.POST.get("id_vecino")
         tipo_vivienda = request.POST.get("tipo_vivienda")
-        nombre_calle = request.POST.get("nombre_calle")
+        nombre_calle = limpiar_titulo(request.POST.get("nombre_calle"))
         numero_calle = request.POST.get("numero_calle")
         num_block = request.POST.get("num_block") or None
         num_dpto = request.POST.get("num_dpto") or None
@@ -1336,10 +1285,10 @@ def editar_vecino_superadmin_view(request, id_vecino):
     ]
 
     if request.method == "POST":
-        vecino.pri_nombre = request.POST.get("pri_nombre")
-        vecino.seg_nombre = request.POST.get("seg_nombre") or None
-        vecino.apell_paterno = request.POST.get("apell_paterno")
-        vecino.apell_materno = request.POST.get("apell_materno")
+        vecino.pri_nombre = limpiar_mayusculas(request.POST.get("pri_nombre"))
+        vecino.seg_nombre = limpiar_mayusculas(request.POST.get("seg_nombre")) or None
+        vecino.apell_paterno = limpiar_mayusculas(request.POST.get("apell_paterno"))
+        vecino.apell_materno = limpiar_mayusculas(request.POST.get("apell_materno"))
         vecino.telefono = request.POST.get("telefono")
         vecino.vigencia = request.POST.get("vigencia")
         vecino.save()
