@@ -35,7 +35,7 @@ def limpiar_rut(rut):
 def validar_rut(rut):
     rut = limpiar_rut(rut)
 
-    if not re.match(r"^\d{7,8}[0-9K]$", rut):
+    if not re.match(r"^\d+[0-9K]$", rut):
         return False
 
     cuerpo = rut[:-1]
@@ -62,9 +62,15 @@ def validar_rut(rut):
 
     return dv == dv_calculado
 
-def rut_sin_dv(rut):
+def formatear_rut(rut):
     rut = limpiar_rut(rut)
-    return rut[:-1]
+
+    cuerpo = rut[:-1]
+    dv = rut[-1]
+
+    cuerpo_formateado = f"{int(cuerpo):,}".replace(",", ".")
+
+    return f"{cuerpo_formateado}-{dv}"
 
 # =========================
 # AUTENTICACION
@@ -88,9 +94,9 @@ def registro_view(request):
             messages.error(request, "El RUT ingresado no es válido.")
             return redirect("registro")
 
-        rut_limpio = rut_sin_dv(rut)
+        rut = formatear_rut(rut)
 
-        if Vecino.objects.filter(rut=rut_limpio).exists():
+        if Vecino.objects.filter(rut=rut).exists():
             messages.error(request, "Ya existe un usuario registrado con ese RUT.")
             return redirect("registro")
 
@@ -111,7 +117,7 @@ def registro_view(request):
             Vecino.objects.create(
                 id_vecino=uuid.uuid4(),
                 supabase_uid=user.id,
-                rut=rut_limpio,
+                rut=rut,
                 pri_nombre=pri_nombre,
                 seg_nombre=seg_nombre or None,
                 apell_paterno=apell_paterno,

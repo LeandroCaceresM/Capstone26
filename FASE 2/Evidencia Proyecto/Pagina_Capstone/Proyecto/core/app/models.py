@@ -160,7 +160,7 @@ class Vecino(models.Model):
     id_vecino = models.UUIDField(primary_key=True)
     supabase_uid = models.UUIDField(unique=True, blank=True, null=True)    
 
-    rut = models.BigIntegerField()
+    rut = models.CharField(max_length=12)
     pri_nombre = models.CharField(max_length=50)
     seg_nombre = models.CharField(max_length=50, blank=True, null=True)
     apell_paterno = models.CharField(max_length=50)
