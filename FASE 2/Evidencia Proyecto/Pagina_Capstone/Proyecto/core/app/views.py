@@ -4,6 +4,7 @@
 import uuid
 import os
 import requests
+import re
 
 from io import BytesIO
 
@@ -24,10 +25,51 @@ from .models import *
 from .supabase_client import supabase
 from .supabase_storage_client import supabase_storage
 
+# =========================
+# RUT - VALIDACION
+# =========================
+
+def limpiar_rut(rut):
+    return rut.upper().replace(".", "").replace("-", "").strip()
+
+def validar_rut(rut):
+    rut = limpiar_rut(rut)
+
+    if not re.match(r"^\d{7,8}[0-9K]$", rut):
+        return False
+
+    cuerpo = rut[:-1]
+    dv = rut[-1]
+
+    suma = 0
+    multiplicador = 2
+
+    for digito in reversed(cuerpo):
+        suma += int(digito) * multiplicador
+        multiplicador += 1
+
+        if multiplicador > 7:
+            multiplicador = 2
+
+    resto = 11 - (suma % 11)
+
+    if resto == 11:
+        dv_calculado = "0"
+    elif resto == 10:
+        dv_calculado = "K"
+    else:
+        dv_calculado = str(resto)
+
+    return dv == dv_calculado
+
+def rut_sin_dv(rut):
+    rut = limpiar_rut(rut)
+    return rut[:-1]
 
 # =========================
 # AUTENTICACION
 # =========================
+
 @never_cache
 def registro_view(request):
     if request.method == "POST":
@@ -41,6 +83,16 @@ def registro_view(request):
         apell_materno = request.POST.get("apell_materno")
         telefono = request.POST.get("telefono")
         fecha_de_nacimiento = request.POST.get("fecha_de_nacimiento")
+
+        if not validar_rut(rut):
+            messages.error(request, "El RUT ingresado no es válido.")
+            return redirect("registro")
+
+        rut_limpio = rut_sin_dv(rut)
+
+        if Vecino.objects.filter(rut=rut_limpio).exists():
+            messages.error(request, "Ya existe un usuario registrado con ese RUT.")
+            return redirect("registro")
 
         try:
             auth_response = supabase.auth.sign_up({
@@ -59,7 +111,7 @@ def registro_view(request):
             Vecino.objects.create(
                 id_vecino=uuid.uuid4(),
                 supabase_uid=user.id,
-                rut=rut,
+                rut=rut_limpio,
                 pri_nombre=pri_nombre,
                 seg_nombre=seg_nombre or None,
                 apell_paterno=apell_paterno,
