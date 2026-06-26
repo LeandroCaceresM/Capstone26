@@ -1,5 +1,7 @@
 import re
 
+from datetime import date
+
 # =========================
 # RUT
 # =========================
@@ -47,3 +49,22 @@ def formatear_rut(rut):
 
     return f"{cuerpo_formateado}-{dv}"
 
+# =========================
+# RUT
+# =========================
+
+def es_mayor_16(fecha_nacimiento):
+    """
+    Recibe una fecha en formato YYYY-MM-DD.
+    Retorna True si tiene 16 años o más.
+    """
+
+    nacimiento = date.fromisoformat(fecha_nacimiento)
+    hoy = date.today()
+
+    edad = hoy.year - nacimiento.year
+
+    if (hoy.month, hoy.day) < (nacimiento.month, nacimiento.day):
+        edad -= 1
+
+    return edad >= 16
