@@ -1,5 +1,11 @@
 <h1>Eliminar Junta</h1>
 
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
 <p>¿Seguro que deseas eliminar la junta "{{ junta.nombre }}"?</p>
 
 <form method="POST">
