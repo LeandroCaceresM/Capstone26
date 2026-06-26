@@ -6,6 +6,12 @@
     {% endfor %}
 {% endif %}
 
+{% if tiene_vecinos or tiene_directivas %}
+    <p style="color:red;">
+        Esta junta tiene vecinos o directivas asociadas. No se recomienda eliminarla.
+    </p>
+{% endif %}
+
 <p>¿Seguro que deseas eliminar la junta "{{ junta.nombre }}"?</p>
 
 <form method="POST">

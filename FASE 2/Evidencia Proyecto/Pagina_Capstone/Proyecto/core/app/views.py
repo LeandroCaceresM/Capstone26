@@ -891,7 +891,7 @@ def editar_junta_view(request, id_junta):
 
     if request.method == "POST":
         junta.nombre = request.POST.get("nombre")
-        junta.direccion = request.POST.get("direccion")
+        junta.direccion = limpiar_titulo(request.POST.get("direccion"))
 
         id_comuna = request.POST.get("id_comuna")
         junta.id_comuna = get_object_or_404(Comuna, id_comuna=id_comuna)
@@ -914,13 +914,30 @@ def eliminar_junta_view(request, id_junta):
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
 
+    tiene_vecinos = HistVivienda.objects.filter(
+        id_vivienda__id_junta=junta
+    ).exists()
+
+    tiene_directivas = Directiva.objects.filter(
+        id_junta=junta
+    ).exists()
+
     if request.method == "POST":
+        if tiene_vecinos or tiene_directivas:
+            messages.error(
+                request,
+                "No se puede eliminar esta junta porque tiene vecinos o directivas asociadas. Primero debes quitar sus vecinos y registros asociados, o desactivarla."
+            )
+            return redirect("listar_juntas")
+
         junta.delete()
         messages.success(request, "Junta eliminada correctamente.")
         return redirect("listar_juntas")
 
     return render(request, "superadmin/juntas/eliminar.html", {
-        "junta": junta
+        "junta": junta,
+        "tiene_vecinos": tiene_vecinos,
+        "tiene_directivas": tiene_directivas,
     })
 
 # =========================
