@@ -2,44 +2,65 @@
 
 {% block body %}
 
-<header>
+<div class="layout">
 
-    <h2>UrbanLink</h2>
+    <aside class="sidebar">
 
-    {% if request.session.nombre %}
-        <p>Bienvenido, {{ request.session.nombre }} | ({{ request.session.rol }})</p>
-    {% endif %}
+        <h2 class="sidebar-logo">UrbanLink</h2>
 
-    
-    <hr>
-
-</header>
-
-<div class="container">
-
-    {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-                <div class="message {{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
+        <div class="sidebar-user">
+            <strong>{{ request.session.nombre }}</strong><br>
+            <span>{{ request.session.rol }}</span>
         </div>
-    {% endif %}
 
-    {% block contenido %}
-    {% endblock %}
+        <nav class="sidebar-menu">
+
+            {% if request.session.rol == "Usuario" %}
+                <a href="{% url 'panel_vecino' %}">🏠 Panel</a>
+                <a href="{% url 'mis_datos' %}">👤 Mis datos</a>
+                <a href="{% url 'mis_solicitudes' %}">📄 Mis solicitudes</a>
+                <a href="{% url 'vecinos_mi_junta' %}">👥 Vecinos de la junta</a>
+                <a href="{% url 'generar_certificado' %}">📑 Certificado residencia</a>
+
+            {% elif request.session.rol == "Admin" %}
+                <a href="{% url 'panel_presidente' %}">🏠 Panel</a>
+                <a href="{% url 'mis_datos' %}">👤 Mis datos</a>
+                <a href="{% url 'solicitudes_presidente' %}">📄 Solicitudes</a>
+                <a href="{% url 'vecinos_mi_junta' %}">👥 Vecinos de la junta</a>
+                <a href="{% url 'certificados_presidente' %}">📑 Certificados emitidos</a>
+                <a href="{% url 'generar_certificado' %}">⬇️ Mi certificado</a>
+
+            {% elif request.session.rol == "Superadmin" %}
+                <a href="{% url 'panel_superadmin' %}">🏠 Panel</a>
+                <a href="{% url 'listar_juntas' %}">🏘️ Gestionar juntas</a>
+                <a href="{% url 'gestionar_vecinos' %}">👥 Gestionar vecinos</a>
+            {% endif %}
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{% url 'logout' %}">🚪 Cerrar sesión</a>
+        </div>
+
+    </aside>
+
+    <main class="main-content">
+
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block contenido %}
+        {% endblock %}
+
+    </main>
 
 </div>
-
-<hr>
-
-<footer>
-
-    <a href="{% url 'logout' %}">
-        Cerrar sesión
-    </a>
-
-</footer>
 
 {% endblock %}

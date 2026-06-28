@@ -187,3 +187,84 @@ tr:nth-child(even){
     background:#f8f8f8;
 
 }
+
+/* ===========================
+   Layout panel con sidebar
+=========================== */
+
+.layout{
+    display:flex;
+    min-height:100vh;
+}
+
+.sidebar{
+    width:250px;
+    background:#0d47a1;
+    color:white;
+    padding:25px 20px;
+    display:flex;
+    flex-direction:column;
+    position:fixed;
+    top:0;
+    left:0;
+    bottom:0;
+}
+
+.sidebar-logo{
+    color:white;
+    margin-bottom:25px;
+    text-align:center;
+}
+
+.sidebar-user{
+    background:rgba(255,255,255,.12);
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:25px;
+    text-align:center;
+}
+
+.sidebar-user span{
+    font-size:14px;
+    opacity:.85;
+}
+
+.sidebar-menu{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.sidebar-menu a,
+.sidebar-footer a{
+    color:white;
+    padding:10px 12px;
+    border-radius:8px;
+    text-decoration:none;
+    transition:.2s;
+}
+
+.sidebar-menu a:hover,
+.sidebar-footer a:hover{
+    background:rgba(255,255,255,.15);
+    text-decoration:none;
+}
+
+.sidebar-footer{
+    margin-top:auto;
+    display:flex;
+    flex-direction:column;
+}
+
+.main-content{
+    margin-left:250px;
+    padding:35px;
+    width:calc(100% - 250px);
+}
+
+/* Paneles ahora ocupan mejor el ancho */
+.main-content .container{
+    max-width:1200px;
+    width:100%;
+    margin:0 auto;
+}
