@@ -1,43 +1,23 @@
 import uuid
-import os
-import requests
-
-from datetime import date
-from io import BytesIO
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
-from django.conf import settings
-from django.http import FileResponse
 from django.db import models
 
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.utils import ImageReader
-
 from app.models import *
-from app.supabase_client import supabase
-from app.supabase_storage_client import supabase_storage
 from app.utils import *
 from app.validators import *
+from app.decorators import role_required
 
 # =========================
 # SUPERADMIN - GENERAL
 # =========================
 
-def es_superadmin(request):
-    return request.session.get("rol") == "Superadmin"
-
 @never_cache
+@role_required("Superadmin")
 def panel_superadmin_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
-
-    if not es_superadmin(request):
-        messages.error(request, "No tienes permiso para entrar al panel Superadmin.")
-        return redirect("login")
 
     total_juntas = Juntavecinos.objects.count()
     total_vecinos = Vecino.objects.count()
@@ -47,15 +27,13 @@ def panel_superadmin_view(request):
         "total_vecinos": total_vecinos,
     })
 
-
 # =========================
 # SUPERADMIN - GESTIÓN DE JUNTAS
 # =========================
 
 @never_cache
+@role_required("Superadmin")
 def listar_juntas_view(request):
-    if not es_superadmin(request):
-        return redirect("login")
 
     juntas = Juntavecinos.objects.all()
 
@@ -64,9 +42,8 @@ def listar_juntas_view(request):
     })
 
 @never_cache
+@role_required("Superadmin")
 def crear_junta_view(request):
-    if not es_superadmin(request):
-        return redirect("login")
 
     regiones = Region.objects.all().order_by("nom_region")
     comunas = Comuna.objects.select_related("id_region").all().order_by("nom_comuna")
@@ -95,9 +72,8 @@ def crear_junta_view(request):
     })
 
 @never_cache
+@role_required("Superadmin")
 def editar_junta_view(request, id_junta):
-    if not es_superadmin(request):
-        return redirect("login")
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
     regiones = Region.objects.all().order_by("nom_region")
@@ -122,9 +98,8 @@ def editar_junta_view(request, id_junta):
     })
 
 @never_cache
+@role_required("Superadmin")
 def eliminar_junta_view(request, id_junta):
-    if not es_superadmin(request):
-        return redirect("login")
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
 
@@ -158,9 +133,8 @@ def eliminar_junta_view(request, id_junta):
 # SUPERADMIN - VECINOS EN JUNTA
 # =========================
 @never_cache
+@role_required("Superadmin")
 def vecinos_junta_view(request, id_junta):
-    if request.session.get("rol") != "Superadmin":
-        return redirect("login")
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
 
@@ -188,9 +162,8 @@ def vecinos_junta_view(request, id_junta):
     })
 
 @never_cache
+@role_required("Superadmin")
 def asignar_vecino_junta_view(request, id_junta):
-    if request.session.get("rol") != "Superadmin":
-        return redirect("login")
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
 
@@ -270,10 +243,9 @@ def asignar_vecino_junta_view(request, id_junta):
         "vecinos": vecinos
     })
 
-@never_cache    
+@never_cache
+@role_required("Superadmin")    
 def quitar_vecino_junta_view(request, id_junta, id_vecino):
-    if request.session.get("rol") != "Superadmin":
-        return redirect("login")
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
     vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
@@ -303,10 +275,9 @@ def quitar_vecino_junta_view(request, id_junta, id_vecino):
 # =========================
 
 @never_cache
+@role_required("Superadmin")
 def crear_directiva_view(request, id_junta):
-    if request.session.get("rol") != "Superadmin":
-        return redirect("login")
-
+    
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
 
     if request.method == "POST":
@@ -328,9 +299,8 @@ def crear_directiva_view(request, id_junta):
     })
 
 @never_cache
+@role_required("Superadmin")
 def asignar_cargo_junta_view(request, id_junta):
-    if request.session.get("rol") != "Superadmin":
-        return redirect("login")
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
 
@@ -440,10 +410,9 @@ def asignar_cargo_junta_view(request, id_junta):
         "cargos": cargos
     })
 
-@never_cache    
+@never_cache
+@role_required("Superadmin")    
 def quitar_cargo_vecino_view(request, id_junta, id_vecino):
-    if request.session.get("rol") != "Superadmin":
-        return redirect("login")
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
     vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
@@ -480,9 +449,8 @@ def quitar_cargo_vecino_view(request, id_junta, id_vecino):
 # ========================= 
 
 @never_cache
+@role_required("Superadmin")
 def gestionar_vecinos_view(request):
-    if not es_superadmin(request):
-        return redirect("login")
 
     busqueda = request.GET.get("q", "")
     filtro_junta = request.GET.get("junta", "Todas")
@@ -539,9 +507,8 @@ def gestionar_vecinos_view(request):
     })
     
 @never_cache
+@role_required("Superadmin")
 def editar_vecino_superadmin_view(request, id_vecino):
-    if not es_superadmin(request):
-        return redirect("login")
 
     vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
     tipos = TipoDiscapacidad.objects.all()

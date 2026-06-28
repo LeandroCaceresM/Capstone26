@@ -1,27 +1,9 @@
-import uuid
-import os
-import requests
-
-from datetime import date
-from io import BytesIO
-
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
-from django.utils import timezone
 from django.views.decorators.cache import never_cache
-from django.conf import settings
-from django.http import FileResponse
-from django.db import models
 
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.utils import ImageReader
-
-from app.models import *
-from app.supabase_client import supabase
-from app.supabase_storage_client import supabase_storage
-from app.utils import *
-from app.validators import *
+from app.models import Vecino
+from app.decorators import role_required
 
 from app.services.certificado_service import (
     obtener_residencia_actual,

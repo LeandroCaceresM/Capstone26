@@ -1,53 +1,30 @@
-import uuid
-import os
-import requests
-
-from datetime import date
-from io import BytesIO
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
-from django.conf import settings
-from django.http import FileResponse
 from django.db import models
 
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.utils import ImageReader
-
 from app.models import *
-from app.supabase_client import supabase
-from app.supabase_storage_client import supabase_storage
 from app.utils import *
-from app.validators import *
+from app.decorators import role_required
 
 # =========================
 # VISTAS PRESIDENTE
 # =========================
 
 @never_cache
+@role_required("Admin")
 def panel_presidente_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
-
-    if request.session.get("rol") != "Admin":
-        messages.error(request, "No tienes permiso para entrar a esa sección.")
-        return redirect("login")
-
     return render(request, "panel_presidente.html")
 
+
 @never_cache
+@role_required("Admin")
 def solicitudes_presidente_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
-
-    if request.session.get("rol") != "Admin":
-        messages.error(request, "No tienes permiso para acceder a solicitudes.")
-        return redirect("login")
-
-    presidente = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
 
     residencia_presidente = HistVivienda.objects.filter(
         id_vecino=presidente,
@@ -62,19 +39,18 @@ def solicitudes_presidente_view(request):
 
     filtro_estado = request.GET.get("estado", "Todas")
     busqueda = request.GET.get("q", "")
-    
-    registros_vecinos = HistVivienda.objects.filter(
+
+    vecinos_ids = HistVivienda.objects.filter(
         id_vivienda__id_junta=junta,
         fecha_ter__isnull=True
-    ).select_related("id_vecino")
-
-    vecinos_junta = [registro.id_vecino for registro in registros_vecinos]
-
-    ids_vecinos_junta = [vecino.id_vecino for vecino in vecinos_junta]
+    ).values_list("id_vecino", flat=True)
 
     solicitudes = Solicitud.objects.filter(
-        id_vecino__id_vecino__in=ids_vecinos_junta
-    ).select_related("id_vecino", "id_tsolicitud").order_by("-fecha_solicitud")
+        id_vecino__in=vecinos_ids
+    ).select_related(
+        "id_vecino",
+        "id_tsolicitud"
+    ).order_by("-fecha_solicitud")
 
     if filtro_estado != "Todas":
         solicitudes = solicitudes.filter(estado=filtro_estado)
@@ -108,15 +84,10 @@ def solicitudes_presidente_view(request):
         "busqueda": busqueda,
     })
 
+
 @never_cache
+@role_required("Admin")
 def cerrar_solicitud_view(request, id_solicitud):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
-
-    if request.session.get("rol") != "Admin":
-        messages.error(request, "No tienes permiso para cerrar solicitudes.")
-        return redirect("login")
-
     solicitud = get_object_or_404(Solicitud, id_solicitud=id_solicitud)
 
     if solicitud.estado != "EN PROCESO":
@@ -125,7 +96,9 @@ def cerrar_solicitud_view(request, id_solicitud):
 
     if request.method == "POST":
         accion = request.POST.get("accion")
-        comentario_presidente = request.POST.get("comentario_presidente")
+        comentario_presidente = limpiar_texto(
+            request.POST.get("comentario_presidente")
+        )
 
         if accion == "aprobar":
             nuevo_estado = "APROBADO"
@@ -153,18 +126,15 @@ def cerrar_solicitud_view(request, id_solicitud):
     return render(request, "presidente/cerrar_solicitud.html", {
         "solicitud": solicitud
     })
-    
+
 
 @never_cache
+@role_required("Admin")
 def certificados_presidente_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
-
-    if request.session.get("rol") != "Admin":
-        messages.error(request, "No tienes permiso para ver certificados.")
-        return redirect("login")
-
-    presidente = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
 
     busqueda = request.GET.get("q", "")
 

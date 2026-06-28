@@ -1,41 +1,22 @@
 import uuid
-import os
-import requests
-
-from datetime import date
-from io import BytesIO
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
-from django.conf import settings
-from django.http import FileResponse
-from django.db import models
-
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.utils import ImageReader
 
 from app.models import *
-from app.supabase_client import supabase
 from app.supabase_storage_client import supabase_storage
 from app.utils import *
-from app.validators import *
+from app.decorators import login_required_custom, role_required
 
 # =========================
 # VISTAS VECINO
 # =========================
 
 @never_cache
+@role_required("Usuario")
 def panel_vecino_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
-
-    if request.session.get("rol") != "Usuario":
-        messages.error(request, "No tienes permiso para entrar a esa sección.")
-        return redirect("login")
-
     vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
 
     residencia = HistVivienda.objects.filter(
@@ -48,20 +29,9 @@ def panel_vecino_view(request):
         fecha_cargo_fin_real__isnull=True
     ).select_related("id_cargo").first()
 
-    solicitudes_en_proceso = Solicitud.objects.filter(
-        id_vecino=vecino,
-        estado="EN PROCESO"
-    ).count()
-
-    solicitudes_aprobadas = Solicitud.objects.filter(
-        id_vecino=vecino,
-        estado="APROBADO"
-    ).count()
-
-    solicitudes_rechazadas = Solicitud.objects.filter(
-        id_vecino=vecino,
-        estado="RECHAZADO"
-    ).count()
+    solicitudes_en_proceso = Solicitud.objects.filter(id_vecino=vecino, estado="EN PROCESO").count()
+    solicitudes_aprobadas = Solicitud.objects.filter(id_vecino=vecino, estado="APROBADO").count()
+    solicitudes_rechazadas = Solicitud.objects.filter(id_vecino=vecino, estado="RECHAZADO").count()
 
     certificados_emitidos = CertificadoDeResidencia.objects.filter(
         id_vecino=vecino
@@ -82,11 +52,10 @@ def panel_vecino_view(request):
         "ultimas_solicitudes": ultimas_solicitudes,
     })
 
-@never_cache
-def mis_solicitudes_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
 
+@never_cache
+@role_required("Usuario")
+def mis_solicitudes_view(request):
     vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
 
     residencia_activa = HistVivienda.objects.filter(
@@ -119,11 +88,10 @@ def mis_solicitudes_view(request):
         "solicitudes_data": solicitudes_data
     })
 
-@never_cache
-def crear_solicitud_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
 
+@never_cache
+@role_required("Usuario")
+def crear_solicitud_view(request):
     vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
 
     residencia_activa = HistVivienda.objects.filter(
@@ -147,7 +115,7 @@ def crear_solicitud_view(request):
             id_solicitud=uuid.uuid4(),
             fecha_solicitud=timezone.now(),
             estado="EN PROCESO",
-            descripcion = limpiar_texto(request.POST.get("descripcion")),
+            descripcion=limpiar_texto(request.POST.get("descripcion")),
             comentario_presidente=None,
             id_vecino=vecino,
             id_tsolicitud=tipo
@@ -168,16 +136,13 @@ def crear_solicitud_view(request):
         "tipos": tipos
     })
 
-
 # =========================
 # SERVICIOS GENERALES
 # =========================
 
 @never_cache
+@login_required_custom
 def mis_datos_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
-
     vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
 
     cargo_actual = HistCargo.objects.filter(
@@ -186,7 +151,7 @@ def mis_datos_view(request):
     ).select_related("id_cargo").first()
 
     if request.method == "POST":
-        vecino.telefono = request.POST.get("telefono")
+        vecino.telefono = limpiar_telefono(request.POST.get("telefono"))
 
         if request.session.get("rol") == "Admin":
             firma = request.FILES.get("firma")
@@ -216,16 +181,11 @@ def mis_datos_view(request):
         "vecino": vecino,
         "cargo_actual": cargo_actual,
     })
+    
 
 @never_cache
+@role_required("Usuario", "Admin")
 def vecinos_mi_junta_view(request):
-    if not request.session.get("vecino_id"):
-        return redirect("login")
-
-    if request.session.get("rol") not in ["Usuario", "Admin"]:
-        messages.error(request, "No tienes permiso para ver esta sección.")
-        return redirect("login")
-
     vecino_actual = get_object_or_404(
         Vecino,
         id_vecino=request.session.get("vecino_id")
@@ -238,8 +198,10 @@ def vecinos_mi_junta_view(request):
 
     if not residencia_activa:
         messages.error(request, "Debe pertenecer a una junta para ver los vecinos.")
+
         if request.session.get("rol") == "Admin":
             return redirect("panel_presidente")
+
         return redirect("panel_vecino")
 
     junta = residencia_activa.id_vivienda.id_junta
