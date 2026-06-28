@@ -1,0 +1,189 @@
+/* ===========================
+   UrbanLink
+=========================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Segoe UI, Arial, sans-serif;
+}
+
+body{
+    background:#f4f6f9;
+    color:#222;
+    padding:40px;
+}
+
+/* ---------- Tarjetas ---------- */
+
+.container{
+    width:95%;
+    max-width:1200px;
+    margin:30px auto;
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+}
+/* ---------- Titulos ---------- */
+
+h1{
+    margin-bottom:25px;
+    text-align:center;
+    color:#1565c0;
+}
+
+h2{
+    color:#1565c0;
+    margin-bottom:15px;
+}
+
+/* ---------- Formularios ---------- */
+
+label{
+    font-weight:600;
+}
+
+input,
+select,
+textarea{
+    width:100%;
+    padding:10px;
+    margin-top:6px;
+    margin-bottom:18px;
+
+    border:1px solid #ccc;
+    border-radius:8px;
+
+    font-size:15px;
+
+    transition:.2s;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+
+    outline:none;
+
+    border-color:#1976d2;
+
+    box-shadow:0 0 0 3px rgba(25,118,210,.15);
+
+}
+
+/* ---------- Botones ---------- */
+
+button{
+
+    background:#1976d2;
+    color:white;
+
+    border:none;
+
+    padding:12px 20px;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+button:hover{
+
+    background:#125aa3;
+
+}
+
+/* ---------- Links ---------- */
+
+a{
+
+    text-decoration:none;
+    color:#1976d2;
+
+}
+
+a:hover{
+
+    text-decoration:underline;
+
+}
+
+/* ---------- Mensajes ---------- */
+
+.messages{
+
+    margin-bottom:20px;
+
+}
+
+.message{
+
+    padding:12px;
+
+    margin-bottom:10px;
+
+    border-radius:8px;
+
+    font-weight:bold;
+
+}
+
+.message.success{
+
+    background:#d4edda;
+    color:#155724;
+
+}
+
+.message.error{
+
+    background:#f8d7da;
+    color:#721c24;
+
+}
+
+.message.warning{
+
+    background:#fff3cd;
+    color:#856404;
+
+}
+
+/* ---------- Tablas ---------- */
+
+table{
+
+    width:100%;
+    border-collapse:collapse;
+
+    margin-top:20px;
+
+}
+
+th{
+
+    background:#1976d2;
+
+    color:white;
+
+}
+
+th,
+td{
+
+    padding:12px;
+
+    border:1px solid #ddd;
+
+}
+
+tr:nth-child(even){
+
+    background:#f8f8f8;
+
+}

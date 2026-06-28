@@ -6,22 +6,31 @@
 
     <h2>UrbanLink</h2>
 
+    {% if request.session.nombre %}
+        <p>Bienvenido, {{ request.session.nombre }} | ({{ request.session.rol }})</p>
+    {% endif %}
+
+    
     <hr>
 
 </header>
 
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
+<div class="container">
 
-<main>
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
-{% block contenido %}
-{% endblock %}
+    {% block contenido %}
+    {% endblock %}
 
-</main>
+</div>
 
 <hr>
 

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_panel.html" %}
 
 {% block titulo %}
 Panel Principal | SuperAdmin
@@ -7,8 +7,6 @@ Panel Principal | SuperAdmin
 {% block contenido %}
 
 <h1>Panel SuperAdmin</h1>
-
-<p>Bienvenido, {{ request.session.nombre }}</p>
 
 <p>Total juntas: {{ total_juntas }}</p>
 <p>Total vecinos: {{ total_vecinos }}</p>
