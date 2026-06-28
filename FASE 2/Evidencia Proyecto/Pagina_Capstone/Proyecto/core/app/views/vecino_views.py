@@ -10,6 +10,19 @@ from app.supabase_storage_client import supabase_storage
 from app.utils import *
 from app.decorators import login_required_custom, role_required
 
+from app.services.vecino_service import (
+    obtener_residencia_actual,
+    obtener_cargo_actual,
+    obtener_condiciones_vecino,
+)
+
+from app.services.junta_service import (
+    obtener_vecinos_activos_junta,
+    construir_vecinos_data,
+)
+
+from app.services.solicitud_service import construir_solicitudes_data
+
 # =========================
 # VISTAS VECINO
 # =========================
@@ -19,15 +32,8 @@ from app.decorators import login_required_custom, role_required
 def panel_vecino_view(request):
     vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
 
-    residencia = HistVivienda.objects.filter(
-        id_vecino=vecino,
-        fecha_ter__isnull=True
-    ).select_related("id_vivienda__id_junta").first()
-
-    cargo_actual = HistCargo.objects.filter(
-        id_vecino=vecino,
-        fecha_cargo_fin_real__isnull=True
-    ).select_related("id_cargo").first()
+    residencia = obtener_residencia_actual(vecino)
+    cargo_actual = obtener_cargo_actual(vecino)
 
     solicitudes_en_proceso = Solicitud.objects.filter(id_vecino=vecino, estado="EN PROCESO").count()
     solicitudes_aprobadas = Solicitud.objects.filter(id_vecino=vecino, estado="APROBADO").count()
@@ -71,18 +77,7 @@ def mis_solicitudes_view(request):
         id_vecino=vecino
     ).select_related("id_tsolicitud").order_by("-fecha_solicitud")
 
-    solicitudes_data = []
-
-    for solicitud in solicitudes:
-        hist_cierre = HistEstSol.objects.filter(
-            id_solicitud=solicitud,
-            id_est__nomb_est_sol__in=["APROBADO", "RECHAZADO"]
-        ).order_by("-fecha_cb_estado").first()
-
-        solicitudes_data.append({
-            "solicitud": solicitud,
-            "fecha_resuelta": hist_cierre.fecha_cb_estado if hist_cierre else None
-        })
+    solicitudes_data = construir_solicitudes_data(solicitudes)
 
     return render(request, "vecino/mis_solicitudes.html", {
         "solicitudes_data": solicitudes_data
@@ -191,10 +186,7 @@ def vecinos_mi_junta_view(request):
         id_vecino=request.session.get("vecino_id")
     )
 
-    residencia_activa = HistVivienda.objects.filter(
-        id_vecino=vecino_actual,
-        fecha_ter__isnull=True
-    ).select_related("id_vivienda__id_junta").first()
+    residencia_activa = obtener_residencia_actual(vecino_actual)
 
     if not residencia_activa:
         messages.error(request, "Debe pertenecer a una junta para ver los vecinos.")
@@ -206,28 +198,8 @@ def vecinos_mi_junta_view(request):
 
     junta = residencia_activa.id_vivienda.id_junta
 
-    registros = HistVivienda.objects.filter(
-        id_vivienda__id_junta=junta,
-        fecha_ter__isnull=True
-    ).select_related("id_vecino", "id_vivienda")
-
-    vecinos_data = []
-
-    for registro in registros:
-        cargo_actual = HistCargo.objects.filter(
-            id_vecino=registro.id_vecino,
-            fecha_cargo_fin_real__isnull=True
-        ).select_related("id_cargo").first()
-
-        condiciones = VecinoDiscap.objects.filter(
-            id_vecino=registro.id_vecino
-        ).select_related("id_tipo_discap")
-
-        vecinos_data.append({
-            "vecino": registro.id_vecino,
-            "cargo": cargo_actual.id_cargo.nombre_cargo if cargo_actual else "Vecino",
-            "condiciones": condiciones
-        })
+    registros = obtener_vecinos_activos_junta(junta)
+    vecinos_data = construir_vecinos_data(registros)
 
     return render(request, "vecinos_junta.html", {
         "junta": junta,
