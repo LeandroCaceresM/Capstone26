@@ -1,10 +1,13 @@
-<h1>Retirar cargo</h1>
+{% extends "base.html" %}
 
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
+{% block titulo %}
+Retirar Cargo
+{% endblock %}
+
+{% block contenido %}
+
+
+<h1>Retirar cargo</h1>
 
 <p>
     ¿Seguro que deseas retirar el cargo
@@ -23,3 +26,5 @@
 <br>
 
 <a href="{% url 'asignar_cargo_junta' junta.id_junta %}">Cancelar</a>
+
+{% endblock %}

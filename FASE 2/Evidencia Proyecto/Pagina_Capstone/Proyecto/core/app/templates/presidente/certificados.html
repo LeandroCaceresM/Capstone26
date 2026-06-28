@@ -1,3 +1,11 @@
+{% extends "base.html" %}
+
+{% block titulo %}
+Certificados emitidos
+{% endblock %}
+
+{% block contenido %}
+
 <h1>Certificados emitidos</h1>
 
 <a href="{% url 'panel_presidente' %}">Volver al panel</a>
@@ -48,3 +56,5 @@
         <p>No se encontraron certificados.</p>
     {% endif %}
 </div>
+
+{% endblock %}

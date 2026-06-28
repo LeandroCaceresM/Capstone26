@@ -1,18 +1,12 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Recuperar Contraseña</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block titulo %}
+Recuperar Contraseña
+{% endblock %}
+
+{% block contenido %}
 
 <h1>Recuperar Contraseña</h1>
-
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
 
 <form method="POST" action="{% url 'enviar_recuperacion' %}">
 
@@ -42,3 +36,5 @@
 
 </body>
 </html>
+
+{% endblock %}

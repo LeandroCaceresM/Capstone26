@@ -1,12 +1,13 @@
-<h1>Asignar vecino a {{ junta.nombre }}</h1>
+{% extends "base.html" %}
 
-{% if messages %}
-    {% for message in messages %}
-        <div style="padding:10px; margin-bottom:10px; border:1px solid #ccc;">
-            {{ message }}
-        </div>
-    {% endfor %}
-{% endif %}
+{% block titulo %}
+Asignar Vecino a Junta
+{% endblock %}
+
+{% block contenido %}
+
+
+<h1>Asignar vecino a {{ junta.nombre }}</h1>
 
 <form method="POST">
     {% csrf_token %}
@@ -85,3 +86,5 @@
 <br>
 
 <a href="{% url 'vecinos_junta' junta.id_junta %}">Volver</a>
+
+{% endblock %}

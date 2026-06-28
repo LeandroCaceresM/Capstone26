@@ -1,10 +1,12 @@
-<h1>Panel Vecino</h1>
+{% extends "base.html" %}
 
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
+{% block titulo %}
+Panel Principal | Vecino
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Panel Vecino</h1>
 
 <p>Bienvenido, {{ vecino.pri_nombre }}</p>
 
@@ -24,3 +26,7 @@
 {% endif %}
 
 <a href="{% url 'logout' %}">Cerrar sesión</a>
+
+{% block contenido %}
+
+{% endblock %}

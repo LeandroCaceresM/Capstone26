@@ -1,3 +1,11 @@
+{% extends "base.html" %}
+
+{% block titulo %}
+Gestionar Vecinos
+{% endblock %}
+
+{% block contenido %}
+
 <h1>Gestionar vecinos</h1>
 
 <a href="{% url 'panel_superadmin' %}">Volver al panel</a>
@@ -66,3 +74,5 @@
         </tr>
     {% endfor %}
 </table>
+
+{% endblock %}

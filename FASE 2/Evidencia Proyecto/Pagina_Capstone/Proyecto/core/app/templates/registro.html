@@ -1,19 +1,13 @@
-<!DOCTYPE html>
+{% extends "base.html" %}
 {% load static %}
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Registro</title>
-</head>
 
-<body>
+{% block titulo %}
+Registro
+{% endblock %}
+
+{% block contenido %}
+
 <h1>Registro de Vecino</h1>
-
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
 
 <form method="POST">
     {% csrf_token %}
@@ -116,10 +110,11 @@
 <br>
 
 <a href="{% url 'login' %}">
-    Volver al Login
+Volver al Login
 </a>
 
-<script src="{% static 'js/rut.js' %}"></script>
+{% endblock %}
 
-</body>
-</html>
+{% block scripts %}
+<script src="{% static 'js/rut.js' %}"></script>
+{% endblock %}

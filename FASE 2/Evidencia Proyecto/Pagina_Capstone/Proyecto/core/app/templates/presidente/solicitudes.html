@@ -1,3 +1,11 @@
+{% extends "base.html" %}
+
+{% block titulo %}
+Solicitudes
+{% endblock %}
+
+{% block contenido %}
+
 <h1>Solicitudes - {{ junta.nombre }}</h1>
 
 <a href="{% url 'panel_presidente' %}">Volver al panel</a>
@@ -68,3 +76,5 @@
         <p>No hay solicitudes para este filtro.</p>
     {% endif %}
 </div>
+
+{% endblock %}

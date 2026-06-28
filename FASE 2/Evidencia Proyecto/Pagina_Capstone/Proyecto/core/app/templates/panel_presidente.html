@@ -1,10 +1,12 @@
-<h1>Panel Presidente de Junta</h1>
+{% extends "base.html" %}
 
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
+{% block titulo %}
+Panel Principal | Presidente
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Panel Presidente de Junta</h1>
 
 <p>Bienvenido, {{ request.session.nombre }}</p>
 
@@ -21,3 +23,5 @@
     <li><a href="{% url 'generar_certificado' %}">Descargar mi certificado de residencia</a></li>
 </ul>
 <a href="{% url 'logout' %}">Cerrar sesión</a>
+
+{% endblock %}

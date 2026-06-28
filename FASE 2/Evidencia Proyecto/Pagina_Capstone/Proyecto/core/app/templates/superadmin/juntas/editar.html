@@ -1,10 +1,13 @@
-<h1>Editar Junta</h1>
+{% extends "base.html" %}
 
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
+{% block titulo %}
+Editar Junta
+{% endblock %}
+
+{% block contenido %}
+
+
+<h1>Editar Junta</h1>
 
 <form method="POST">
     {% csrf_token %}
@@ -88,3 +91,5 @@
 
     filtrarComunas();
 </script>
+
+{% endblock %}

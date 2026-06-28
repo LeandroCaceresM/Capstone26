@@ -1,10 +1,12 @@
-<h1>Quitar vecino de junta</h1>
+{% extends "base.html" %}
 
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
+{% block titulo %}
+Quitar Vecino
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Quitar vecino de junta</h1>
 
 <p>
     ¿Seguro que deseas quitar a
@@ -26,3 +28,5 @@
 <br>
 
 <a href="{% url 'vecinos_junta' junta.id_junta %}">Cancelar</a>
+
+{% endblock %}

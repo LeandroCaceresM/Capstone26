@@ -1,10 +1,12 @@
-<h1>Crear directiva para {{ junta.nombre }}</h1>
+{% extends "base.html" %}
 
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
+{% block titulo %}
+Crear Directiva
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Crear directiva para {{ junta.nombre }}</h1>
 
 <form method="POST">
     {% csrf_token %}
@@ -21,3 +23,5 @@
 <br>
 
 <a href="{% url 'vecinos_junta' junta.id_junta %}">Volver</a>
+
+{% endblock %}

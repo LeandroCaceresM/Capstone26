@@ -1,21 +1,12 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Cambiar Contraseña</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block titulo %}
+Cambiar Contraseña
+{% endblock %}
+
+{% block contenido %}
 
 <h1>Cambiar Contraseña</h1>
-
-
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
-
 
 <form method="POST">
 
@@ -60,6 +51,4 @@
 
 </script>
 
-
-</body>
-</html>
+{% endblock %}

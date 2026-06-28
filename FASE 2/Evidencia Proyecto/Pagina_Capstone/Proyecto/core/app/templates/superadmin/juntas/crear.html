@@ -1,10 +1,12 @@
-<h1>Crear Nueva Junta</h1>
+{% extends "base.html" %}
 
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
+{% block titulo %}
+Crear Junta
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Crear Nueva Junta</h1>
 
 <form method="POST">
     {% csrf_token %}
@@ -76,3 +78,5 @@
 <br>
 
 <a href="{% url 'listar_juntas' %}">Volver</a>
+
+{% endblock %}

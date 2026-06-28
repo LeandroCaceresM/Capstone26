@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+
+{% load static %}
+
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>
+        {% block titulo %}
+            UrbanLink
+        {% endblock %}
+    </title>
+
+    {% block head %}
+    {% endblock %}
+
+</head>
+
+<body>
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+{% block contenido %}
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
+
+</body>
+
+</html>

@@ -1,3 +1,11 @@
+{% extends "base.html" %}
+
+{% block titulo %}
+Vecinos de la junta
+{% endblock %}
+
+{% block contenido %}
+
 <h1>Vecinos de la junta</h1>
 
 <p><strong>Junta:</strong> {{ junta.nombre }}</p>
@@ -47,3 +55,5 @@
 {% else %}
     <p>No hay vecinos registrados actualmente en esta junta.</p>
 {% endif %}
+
+{% endblock %}

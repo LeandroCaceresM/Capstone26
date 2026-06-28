@@ -1,10 +1,12 @@
-<h1>Mis datos</h1>
+{% extends "base.html" %}
 
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
+{% block titulo %}
+Mis Datos
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Mis datos</h1>
 
 <p><strong>Nombre:</strong> {{ vecino.pri_nombre }} {{ vecino.apell_paterno }} {{ vecino.apell_materno }}</p>
 <p><strong>RUT:</strong> {{ vecino.rut }}</p>
@@ -23,7 +25,15 @@
     {% csrf_token %}
 
     <label>Teléfono</label><br>
-    <input type="number" name="telefono" value="{{ vecino.telefono }}" required><br><br>
+        <input
+        type="text"
+        name="telefono"
+        value="{{ vecino.telefono }}"
+        maxlength="9"
+        pattern="[0-9]{8,9}"
+        placeholder="Ej: 912345678"
+        title="Ingrese un teléfono de 8 o 9 dígitos."
+        ><br><br>
 
     {% if request.session.rol == "Admin" %}
         <h3>Firma digital</h3>
@@ -53,3 +63,5 @@
 {% else %}
     <a href="{% url 'panel_vecino' %}">Volver al panel</a>
 {% endif %}
+
+{% endblock %}

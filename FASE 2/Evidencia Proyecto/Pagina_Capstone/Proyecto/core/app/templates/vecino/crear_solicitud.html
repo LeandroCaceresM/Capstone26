@@ -1,10 +1,12 @@
-<h1>Crear solicitud</h1>
+{% extends "base.html" %}
 
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
+{% block titulo %}
+Crear Solicitud
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Crear solicitud</h1>
 
 <form method="POST">
     {% csrf_token %}
@@ -32,3 +34,5 @@
 <br>
 
 <a href="{% url 'mis_solicitudes' %}">Volver</a>
+
+{% endblock %}

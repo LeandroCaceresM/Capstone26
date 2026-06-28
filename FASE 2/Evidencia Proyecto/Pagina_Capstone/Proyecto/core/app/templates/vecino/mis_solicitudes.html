@@ -1,3 +1,12 @@
+{% extends "base.html" %}
+
+{% block titulo %}
+Mis Solicitudes
+{% endblock %}
+
+{% block contenido %}
+
+
 <h1>Mis solicitudes</h1>
 
 <a href="{% url 'panel_vecino' %}">Volver al panel</a>
@@ -6,12 +15,6 @@
 <a href="{% url 'crear_solicitud' %}">+ Crear nueva solicitud</a>
 
 <br><br>
-
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
 
 <div style="max-height: 650px; overflow-y: auto; border: 1px solid #ccc; padding: 15px;">
     {% if solicitudes_data %}
@@ -32,3 +35,5 @@
         <p>No tienes solicitudes registradas.</p>
     {% endif %}
 </div>
+
+{% endblock %}

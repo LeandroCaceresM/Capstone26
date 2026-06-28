@@ -1,18 +1,12 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Iniciar Sesión</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-    <h1>Iniciar Sesión</h1>
+{% block titulo %}
+Iniciar Sesión
+{% endblock %}
 
-    {% if messages %}
-        {% for message in messages %}
-            <p>{{ message }}</p>
-        {% endfor %}
-    {% endif %}
+{% block contenido %}
+
+<h1>Iniciar Sesión</h1>
 
     <form method="POST">
         {% csrf_token %}
@@ -38,6 +32,4 @@
         Olvidaste tu contraseña?
     </a>
     
-
-</body>
-</html>
+{% endblock %}

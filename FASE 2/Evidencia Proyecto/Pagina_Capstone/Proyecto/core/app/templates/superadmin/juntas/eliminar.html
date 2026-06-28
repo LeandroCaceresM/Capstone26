@@ -1,10 +1,13 @@
-<h1>Eliminar Junta</h1>
+{% extends "base.html" %}
 
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
+{% block titulo %}
+Eliminar Junta
+{% endblock %}
+
+{% block contenido %}
+
+
+<h1>Eliminar Junta</h1>
 
 {% if tiene_vecinos or tiene_directivas %}
     <p style="color:red;">
@@ -22,3 +25,5 @@
 <br>
 
 <a href="{% url 'listar_juntas' %}">Cancelar</a>
+
+{% endblock %}
