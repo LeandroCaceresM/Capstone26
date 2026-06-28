@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Registro</title>
 </head>
-<body>
 
+<body>
 <h1>Registro de Vecino</h1>
 
 {% if messages %}
@@ -20,11 +21,12 @@
     <label>Rut</label><br>
     <input
         type="text"
+        id="rut"
         name="rut"
         value="{{ datos.rut|default:'' }}"
         maxlength="12"
         placeholder="12.345.678-K"
-        title="Ingrese un RUT válido."
+        autocomplete="off"
         required
     >
     <br><br>
@@ -69,6 +71,7 @@
         type="email"
         name="correo"
         value="{{ datos.correo|default:'' }}"
+        placeholder="Tucorreo@ejemplo.com" 
         required
     >
     <br><br>
@@ -115,6 +118,8 @@
 <a href="{% url 'login' %}">
     Volver al Login
 </a>
+
+<script src="{% static 'js/rut.js' %}"></script>
 
 </body>
 </html>
