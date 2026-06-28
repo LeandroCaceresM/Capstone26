@@ -5,9 +5,8 @@ import re
 # ==================================================
 
 def limpiar_texto(texto):
-    """
-    Elimina espacios repetidos y espacios al inicio/final.
-    """
+# Elimina espacios repetidos y espacios al inicio/final.
+
     if texto is None:
         return None
 
@@ -16,9 +15,8 @@ def limpiar_texto(texto):
     return texto
 
 def limpiar_mayusculas(texto):
-    """
-    Elimina espacios repetidos y convierte a MAYÚSCULAS.
-    """
+# Elimina espacios repetidos y convierte a MAYÚSCULAS.
+
     texto = limpiar_texto(texto)
 
     if texto:
@@ -27,9 +25,6 @@ def limpiar_mayusculas(texto):
     return None
 
 def limpiar_correo(correo):
-    """
-    Normaliza correos.
-    """
     correo = limpiar_texto(correo)
 
     if correo:
@@ -38,13 +33,13 @@ def limpiar_correo(correo):
     return None
 
 def limpiar_telefono(telefono):
-    """
-    Elimina espacios del teléfono.
-    """
-    if telefono is None:
+    if not telefono:
         return None
 
-    return re.sub(r"\s+", "", telefono)
+    # Deja solo números
+    telefono = re.sub(r"\D", "", telefono)
+
+    return telefono
 
 def limpiar_titulo(texto):
     

@@ -38,7 +38,15 @@ from .supabase_storage_client import supabase_storage
 def registro_view(request):
     fecha_maxima = date.today().replace(year=date.today().year - 16)
 
+    def render_registro(datos=None):
+        return render(request, "registro.html", {
+            "fecha_maxima": fecha_maxima.isoformat(),
+            "datos": datos or {}
+        })
+
     if request.method == "POST":
+        datos = request.POST.copy()
+
         correo = limpiar_correo(request.POST.get("correo"))
         password = request.POST.get("password")
 
@@ -50,23 +58,27 @@ def registro_view(request):
         telefono = limpiar_telefono(request.POST.get("telefono"))
         fecha_de_nacimiento = request.POST.get("fecha_de_nacimiento")
 
+        if not validar_telefono(telefono):
+            messages.error(request, "Ingrese un número de teléfono válido de 8 o 9 dígitos.")
+            return render_registro(datos)
+
         if not es_mayor_16(fecha_de_nacimiento):
             messages.error(request, "Debes tener al menos 16 años para registrarte.")
-            return redirect("registro")
+            return render_registro(datos)
 
         if not validar_rut(rut):
             messages.error(request, "El RUT ingresado no es válido.")
-            return redirect("registro")
+            return render_registro(datos)
 
         rut = formatear_rut(rut)
 
         if Vecino.objects.filter(rut=rut).exists():
             messages.error(request, "Ya existe un usuario registrado con ese RUT.")
-            return redirect("registro")
+            return render_registro(datos)
 
         if Vecino.objects.filter(correo=correo).exists():
             messages.error(request, "Ya existe un usuario registrado con ese correo.")
-            return redirect("registro")
+            return render_registro(datos)
 
         try:
             auth_response = supabase.auth.sign_up({
@@ -78,7 +90,7 @@ def registro_view(request):
 
             if not user:
                 messages.error(request, "No se pudo crear el usuario.")
-                return redirect("registro")
+                return render_registro(datos)
 
             rol_vecino = Rol.objects.get(nombre_rol="Usuario")
 
@@ -103,11 +115,9 @@ def registro_view(request):
 
         except Exception as e:
             messages.error(request, f"Error al registrar: {e}")
-            return redirect("registro")
+            return render_registro(datos)
 
-    return render(request, "registro.html", {
-        "fecha_maxima": fecha_maxima.isoformat()
-    })
+    return render_registro()
 
 @never_cache
 def login_view(request):
@@ -288,7 +298,7 @@ def mis_datos_view(request):
 
     return render(request, "mis_datos.html", {
         "vecino": vecino,
-        "cargo_actual": cargo_actual
+        "cargo_actual": cargo_actual,
     })
 
 @never_cache

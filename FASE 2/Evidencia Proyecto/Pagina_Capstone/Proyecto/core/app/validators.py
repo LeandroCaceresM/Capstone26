@@ -3,6 +3,10 @@ import re
 from datetime import date
 
 # =========================
+# Validaciones para Registro
+# =========================
+
+# =========================
 # RUT
 # =========================
 
@@ -50,7 +54,7 @@ def formatear_rut(rut):
     return f"{cuerpo_formateado}-{dv}"
 
 # =========================
-# RUT
+# Fecha de nacimiento
 # =========================
 
 def es_mayor_16(fecha_nacimiento):
@@ -68,3 +72,10 @@ def es_mayor_16(fecha_nacimiento):
         edad -= 1
 
     return edad >= 16
+
+# =========================
+# Telefono (limitar de 8 a 9 digitos)
+# =========================
+
+def validar_telefono(telefono):
+    return telefono.isdigit() and 8 <= len(telefono) <= 9

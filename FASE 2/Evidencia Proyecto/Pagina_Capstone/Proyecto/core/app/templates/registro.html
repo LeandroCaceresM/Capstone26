@@ -18,33 +18,91 @@
     {% csrf_token %}
 
     <label>Rut</label><br>
-    <input type="number" name="rut" required><br><br>
+    <input
+        type="text"
+        name="rut"
+        value="{{ datos.rut|default:'' }}"
+        maxlength="12"
+        placeholder="12.345.678-K"
+        title="Ingrese un RUT válido."
+        required
+    >
+    <br><br>
 
     <label>Primer Nombre</label><br>
-    <input type="text" name="pri_nombre" required><br><br>
+    <input
+        type="text"
+        name="pri_nombre"
+        value="{{ datos.pri_nombre|default:'' }}"
+        required
+    >
+    <br><br>
 
     <label>Segundo Nombre</label><br>
-    <input type="text" name="seg_nombre"><br><br>
+    <input
+        type="text"
+        name="seg_nombre"
+        value="{{ datos.seg_nombre|default:'' }}"
+    >
+    <br><br>
 
     <label>Apellido Paterno</label><br>
-    <input type="text" name="apell_paterno" required><br><br>
+    <input
+        type="text"
+        name="apell_paterno"
+        value="{{ datos.apell_paterno|default:'' }}"
+        required
+    >
+    <br><br>
 
     <label>Apellido Materno</label><br>
-    <input type="text" name="apell_materno" required><br><br>
+    <input
+        type="text"
+        name="apell_materno"
+        value="{{ datos.apell_materno|default:'' }}"
+        required
+    >
+    <br><br>
 
     <label>Correo</label><br>
-    <input type="email" name="correo" required><br><br>
+    <input
+        type="email"
+        name="correo"
+        value="{{ datos.correo|default:'' }}"
+        required
+    >
+    <br><br>
 
     <label>Teléfono</label><br>
-    <input type="number" name="telefono" required><br><br>
+    <input
+        type="text"
+        name="telefono"
+        value="{{ datos.telefono|default:'' }}"
+        maxlength="9"
+        pattern="[0-9]{8,9}"
+        placeholder="Ej: 912345678"
+        title="Ingrese un teléfono de 8 o 9 dígitos."
+        required
+    >
+    <br><br>
 
     <label>Fecha de Nacimiento</label><br>
-    <input type="date" name="fecha_de_nacimiento" max="{{ fecha_maxima }}" required>    
-    
+    <input
+        type="date"
+        name="fecha_de_nacimiento"
+        value="{{ datos.fecha_de_nacimiento|default:'' }}"
+        max="{{ fecha_maxima }}"
+        required
+    >
     <br><br>
 
     <label>Contraseña</label><br>
-    <input type="password" name="password" required><br><br>
+    <input
+        type="password"
+        name="password"
+        required
+    >
+    <br><br>
 
     <button type="submit">
         Registrarse
