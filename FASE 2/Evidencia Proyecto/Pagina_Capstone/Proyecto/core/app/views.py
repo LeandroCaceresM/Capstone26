@@ -559,14 +559,48 @@ def panel_vecino_view(request):
 
     vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
 
-    residencia_activa = HistVivienda.objects.filter(
+    residencia = HistVivienda.objects.filter(
         id_vecino=vecino,
         fecha_ter__isnull=True
     ).select_related("id_vivienda__id_junta").first()
 
+    cargo_actual = HistCargo.objects.filter(
+        id_vecino=vecino,
+        fecha_cargo_fin_real__isnull=True
+    ).select_related("id_cargo").first()
+
+    solicitudes_en_proceso = Solicitud.objects.filter(
+        id_vecino=vecino,
+        estado="EN PROCESO"
+    ).count()
+
+    solicitudes_aprobadas = Solicitud.objects.filter(
+        id_vecino=vecino,
+        estado="APROBADO"
+    ).count()
+
+    solicitudes_rechazadas = Solicitud.objects.filter(
+        id_vecino=vecino,
+        estado="RECHAZADO"
+    ).count()
+
+    certificados_emitidos = CertificadoDeResidencia.objects.filter(
+        id_vecino=vecino
+    ).count()
+
+    ultimas_solicitudes = Solicitud.objects.filter(
+        id_vecino=vecino
+    ).select_related("id_tsolicitud").order_by("-fecha_solicitud")[:3]
+
     return render(request, "panel_vecino.html", {
         "vecino": vecino,
-        "residencia_activa": residencia_activa
+        "residencia": residencia,
+        "cargo_actual": cargo_actual,
+        "solicitudes_en_proceso": solicitudes_en_proceso,
+        "solicitudes_aprobadas": solicitudes_aprobadas,
+        "solicitudes_rechazadas": solicitudes_rechazadas,
+        "certificados_emitidos": certificados_emitidos,
+        "ultimas_solicitudes": ultimas_solicitudes,
     })
 
 @never_cache

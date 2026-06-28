@@ -56,12 +56,4 @@ Mis Datos
 </form>
 <br>
 
-{% if request.session.rol == "Admin" %}
-    <a href="{% url 'panel_presidente' %}">Volver al panel</a>
-{% elif request.session.rol == "Superadmin" %}
-    <a href="{% url 'panel_superadmin' %}">Volver al panel</a>
-{% else %}
-    <a href="{% url 'panel_vecino' %}">Volver al panel</a>
-{% endif %}
-
 {% endblock %}

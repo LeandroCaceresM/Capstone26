@@ -8,10 +8,6 @@ Solicitudes
 
 <h1>Solicitudes - {{ junta.nombre }}</h1>
 
-<a href="{% url 'panel_presidente' %}">Volver al panel</a>
-
-<br><br>
-
 {% if messages %}
     {% for message in messages %}
         <p>{{ message }}</p>

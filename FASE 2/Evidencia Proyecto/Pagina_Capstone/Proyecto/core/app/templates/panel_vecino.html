@@ -1,26 +1,45 @@
 {% extends "base_panel.html" %}
 
 {% block titulo %}
-Panel Principal | Vecino
+Panel Vecino
 {% endblock %}
 
 {% block contenido %}
 
 <h1>Panel Vecino</h1>
 
-<ul>
-    <li><a href="{% url 'mis_datos' %}">Mis datos</a></li>
-</ul>
+<p><strong>Junta actual:</strong> {{ residencia.id_vivienda.id_junta.nombre }}</p>
+<p><strong>Cargo actual:</strong> {% if cargo_actual %}{{ cargo_actual.id_cargo.nombre_cargo }}{% else %}Vecino{% endif %}</p>
 
-{% if not residencia_activa %}
-    <p>Debe unirse a una junta para poder comenzar usar UrbanLink.</p>
+<h2>Resumen</h2>
+
+<div class="dashboard-cards">
+    <div class="card">En proceso<br><strong>{{ solicitudes_en_proceso }}</strong></div>
+    <div class="card">Aprobadas<br><strong>{{ solicitudes_aprobadas }}</strong></div>
+    <div class="card">Rechazadas<br><strong>{{ solicitudes_rechazadas }}</strong></div>
+    <div class="card">Certificados<br><strong>{{ certificados_emitidos }}</strong></div>
+</div>
+
+<h2>Últimas solicitudes</h2>
+
+{% if ultimas_solicitudes %}
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+        </tr>
+
+        {% for solicitud in ultimas_solicitudes %}
+            <tr>
+                <td>{{ solicitud.id_tsolicitud.tipo_solicitud }}</td>
+                <td>{{ solicitud.estado }}</td>
+                <td>{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+            </tr>
+        {% endfor %}
+    </table>
 {% else %}
-    <h2>Servicios</h2>
-
-    <ul>
-        <li><a href="{% url 'mis_solicitudes' %}">Mis solicitudes</a></li>
-        <li><a href="{% url 'vecinos_mi_junta' %}">Vecinos de la junta</a></li>
-        <li><a href="{% url 'generar_certificado' %}">Descargar certificado de residencia</a></li>    </ul>
+    <p>Aún no tienes solicitudes registradas.</p>
 {% endif %}
 
 {% endblock %}

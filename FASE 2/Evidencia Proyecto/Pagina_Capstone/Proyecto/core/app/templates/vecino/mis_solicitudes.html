@@ -6,15 +6,9 @@ Mis Solicitudes
 
 {% block contenido %}
 
-
 <h1>Mis solicitudes</h1>
 
-<a href="{% url 'panel_vecino' %}">Volver al panel</a>
-<br><br>
-
 <a href="{% url 'crear_solicitud' %}">+ Crear nueva solicitud</a>
-
-<br><br>
 
 <div style="max-height: 650px; overflow-y: auto; border: 1px solid #ccc; padding: 15px;">
     {% if solicitudes_data %}

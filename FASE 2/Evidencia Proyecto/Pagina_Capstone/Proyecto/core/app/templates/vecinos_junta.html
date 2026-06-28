@@ -10,14 +10,6 @@ Vecinos de la junta
 
 <p><strong>Junta:</strong> {{ junta.nombre }}</p>
 
-{% if rol == "Admin" %}
-    <a href="{% url 'panel_presidente' %}">Volver al panel</a>
-{% else %}
-    <a href="{% url 'panel_vecino' %}">Volver al panel</a>
-{% endif %}
-
-<br><br>
-
 {% if vecinos_data %}
     <table border="1" cellpadding="8">
         <tr>
