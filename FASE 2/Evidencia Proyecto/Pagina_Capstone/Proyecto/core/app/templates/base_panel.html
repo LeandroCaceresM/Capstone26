@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<header>
+
+    <h2>UrbanLink</h2>
+
+    <hr>
+
+</header>
+
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<main>
+
+{% block contenido %}
+{% endblock %}
+
+</main>
+
+<hr>
+
+<footer>
+
+    <a href="{% url 'logout' %}">
+        Cerrar sesión
+    </a>
+
+</footer>
+
+{% endblock %}
