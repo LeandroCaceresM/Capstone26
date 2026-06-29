@@ -1,59 +1,97 @@
 {% extends "base_panel.html" %}
+{% load static %}
 
 {% block titulo %}
 Mis Datos
 {% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/mis_datos.css' %}">
+{% endblock %}
+
 {% block contenido %}
 
-<h1>Mis datos</h1>
+<div class="datos-page">
 
-<p><strong>Nombre:</strong> {{ vecino.pri_nombre }} {{ vecino.apell_paterno }} {{ vecino.apell_materno }}</p>
-<p><strong>RUT:</strong> {{ vecino.rut }}</p>
-<p><strong>Correo:</strong> {{ vecino.correo|default:"Sin correo registrado" }}</p>
+    <h1>Mis datos</h1>
 
-<p>
-    <strong>Cargo actual:</strong>
-    {% if cargo_actual %}
-        {{ cargo_actual.id_cargo.nombre_cargo }}
-    {% else %}
-        Vecino
-    {% endif %}
-</p>
+    <div class="datos-card">
 
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
+        <div class="datos-grid">
+            <div class="datos-info">
+                <small>Nombre completo</small>
+                <p>{{ vecino.pri_nombre }} {{ vecino.apell_paterno }} {{ vecino.apell_materno }}</p>
+            </div>
 
-    <label>Teléfono</label><br>
-        <input
-        type="text"
-        name="telefono"
-        value="{{ vecino.telefono }}"
-        maxlength="9"
-        pattern="[0-9]{8,9}"
-        placeholder="Ej: 912345678"
-        title="Ingrese un teléfono de 8 o 9 dígitos."
-        ><br><br>
+            <div class="datos-info">
+                <small>RUT</small>
+                <p>{{ vecino.rut }}</p>
+            </div>
 
-    {% if request.session.rol == "Admin" %}
-        <h3>Firma digital</h3>
+            <div class="datos-info">
+                <small>Correo electrónico</small>
+                <p>{{ vecino.correo|default:"Sin correo registrado" }}</p>
+            </div>
 
-        {% if vecino.firma_digital %}
-            <p>Firma actual:</p>
-            <img src="{{ vecino.firma_digital }}" width="200">
-        {% else %}
-            <p>Aún no has subido una firma digital.</p>
-        {% endif %}
+            <div class="datos-info">
+                <small>Cargo actual</small>
+                <p>
+                    {% if cargo_actual %}
+                        {{ cargo_actual.id_cargo.nombre_cargo }}
+                    {% else %}
+                        Vecino
+                    {% endif %}
+                </p>
+            </div>
+        </div>
 
-        <br><br>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
 
-        <label>Subir / cambiar firma</label><br>
-        <input type="file" name="firma" accept="image/*">
-        <br><br>
-    {% endif %}
+            <div class="form-section">
+                <label>Teléfono</label>
+                <input
+                    class="form-input"
+                    type="text"
+                    name="telefono"
+                    value="{{ vecino.telefono }}"
+                    maxlength="9"
+                    pattern="[0-9]{8,9}"
+                    placeholder="Ej: 912345678"
+                >
+            </div>
 
-    <button type="submit">Guardar cambios</button>
-</form>
-<br>
+            {% if request.session.rol == "Admin" %}
+                <div class="form-section">
+                    <h3>Firma digital</h3>
+
+                    <div class="firma-card">
+                        {% if vecino.firma_digital %}
+                            <img src="{{ vecino.firma_digital }}" class="firma-preview">
+                        {% else %}
+                            <div class="firma-vacia">
+                                Aún no has subido una firma digital.
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <label>Subir / cambiar firma</label>
+                    <input
+                        class="form-input"
+                        type="file"
+                        name="firma"
+                        accept="image/*"
+                    >
+                </div>
+            {% endif %}
+
+            <button class="datos-btn" type="submit">
+                Guardar cambios
+            </button>
+        </form>
+
+    </div>
+
+</div>
 
 {% endblock %}

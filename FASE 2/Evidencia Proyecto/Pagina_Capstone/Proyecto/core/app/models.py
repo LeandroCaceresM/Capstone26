@@ -201,3 +201,4 @@ class Vivienda(models.Model):
     class Meta:
         managed = False
         db_table = 'vivienda'
+

@@ -1,0 +1,86 @@
+.datos-page{
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.datos-page h1{
+    text-align: center;
+}
+
+.datos-card{
+    background: white;
+    border-radius: 14px;
+    padding: 32px;
+    margin-top: 25px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.12);
+}
+
+.datos-grid{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.datos-info{
+    background: #f6f8fc;
+    padding: 18px;
+    border-radius: 12px;
+}
+
+.datos-info small{
+    color: #526587;
+}
+
+.datos-info p{
+    margin-top: 8px;
+    font-weight: 600;
+}
+
+.form-section{
+    margin-top: 28px;
+}
+
+.form-input{
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d7dbe5;
+    border-radius: 10px;
+    margin-top: 8px;
+}
+
+.firma-card{
+    background: #f6f8fc;
+    border-radius: 14px;
+    padding: 22px;
+    margin: 14px 0 20px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.firma-preview{
+    width: 260px;
+    max-height: 140px;
+    object-fit: contain;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    background: white;
+}
+
+.firma-vacia{
+    width: 100%;
+    border: 2px dashed #cfd6e6;
+    border-radius: 12px;
+    padding: 35px;
+    text-align: center;
+    color: #6b7280;
+}
+
+.datos-btn{
+    margin-top: 25px;
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: bold;
+}
