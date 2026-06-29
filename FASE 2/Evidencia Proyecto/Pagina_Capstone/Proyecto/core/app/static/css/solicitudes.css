@@ -1,0 +1,155 @@
+.solicitudes-page{
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.solicitudes-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.solicitudes-header h1{
+    margin: 0;
+}
+
+.btn-nueva-solicitud{
+    background: #1976d2;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.btn-nueva-solicitud:hover{
+    background: #125aa3;
+    color: white;
+    text-decoration: none;
+}
+
+.solicitudes-list{
+    display: grid;
+    gap: 16px;
+}
+
+.solicitud-card{
+    background: white;
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.08);
+}
+
+.solicitud-card-header{
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.solicitud-card-header h2{
+    margin: 0;
+    font-size: 20px;
+}
+
+.estado{
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.estado-enproceso{
+    background: #fff3cd;
+    color: #856404;
+}
+
+.estado-aprobado{
+    background: #d4edda;
+    color: #155724;
+}
+
+.estado-rechazado{
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.descripcion{
+    color: #374151;
+    margin-bottom: 16px;
+}
+
+.solicitud-meta{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+.solicitud-meta div{
+    background: #f6f8fc;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.solicitud-meta small,
+.comentario-presidente small{
+    display: block;
+    color: #526587;
+    margin-bottom: 5px;
+}
+
+.solicitud-meta strong{
+    font-size: 14px;
+}
+
+.comentario-presidente{
+    margin-top: 15px;
+    background: #f6f8fc;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.comentario-presidente p{
+    margin: 0;
+}
+
+.empty-card{
+    background: white;
+    border-radius: 16px;
+    padding: 35px;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,.08);
+}
+
+@media(max-width:768px){
+
+    .solicitudes-page{
+        width: 100%;
+    }
+
+    .solicitudes-header{
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+    }
+
+    .btn-nueva-solicitud{
+        text-align: center;
+    }
+
+    .solicitud-card{
+        padding: 18px;
+    }
+
+    .solicitud-card-header{
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .solicitud-meta{
+        grid-template-columns: 1fr;
+    }
+}
