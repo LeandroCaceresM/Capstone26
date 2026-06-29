@@ -202,3 +202,26 @@ class Vivienda(models.Model):
         managed = False
         db_table = 'vivienda'
 
+class Noticia(models.Model):
+    id_noticia = models.UUIDField(primary_key=True)
+    titulo = models.CharField(max_length=120)
+    descripcion = models.TextField()
+    fecha_publicacion = models.DateTimeField()
+    vigencia = models.CharField(max_length=1, default="S")
+
+    id_junta = models.ForeignKey(
+        Juntavecinos,
+        on_delete=models.CASCADE,
+        db_column="id_junta"
+    )
+
+    id_vecino = models.ForeignKey(
+        Vecino,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column="id_vecino"
+    )
+
+    class Meta:
+        db_table = "noticia"

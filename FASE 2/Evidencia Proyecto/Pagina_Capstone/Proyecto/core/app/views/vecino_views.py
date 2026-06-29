@@ -16,6 +16,7 @@ from app.models import *
 from app.supabase_storage_client import supabase_storage
 from app.utils import *
 from app.decorators import login_required_custom, role_required
+from app.services.noticia_service import obtener_noticias_junta
 
 from app.services.vecino_service import (
     obtener_residencia_actual,
@@ -209,4 +210,27 @@ def vecinos_mi_junta_view(request):
         "junta": junta,
         "vecinos_data": vecinos_data,
         "rol": request.session.get("rol")
+    })
+    
+    
+@never_cache
+@role_required(ROL_USUARIO, ROL_ADMIN)
+def noticias_junta_view(request):
+    vecino = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia = obtener_residencia_actual(vecino)
+
+    if not residencia:
+        messages.error(request, "Debe pertenecer a una junta para ver las noticias.")
+        return redireccion_panel(request)
+
+    junta = residencia.id_vivienda.id_junta
+    noticias = obtener_noticias_junta(junta)
+
+    return render(request, "noticias_junta.html", {
+        "junta": junta,
+        "noticias": noticias,
     })

@@ -1,0 +1,62 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Gestionar noticias
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Noticias de {{ junta.nombre }}</h1>
+
+<h2>Publicar nueva noticia</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Título</label>
+    <input
+        type="text"
+        name="titulo"
+        maxlength="120"
+        required
+    >
+
+    <label>Contenido</label>
+    <textarea
+        name="descripcion"
+        rows="6"
+        required
+    ></textarea>
+
+    <button type="submit">Publicar noticia</button>
+</form>
+
+<hr>
+
+<h2>Noticias publicadas</h2>
+
+{% if noticias %}
+    {% for noticia in noticias %}
+        <div class="datos-card">
+            <h3>{{ noticia.titulo }}</h3>
+
+            <p>{{ noticia.descripcion }}</p>
+
+            <small>
+                Publicado el {{ noticia.fecha_publicacion|date:"d/m/Y H:i" }}
+            </small>
+
+            <p>
+                <a href="{% url 'editar_noticia' noticia.id_noticia %}">Editar</a>
+                |
+                <a href="{% url 'eliminar_noticia' noticia.id_noticia %}">Eliminar</a>
+            </p>
+        </div>
+
+        <br>
+    {% endfor %}
+{% else %}
+    <p>Aún no hay noticias publicadas.</p>
+{% endif %}
+
+{% endblock %}

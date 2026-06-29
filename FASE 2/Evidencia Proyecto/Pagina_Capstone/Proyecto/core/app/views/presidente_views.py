@@ -1,11 +1,14 @@
+import uuid
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.db import models
 
-from app.constants import ESTADO_APROBADO, ESTADO_EN_PROCESO, ESTADO_RECHAZADO, ROL_ADMIN
+from app.constants import ESTADO_APROBADO, ESTADO_EN_PROCESO, ESTADO_RECHAZADO, ROL_ADMIN, VIGENCIA_ACTIVA, VIGENCIA_INACTIVA
 from app.models import *
+from app.services.vecino_service import obtener_residencia_actual
 from app.utils import *
 from app.decorators import role_required
 
@@ -190,3 +193,153 @@ def certificados_presidente_view(request):
         "certificados": certificados,
         "busqueda": busqueda,
     })
+    
+@never_cache
+@role_required(ROL_ADMIN)
+def crear_noticia_view(request):
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    if request.method == "POST":
+
+        Noticia.objects.create(
+            id_noticia=uuid.uuid4(),
+            titulo=limpiar_titulo(request.POST.get("titulo")),
+            descripcion=limpiar_texto(request.POST.get("descripcion")),
+            fecha_publicacion=timezone.now(),
+            vigencia=VIGENCIA_ACTIVA,
+            id_junta=junta,
+            id_vecino=presidente
+        )
+
+        messages.success(request, "Noticia publicada correctamente.")
+        return redirect("crear_noticia")
+
+    return render(request, "presidente/crear_noticia.html")
+
+
+@never_cache
+@role_required(ROL_ADMIN)
+def editar_noticia_view(request, id_noticia):
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    noticia = get_object_or_404(
+        Noticia,
+        id_noticia=id_noticia,
+        id_junta=junta,
+        vigencia=VIGENCIA_ACTIVA
+    )
+
+    if request.method == "POST":
+        noticia.titulo = limpiar_titulo(request.POST.get("titulo"))
+        noticia.descripcion = limpiar_texto(request.POST.get("descripcion"))
+        noticia.save()
+
+        messages.success(request, "Noticia actualizada correctamente.")
+        return redirect("gestionar_noticias")
+
+    return render(request, "presidente/editar_noticia.html", {
+        "noticia": noticia
+    })
+
+
+@never_cache
+@role_required(ROL_ADMIN)
+def eliminar_noticia_view(request, id_noticia):
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    noticia = get_object_or_404(
+        Noticia,
+        id_noticia=id_noticia,
+        id_junta=junta,
+        vigencia=VIGENCIA_ACTIVA
+    )
+
+    if request.method == "POST":
+        noticia.vigencia = VIGENCIA_INACTIVA
+        noticia.save()
+
+        messages.success(request, "Noticia eliminada correctamente.")
+        return redirect("gestionar_noticias")
+
+    return render(request, "presidente/eliminar_noticia.html", {
+        "noticia": noticia
+    })
+
+
+
+@never_cache
+@role_required(ROL_ADMIN)
+def gestionar_noticias_view(request):
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    if request.method == "POST":
+        titulo = limpiar_titulo(request.POST.get("titulo"))
+        descripcion = limpiar_texto(request.POST.get("descripcion"))
+
+        Noticia.objects.create(
+            id_noticia=uuid.uuid4(),
+            titulo=titulo,
+            descripcion=descripcion,
+            fecha_publicacion=timezone.now(),
+            vigencia=VIGENCIA_ACTIVA,
+            id_junta=junta,
+            id_vecino=presidente
+        )
+
+        messages.success(request, "Noticia publicada correctamente.")
+        return redirect("gestionar_noticias")
+
+    noticias = Noticia.objects.filter(
+        id_junta=junta,
+        vigencia=VIGENCIA_ACTIVA
+    ).select_related("id_vecino").order_by("-fecha_publicacion")
+
+    return render(request, "presidente/gestionar_noticias.html", {
+        "junta": junta,
+        "noticias": noticias,
+    })
+

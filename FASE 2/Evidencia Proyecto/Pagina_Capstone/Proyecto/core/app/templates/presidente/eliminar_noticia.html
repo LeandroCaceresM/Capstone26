@@ -1,0 +1,21 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Eliminar noticia
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Eliminar noticia</h1>
+
+<p>¿Seguro que deseas eliminar la noticia "{{ noticia.titulo }}"?</p>
+
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit">Sí, eliminar</button>
+</form>
+
+<br>
+<a href="{% url 'gestionar_noticias' %}">Cancelar</a>
+
+{% endblock %}
