@@ -16,7 +16,8 @@ from app.models import *
 from app.supabase_storage_client import supabase_storage
 from app.utils import *
 from app.decorators import login_required_custom, role_required
-from app.services.noticia_service import obtener_noticias_junta
+from app.services.noticia_service import obtener_noticias_junta, obtener_ultimas_noticias_junta
+from app.services.evento_service import obtener_proximos_eventos_junta
 
 from app.services.vecino_service import (
     obtener_residencia_actual,
@@ -38,6 +39,14 @@ def panel_vecino_view(request):
 
     residencia = obtener_residencia_actual(vecino)
     cargo_actual = obtener_cargo_actual(vecino)
+        
+    ultimas_noticias = []
+    proximos_eventos = []
+
+    if residencia:
+        junta = residencia.id_vivienda.id_junta
+        ultimas_noticias = obtener_ultimas_noticias_junta(junta, limite=3)
+        proximos_eventos = obtener_proximos_eventos_junta(junta, limite=3)    
 
     solicitudes_en_proceso = Solicitud.objects.filter(
         id_vecino=vecino,
@@ -71,6 +80,8 @@ def panel_vecino_view(request):
         "solicitudes_rechazadas": solicitudes_rechazadas,
         "certificados_emitidos": certificados_emitidos,
         "ultimas_solicitudes": ultimas_solicitudes,
+        "ultimas_noticias": ultimas_noticias,
+        "proximos_eventos": proximos_eventos,
     })
 
 

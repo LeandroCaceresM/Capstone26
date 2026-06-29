@@ -225,3 +225,29 @@ class Noticia(models.Model):
 
     class Meta:
         db_table = "noticia"
+        
+        
+class Evento(models.Model):
+    id_evento = models.UUIDField(primary_key=True)
+    titulo = models.CharField(max_length=120)
+    descripcion = models.TextField(blank=True, null=True)
+    fecha_evento = models.DateTimeField()
+    lugar = models.CharField(max_length=150, blank=True, null=True)
+    vigencia = models.CharField(max_length=1, default="S")
+
+    id_junta = models.ForeignKey(
+        Juntavecinos,
+        on_delete=models.CASCADE,
+        db_column="id_junta"
+    )
+
+    id_vecino = models.ForeignKey(
+        Vecino,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column="id_vecino"
+    )
+
+    class Meta:
+        db_table = "evento"

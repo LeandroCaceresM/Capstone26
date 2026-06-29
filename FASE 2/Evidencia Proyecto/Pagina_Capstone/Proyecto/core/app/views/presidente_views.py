@@ -9,6 +9,7 @@ from django.db import models
 from app.constants import ESTADO_APROBADO, ESTADO_EN_PROCESO, ESTADO_RECHAZADO, ROL_ADMIN, VIGENCIA_ACTIVA, VIGENCIA_INACTIVA
 from app.models import *
 from app.services.vecino_service import obtener_residencia_actual
+from app.services.evento_service import obtener_eventos_junta
 from app.utils import *
 from app.decorators import role_required
 
@@ -21,6 +22,9 @@ from app.decorators import role_required
 def panel_presidente_view(request):
     return render(request, "panel_presidente.html")
 
+# =========================
+# VISTAS SOLICITUDES
+# =========================
 
 @never_cache
 @role_required(ROL_ADMIN)
@@ -165,6 +169,9 @@ def cerrar_solicitud_view(request, id_solicitud):
         "solicitud": solicitud
     })
 
+# =========================
+# VISTAS CERTIFICADOS
+# =========================
 
 @never_cache
 @role_required(ROL_ADMIN)
@@ -194,39 +201,10 @@ def certificados_presidente_view(request):
         "busqueda": busqueda,
     })
     
-@never_cache
-@role_required(ROL_ADMIN)
-def crear_noticia_view(request):
-    presidente = get_object_or_404(
-        Vecino,
-        id_vecino=request.session.get("vecino_id")
-    )
 
-    residencia = obtener_residencia_actual(presidente)
-
-    if not residencia:
-        messages.error(request, "No perteneces a ninguna junta.")
-        return redirect("panel_presidente")
-
-    junta = residencia.id_vivienda.id_junta
-
-    if request.method == "POST":
-
-        Noticia.objects.create(
-            id_noticia=uuid.uuid4(),
-            titulo=limpiar_titulo(request.POST.get("titulo")),
-            descripcion=limpiar_texto(request.POST.get("descripcion")),
-            fecha_publicacion=timezone.now(),
-            vigencia=VIGENCIA_ACTIVA,
-            id_junta=junta,
-            id_vecino=presidente
-        )
-
-        messages.success(request, "Noticia publicada correctamente.")
-        return redirect("crear_noticia")
-
-    return render(request, "presidente/crear_noticia.html")
-
+# =========================
+# VISTAS NOTICIAS
+# =========================
 
 @never_cache
 @role_required(ROL_ADMIN)
@@ -298,8 +276,6 @@ def eliminar_noticia_view(request, id_noticia):
         "noticia": noticia
     })
 
-
-
 @never_cache
 @role_required(ROL_ADMIN)
 def gestionar_noticias_view(request):
@@ -342,4 +318,120 @@ def gestionar_noticias_view(request):
         "junta": junta,
         "noticias": noticias,
     })
+
+# =========================
+# VISTAS EVENTOS
+# =========================
+
+@never_cache
+@role_required(ROL_ADMIN)
+def gestionar_eventos_view(request):
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    if request.method == "POST":
+        Evento.objects.create(
+            id_evento=uuid.uuid4(),
+            titulo=limpiar_titulo(request.POST.get("titulo")),
+            descripcion=limpiar_texto(request.POST.get("descripcion")),
+            fecha_evento=request.POST.get("fecha_evento"),
+            lugar=limpiar_titulo(request.POST.get("lugar")),
+            vigencia=VIGENCIA_ACTIVA,
+            id_junta=junta,
+            id_vecino=presidente
+        )
+
+        messages.success(request, "Evento creado correctamente.")
+        return redirect("gestionar_eventos")
+
+    eventos = obtener_eventos_junta(junta)
+
+    return render(request, "presidente/gestionar_eventos.html", {
+        "junta": junta,
+        "eventos": eventos,
+    })
+
+
+@never_cache
+@role_required(ROL_ADMIN)
+def editar_evento_view(request, id_evento):
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    evento = get_object_or_404(
+        Evento,
+        id_evento=id_evento,
+        id_junta=junta,
+        vigencia=VIGENCIA_ACTIVA
+    )
+
+    if request.method == "POST":
+        evento.titulo = limpiar_titulo(request.POST.get("titulo"))
+        evento.descripcion = limpiar_texto(request.POST.get("descripcion"))
+        evento.fecha_evento = request.POST.get("fecha_evento")
+        evento.lugar = limpiar_titulo(request.POST.get("lugar"))
+        evento.save()
+
+        messages.success(request, "Evento actualizado correctamente.")
+        return redirect("gestionar_eventos")
+
+    return render(request, "presidente/editar_evento.html", {
+        "evento": evento
+    })
+
+
+@never_cache
+@role_required(ROL_ADMIN)
+def eliminar_evento_view(request, id_evento):
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    evento = get_object_or_404(
+        Evento,
+        id_evento=id_evento,
+        id_junta=junta,
+        vigencia=VIGENCIA_ACTIVA
+    )
+
+    if request.method == "POST":
+        evento.vigencia = VIGENCIA_INACTIVA
+        evento.save()
+
+        messages.success(request, "Evento eliminado correctamente.")
+        return redirect("gestionar_eventos")
+
+    return render(request, "presidente/eliminar_evento.html", {
+        "evento": evento
+    })
+
 

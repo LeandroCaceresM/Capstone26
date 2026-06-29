@@ -1,0 +1,54 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Gestionar eventos
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Eventos de {{ junta.nombre }}</h1>
+
+<h2>Crear evento</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Título</label>
+    <input type="text" name="titulo" maxlength="120" required>
+
+    <label>Descripción</label>
+    <textarea name="descripcion" rows="5"></textarea>
+
+    <label>Fecha y hora</label>
+    <input type="datetime-local" name="fecha_evento" required>
+
+    <label>Lugar</label>
+    <input type="text" name="lugar" placeholder="Ej: Sede vecinal">
+
+    <button type="submit">Crear evento</button>
+</form>
+
+<hr>
+
+<h2>Eventos registrados</h2>
+
+{% if eventos %}
+    {% for evento in eventos %}
+        <div class="datos-card">
+            <h3>{{ evento.titulo }}</h3>
+            <p>{{ evento.descripcion }}</p>
+            <p><strong>Fecha:</strong> {{ evento.fecha_evento|date:"d/m/Y H:i" }}</p>
+            <p><strong>Lugar:</strong> {{ evento.lugar|default:"No especificado" }}</p>
+            <p>
+                <a href="{% url 'editar_evento' evento.id_evento %}">Editar</a>
+                |
+                <a href="{% url 'eliminar_evento' evento.id_evento %}">Eliminar</a>
+            </p>
+        </div>
+        <br>
+    {% endfor %}
+{% else %}
+    <p>No hay eventos registrados.</p>
+{% endif %}
+
+{% endblock %}

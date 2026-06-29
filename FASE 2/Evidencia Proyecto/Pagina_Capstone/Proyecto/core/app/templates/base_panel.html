@@ -21,7 +21,7 @@
                 <a href="{% url 'mis_solicitudes' %}">📄 Mis solicitudes</a>
                 <a href="{% url 'vecinos_mi_junta' %}">👥 Vecinos de la junta</a>
                 <a href="{% url 'certificado_residencia' %}">📑 Certificado residencia</a>
-                <a href="{% url 'noticias_junta' %}">📰 Noticias</a>
+                <a href="{% url 'noticias_junta' %}">📰 Todas las Noticias</a>
 
             {% elif request.session.rol == "Admin" %}
                 <a href="{% url 'panel_presidente' %}">🏠 Panel</a>
@@ -29,8 +29,8 @@
                 <a href="{% url 'solicitudes_presidente' %}">📄 Solicitudes</a>
                 <a href="{% url 'vecinos_mi_junta' %}">👥 Vecinos de la junta</a>
                 <a href="{% url 'certificado_residencia' %}">📑 Certificados</a>
-                <a href="{% url 'crear_noticia' %}">📰 Crear Noticias</a>
-                <a href="{% url 'gestionar_noticias' %}">📰 Gestionar Noticias</a>
+                <a href="{% url 'gestionar_noticias' %}">📰 Noticias</a>
+                <a href="{% url 'gestionar_eventos' %}">📅 Eventos</a>
 
             {% elif request.session.rol == "Superadmin" %}
                 <a href="{% url 'panel_superadmin' %}">🏠 Panel</a>

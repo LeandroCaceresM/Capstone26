@@ -10,11 +10,6 @@ urlpatterns = [
     path("presidente/certificados/", views.certificados_presidente_view, name="certificados_presidente"),
     
     path(
-        "presidente/noticias/crear/",
-        views.crear_noticia_view,
-        name="crear_noticia"
-    ),
-    path(
         "presidente/noticias/<uuid:id_noticia>/editar/",
         views.editar_noticia_view,
         name="editar_noticia"
@@ -28,6 +23,19 @@ urlpatterns = [
         "presidente/noticias/",
         views.gestionar_noticias_view,
         name="gestionar_noticias"
+    ),
+        
+    path("presidente/eventos/", views.gestionar_eventos_view, name="gestionar_eventos"),
+    
+    path(
+        "presidente/eventos/<uuid:id_evento>/editar/",
+        views.editar_evento_view,
+        name="editar_evento"
+    ),
+    path(
+        "presidente/eventos/<uuid:id_evento>/eliminar/",
+        views.eliminar_evento_view,
+        name="eliminar_evento"
     ),
 ]
 

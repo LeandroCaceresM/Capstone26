@@ -1,0 +1,21 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Eliminar evento
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Eliminar evento</h1>
+
+<p>¿Seguro que deseas eliminar el evento "{{ evento.titulo }}"?</p>
+
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit">Sí, eliminar</button>
+</form>
+
+<br>
+<a href="{% url 'gestionar_eventos' %}">Cancelar</a>
+
+{% endblock %}

@@ -42,4 +42,43 @@ Panel Vecino
     <p>Aún no tienes solicitudes registradas.</p>
 {% endif %}
 
+<h2>Últimas noticias</h2>
+
+{% if ultimas_noticias %}
+    {% for noticia in ultimas_noticias %}
+        <div class="datos-card">
+            <h3>{{ noticia.titulo }}</h3>
+            <p>{{ noticia.descripcion|truncatechars:140 }}</p>
+            <small>
+                Publicado el {{ noticia.fecha_publicacion|date:"d/m/Y H:i" }}
+            </small>
+        </div>
+        <br>
+    {% endfor %}
+
+    <a href="{% url 'noticias_junta' %}">
+        Ver todas las noticias
+    </a>
+{% else %}
+    <p>No hay noticias publicadas aún.</p>
+{% endif %}
+
+<h2>Próximos eventos</h2>
+
+{% if proximos_eventos %}
+    {% for evento in proximos_eventos %}
+        <div class="datos-card">
+            <h3>{{ evento.fecha_evento|date:"d/m" }} - {{ evento.titulo }}</h3>
+            <p>{{ evento.descripcion|truncatechars:120 }}</p>
+            <small>
+                {{ evento.fecha_evento|date:"d/m/Y H:i" }}
+                {% if evento.lugar %} | {{ evento.lugar }}{% endif %}
+            </small>
+        </div>
+        <br>
+    {% endfor %}
+{% else %}
+    <p>No hay eventos próximos.</p>
+{% endif %}
+
 {% endblock %}
