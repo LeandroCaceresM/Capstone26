@@ -1,84 +1,134 @@
 {% extends "base_panel.html" %}
+{% load static %}
 
 {% block titulo %}
 Panel Vecino
 {% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/panel_vecino.css' %}">
+{% endblock %}
+
 {% block contenido %}
 
-<h1>Panel Vecino</h1>
+<div class="panel-page">
 
-<p><strong>Junta actual:</strong> {{ residencia.id_vivienda.id_junta.nombre }}</p>
-<p><strong>Cargo actual:</strong> {% if cargo_actual %}{{ cargo_actual.id_cargo.nombre_cargo }}{% else %}Vecino{% endif %}</p>
+    <h1>Panel Vecino</h1>
 
-<h2>Resumen</h2>
+    <div class="panel-dashboard">
 
-<div class="dashboard-cards">
-    <div class="card">En proceso<br><strong>{{ solicitudes_en_proceso }}</strong></div>
-    <div class="card">Aprobadas<br><strong>{{ solicitudes_aprobadas }}</strong></div>
-    <div class="card">Rechazadas<br><strong>{{ solicitudes_rechazadas }}</strong></div>
-    <div class="card">Certificados<br><strong>{{ certificados_emitidos }}</strong></div>
+        <section class="dashboard-box resumen-datos">
+            <h2>Resumen datos</h2>
+
+            <p>
+                <strong>Junta:</strong><br>
+                {{ residencia.id_vivienda.id_junta.nombre }}
+            </p>
+
+            <p>
+                <strong>Cargo:</strong><br>
+                {% if cargo_actual %}
+                    {{ cargo_actual.id_cargo.nombre_cargo }}
+                {% else %}
+                    Vecino
+                {% endif %}
+            </p>
+        </section>
+
+        <section class="dashboard-box prox-eventos">
+            <h2>Próximos eventos</h2>
+
+            {% if proximos_eventos %}
+                {% for evento in proximos_eventos %}
+                    <div class="mini-card">
+                        <strong>{{ evento.fecha_evento|date:"d/m" }} - {{ evento.titulo }}</strong>
+                        <p>{{ evento.fecha_evento|date:"H:i" }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty-text">No hay eventos próximos.</p>
+            {% endif %}
+        </section>
+
+        <section class="dashboard-box ultimas-noticias">
+            <div class="box-title-link">
+                <h2>Últimas noticias</h2>
+                <a href="{% url 'noticias_junta' %}">Ver todas</a>
+            </div>
+
+            {% if ultimas_noticias %}
+                {% for noticia in ultimas_noticias %}
+                    <div class="mini-card">
+                        <strong>{{ noticia.titulo }}</strong>
+                        <p>{{ noticia.descripcion|truncatechars:100 }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty-text">No hay noticias publicadas aún.</p>
+            {% endif %}
+        </section>
+
+        <section class="dashboard-box resumen-solicitudes">
+            <h2>Resumen solicitudes</h2>
+
+            <div class="solicitudes-grid">
+                <div class="solicitud-stat">
+                    <strong>{{ solicitudes_en_proceso }}</strong>
+                    <span>En proceso</span>
+                </div>
+
+                <div class="solicitud-stat">
+                    <strong>{{ solicitudes_aprobadas }}</strong>
+                    <span>Aprobadas</span>
+                </div>
+
+                <div class="solicitud-stat">
+                    <strong>{{ solicitudes_rechazadas }}</strong>
+                    <span>Rechazadas</span>
+                </div>
+
+                <div class="solicitud-stat">
+                    <strong>{{ certificados_emitidos }}</strong>
+                    <span>Certificados</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="dashboard-box ultimas-solicitudes">
+            <div class="box-title-link">
+                <h2>Últimas solicitudes</h2>
+                <a href="{% url 'mis_solicitudes' %}">Ver todas</a>
+            </div>
+
+            {% if ultimas_solicitudes %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for solicitud in ultimas_solicitudes %}
+                                <tr>
+                                    <td>{{ solicitud.id_tsolicitud.tipo_solicitud }}</td>
+                                    <td>{{ solicitud.estado }}</td>
+                                    <td>{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="empty-text">Aún no tienes solicitudes registradas.</p>
+            {% endif %}
+        </section>
+
+    </div>
+
 </div>
-
-<h2>Últimas solicitudes</h2>
-
-{% if ultimas_solicitudes %}
-    <table border="1" cellpadding="8">
-        <tr>
-            <th>Tipo</th>
-            <th>Estado</th>
-            <th>Fecha</th>
-        </tr>
-
-        {% for solicitud in ultimas_solicitudes %}
-            <tr>
-                <td>{{ solicitud.id_tsolicitud.tipo_solicitud }}</td>
-                <td>{{ solicitud.estado }}</td>
-                <td>{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</td>
-            </tr>
-        {% endfor %}
-    </table>
-{% else %}
-    <p>Aún no tienes solicitudes registradas.</p>
-{% endif %}
-
-<h2>Últimas noticias</h2>
-
-{% if ultimas_noticias %}
-    {% for noticia in ultimas_noticias %}
-        <div class="datos-card">
-            <h3>{{ noticia.titulo }}</h3>
-            <p>{{ noticia.descripcion|truncatechars:140 }}</p>
-            <small>
-                Publicado el {{ noticia.fecha_publicacion|date:"d/m/Y H:i" }}
-            </small>
-        </div>
-        <br>
-    {% endfor %}
-
-    <a href="{% url 'noticias_junta' %}">
-        Ver todas las noticias
-    </a>
-{% else %}
-    <p>No hay noticias publicadas aún.</p>
-{% endif %}
-
-<h2>Próximos eventos</h2>
-
-{% if proximos_eventos %}
-    {% for evento in proximos_eventos %}
-        <div class="datos-card">
-            <h3>{{ evento.fecha_evento|date:"d/m" }} - {{ evento.titulo }}</h3>
-            <p>{{ evento.descripcion|truncatechars:120 }}</p>
-            <small>
-                {{ evento.fecha_evento|date:"d/m/Y H:i" }}
-                {% if evento.lugar %} | {{ evento.lugar }}{% endif %}
-            </small>
-        </div>
-        <br>
-    {% endfor %}
-{% else %}
-    <p>No hay eventos próximos.</p>
-{% endif %}
 
 {% endblock %}

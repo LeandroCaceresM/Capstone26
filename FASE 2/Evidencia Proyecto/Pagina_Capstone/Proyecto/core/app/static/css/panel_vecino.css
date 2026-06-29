@@ -1,0 +1,112 @@
+.panel-page{
+    max-width: 1250px;
+    margin: 0 auto;
+}
+
+.panel-page h1{
+    text-align: left;
+    margin-bottom: 28px;
+}
+
+.panel-dashboard{
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr;
+    gap: 20px;
+}
+
+.dashboard-box{
+    background: white;
+    border-radius: 22px;
+    padding: 22px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.08);
+}
+
+.dashboard-box h2{
+    font-size: 20px;
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.resumen-datos{
+    min-height: 230px;
+}
+
+.prox-eventos{
+    min-height: 230px;
+}
+
+.ultimas-noticias{
+    min-height: 230px;
+}
+
+.resumen-solicitudes{
+    min-height: 230px;
+}
+
+.ultimas-solicitudes{
+    grid-column: 2 / 4;
+    min-height: 230px;
+}
+
+.box-title-link{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.box-title-link h2{
+    margin: 0;
+    text-align: left;
+}
+
+.mini-card{
+    background: #f6f8fc;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+}
+
+.mini-card p{
+    margin: 6px 0 0 0;
+    color: #526587;
+}
+
+.solicitudes-grid{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+.solicitud-stat{
+    background: #f6f8fc;
+    border-radius: 14px;
+    padding: 18px;
+    text-align: center;
+}
+
+.solicitud-stat strong{
+    display: block;
+    font-size: 28px;
+    color: #1565c0;
+}
+
+.solicitud-stat span{
+    color: #526587;
+    font-size: 14px;
+}
+
+.empty-text{
+    color: #6b7280;
+    margin: 0;
+}
+
+@media (max-width: 1100px){
+    .panel-dashboard{
+        grid-template-columns: 1fr;
+    }
+
+    .ultimas-solicitudes{
+        grid-column: auto;
+    }
+}
