@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.db import models
 
+from app.constants import ESTADO_APROBADO, ESTADO_EN_PROCESO, ESTADO_RECHAZADO, ROL_ADMIN
 from app.models import *
 from app.utils import *
 from app.decorators import role_required
@@ -13,13 +14,13 @@ from app.decorators import role_required
 # =========================
 
 @never_cache
-@role_required("Admin")
+@role_required(ROL_ADMIN)
 def panel_presidente_view(request):
     return render(request, "panel_presidente.html")
 
 
 @never_cache
-@role_required("Admin")
+@role_required(ROL_ADMIN)
 def solicitudes_presidente_view(request):
     presidente = get_object_or_404(
         Vecino,
@@ -38,7 +39,11 @@ def solicitudes_presidente_view(request):
     junta = residencia_presidente.id_vivienda.id_junta
 
     filtro_estado = request.GET.get("estado", "Todas")
+    filtro_tipo = request.GET.get("tipo", "Todas")
+    orden = request.GET.get("orden", "recientes")
     busqueda = request.GET.get("q", "")
+
+    tipos = Tiposolicitud.objects.all().order_by("tipo_solicitud")
 
     vecinos_ids = HistVivienda.objects.filter(
         id_vivienda__id_junta=junta,
@@ -50,10 +55,15 @@ def solicitudes_presidente_view(request):
     ).select_related(
         "id_vecino",
         "id_tsolicitud"
-    ).order_by("-fecha_solicitud")
+    )
 
     if filtro_estado != "Todas":
         solicitudes = solicitudes.filter(estado=filtro_estado)
+
+    if filtro_tipo != "Todas":
+        solicitudes = solicitudes.filter(
+            id_tsolicitud__id_tsolicitud=filtro_tipo
+        )
 
     if busqueda:
         solicitudes = solicitudes.filter(
@@ -64,12 +74,34 @@ def solicitudes_presidente_view(request):
             models.Q(id_vecino__rut__icontains=busqueda)
         )
 
+    if orden == "antiguas":
+        solicitudes = solicitudes.order_by("fecha_solicitud")
+    elif orden == "vecino_az":
+        solicitudes = solicitudes.order_by(
+            "id_vecino__pri_nombre",
+            "id_vecino__apell_paterno"
+        )
+    elif orden == "vecino_za":
+        solicitudes = solicitudes.order_by(
+            "-id_vecino__pri_nombre",
+            "-id_vecino__apell_paterno"
+        )
+    elif orden == "estado":
+        solicitudes = solicitudes.order_by("estado", "-fecha_solicitud")
+    elif orden == "tipo":
+        solicitudes = solicitudes.order_by(
+            "id_tsolicitud__tipo_solicitud",
+            "-fecha_solicitud"
+        )
+    else:
+        solicitudes = solicitudes.order_by("-fecha_solicitud")
+
     solicitudes_data = []
 
     for solicitud in solicitudes:
         hist_cierre = HistEstSol.objects.filter(
             id_solicitud=solicitud,
-            id_est__nomb_est_sol__in=["APROBADO", "RECHAZADO"]
+            id_est__nomb_est_sol__in=[ESTADO_APROBADO, ESTADO_RECHAZADO]
         ).order_by("-fecha_cb_estado").first()
 
         solicitudes_data.append({
@@ -81,16 +113,19 @@ def solicitudes_presidente_view(request):
         "junta": junta,
         "solicitudes_data": solicitudes_data,
         "filtro_estado": filtro_estado,
+        "filtro_tipo": filtro_tipo,
+        "orden": orden,
         "busqueda": busqueda,
+        "tipos": tipos,
     })
-
+    
 
 @never_cache
-@role_required("Admin")
+@role_required(ROL_ADMIN)
 def cerrar_solicitud_view(request, id_solicitud):
     solicitud = get_object_or_404(Solicitud, id_solicitud=id_solicitud)
 
-    if solicitud.estado != "EN PROCESO":
+    if solicitud.estado != ESTADO_EN_PROCESO:
         messages.error(request, "Esta solicitud ya fue cerrada.")
         return redirect("solicitudes_presidente")
 
@@ -101,9 +136,9 @@ def cerrar_solicitud_view(request, id_solicitud):
         )
 
         if accion == "aprobar":
-            nuevo_estado = "APROBADO"
+            nuevo_estado = ESTADO_APROBADO
         elif accion == "rechazar":
-            nuevo_estado = "RECHAZADO"
+            nuevo_estado = ESTADO_RECHAZADO
         else:
             messages.error(request, "Acción no válida.")
             return redirect("solicitudes_presidente")
@@ -129,7 +164,7 @@ def cerrar_solicitud_view(request, id_solicitud):
 
 
 @never_cache
-@role_required("Admin")
+@role_required(ROL_ADMIN)
 def certificados_presidente_view(request):
     presidente = get_object_or_404(
         Vecino,

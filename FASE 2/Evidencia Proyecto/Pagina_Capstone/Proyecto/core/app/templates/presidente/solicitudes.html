@@ -8,22 +8,27 @@ Solicitudes
 
 <h1>Solicitudes - {{ junta.nombre }}</h1>
 
-{% if messages %}
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
-
 <form method="GET">
-    <label>Filtrar por estado:</label>
+    <label>Estado</label>
     <select name="estado">
         <option value="Todas" {% if filtro_estado == "Todas" %}selected{% endif %}>Todas</option>
-        <option value="EN PROCESO" {% if filtro_estado == "EN PROCESO" %}selected{% endif %}>EN PROCESO</option>
-        <option value="APROBADO" {% if filtro_estado == "APROBADO" %}selected{% endif %}>APROBADO</option>
-        <option value="RECHAZADO" {% if filtro_estado == "RECHAZADO" %}selected{% endif %}>RECHAZADO</option>
+        <option value="EN PROCESO" {% if filtro_estado == "EN PROCESO" %}selected{% endif %}>En proceso</option>
+        <option value="APROBADO" {% if filtro_estado == "APROBADO" %}selected{% endif %}>Aprobadas</option>
+        <option value="RECHAZADO" {% if filtro_estado == "RECHAZADO" %}selected{% endif %}>Rechazadas</option>
     </select>
 
-    <label>Buscar vecino:</label>
+    <label>Tipo solicitud</label>
+    <select name="tipo">
+        <option value="Todas" {% if filtro_tipo == "Todas" %}selected{% endif %}>Todas</option>
+        {% for tipo in tipos %}
+            <option value="{{ tipo.id_tsolicitud }}"
+                {% if filtro_tipo == tipo.id_tsolicitud|stringformat:"s" %}selected{% endif %}>
+                {{ tipo.tipo_solicitud }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Buscar vecino</label>
     <input
         type="text"
         name="q"
@@ -31,11 +36,22 @@ Solicitudes
         placeholder="Nombre, apellido o RUT"
     >
 
+    <label>Ordenar por</label>
+    <select name="orden">
+        <option value="recientes" {% if orden == "recientes" %}selected{% endif %}>Más recientes</option>
+        <option value="antiguas" {% if orden == "antiguas" %}selected{% endif %}>Más antiguas</option>
+        <option value="vecino_az" {% if orden == "vecino_az" %}selected{% endif %}>Vecino A-Z</option>
+        <option value="vecino_za" {% if orden == "vecino_za" %}selected{% endif %}>Vecino Z-A</option>
+        <option value="estado" {% if orden == "estado" %}selected{% endif %}>Estado</option>
+        <option value="tipo" {% if orden == "tipo" %}selected{% endif %}>Tipo solicitud</option>
+    </select>
+
     <button type="submit">Filtrar</button>
 
-    <a href="{% url 'solicitudes_presidente' %}">Limpiar filtros</a>
+    <a href="{% url 'solicitudes_presidente' %}">
+        Limpiar filtros
+    </a>
 </form>
-
 <br>
 
 <p>Total solicitudes encontradas: {{ solicitudes_data|length }}</p>

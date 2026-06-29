@@ -1,28 +1,31 @@
 import uuid
-import os
-import requests
-
 from datetime import date
-from io import BytesIO
 
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
-from django.conf import settings
-from django.http import FileResponse
-from django.db import models
 
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.utils import ImageReader
-
-from app.models import *
+from app.constants import (
+    ROL_ADMIN,
+    ROL_SUPERADMIN,
+    ROL_USUARIO,
+    VIGENCIA_ACTIVA,
+)
+from app.models import Rol, Vecino
 from app.supabase_client import supabase
-from app.supabase_storage_client import supabase_storage
-from app.utils import *
-from app.validators import *
+from app.utils import (
+    limpiar_correo,
+    limpiar_mayusculas,
+    limpiar_telefono,
+)
+from app.validators import (
+    es_mayor_16,
+    formatear_rut,
+    validar_rut,
+    validar_telefono,
+)
 
 # =========================
 # AUTENTICACION
@@ -86,7 +89,7 @@ def registro_view(request):
                 messages.error(request, "No se pudo crear el usuario.")
                 return render_registro(datos)
 
-            rol_vecino = Rol.objects.get(nombre_rol="Usuario")
+            rol_vecino = Rol.objects.get(nombre_rol=ROL_USUARIO)
 
             Vecino.objects.create(
                 id_vecino=uuid.uuid4(),
@@ -99,7 +102,7 @@ def registro_view(request):
                 correo=correo,
                 telefono=telefono,
                 fecha_de_nacimiento=fecha_de_nacimiento,
-                vigencia="S",
+                vigencia=VIGENCIA_ACTIVA,
                 fecha_registro=timezone.now(),
                 id_rol=rol_vecino
             )
@@ -134,7 +137,7 @@ def login_view(request):
 
             vecino = Vecino.objects.get(supabase_uid=user.id)
                         
-            if vecino.vigencia != "S":
+            if vecino.vigencia != VIGENCIA_ACTIVA:
                 request.session.flush()
                 messages.error(
                     request,
@@ -149,13 +152,13 @@ def login_view(request):
 
             rol = vecino.id_rol.nombre_rol
 
-            if rol == "Usuario":
+            if rol == ROL_USUARIO:
                 return redirect("panel_vecino")
 
-            elif rol == "Admin":
+            elif rol == ROL_ADMIN:
                 return redirect("panel_presidente")
 
-            elif rol == "Superadmin":
+            elif rol == ROL_SUPERADMIN:
                 return redirect("panel_superadmin")
 
             else:

@@ -1,0 +1,75 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Certificados
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Certificados</h1>
+<p>Descarga tu certificado de residencia con firma digital del Presidente</p>
+
+<div class="cert-card">
+
+    <div class="cert-header">
+        <div class="cert-icon">⌂</div>
+
+        <div>
+            <h2>Certificado de Residencia</h2>
+            <p>Acredita tu domicilio en la comunidad</p>
+        </div>
+    </div>
+
+    <div class="cert-body">
+
+        <div class="cert-grid">
+            <div class="cert-info">
+                <small>Titular</small>
+                <p>{{ vecino.pri_nombre }} {{ vecino.apell_paterno }} {{ vecino.apell_materno }}</p>
+            </div>
+
+            <div class="cert-info">
+                <small>RUT</small>
+                <p>{{ vecino.rut }}</p>
+            </div>
+
+            <div class="cert-info">
+                <small>Dirección</small>
+                <p>{{ direccion }}</p>
+            </div>
+
+            <div class="cert-info">
+                <small>Cargo en la Junta</small>
+                <p>{{ cargo_actual }}</p>
+            </div>
+        </div>
+
+        {% if firma_disponible %}
+            <div class="cert-alert success">
+                Firma digital disponible. El certificado puede ser descargado.
+            </div>
+
+            <a class="cert-btn" href="{% url 'generar_certificado' %}">
+                Descargar Certificado
+            </a>
+        {% else %}
+            <div class="cert-alert warning">
+                <strong>Firma digital no disponible</strong><br>
+                El Presidente/a aún no ha subido su firma digital. Contacta a la directiva.
+            </div>
+
+            <button class="cert-btn disabled" disabled>
+                Descargar Certificado
+            </button>
+        {% endif %}
+
+        <p class="cert-note">
+            El certificado se genera al instante con la firma digital del Presidente/a.
+            No requiere aprobación previa.
+        </p>
+
+    </div>
+
+</div>
+
+{% endblock %}

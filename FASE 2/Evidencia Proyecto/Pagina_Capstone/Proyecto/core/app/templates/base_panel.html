@@ -20,15 +20,14 @@
                 <a href="{% url 'mis_datos' %}">👤 Mis datos</a>
                 <a href="{% url 'mis_solicitudes' %}">📄 Mis solicitudes</a>
                 <a href="{% url 'vecinos_mi_junta' %}">👥 Vecinos de la junta</a>
-                <a href="{% url 'generar_certificado' %}">📑 Certificado residencia</a>
+                <a href="{% url 'certificado_residencia' %}">📑 Certificado residencia</a>
 
             {% elif request.session.rol == "Admin" %}
                 <a href="{% url 'panel_presidente' %}">🏠 Panel</a>
                 <a href="{% url 'mis_datos' %}">👤 Mis datos</a>
                 <a href="{% url 'solicitudes_presidente' %}">📄 Solicitudes</a>
                 <a href="{% url 'vecinos_mi_junta' %}">👥 Vecinos de la junta</a>
-                <a href="{% url 'certificados_presidente' %}">📑 Certificados emitidos</a>
-                <a href="{% url 'generar_certificado' %}">⬇️ Mi certificado</a>
+                <a href="{% url 'certificado_residencia' %}">📑 Certificados</a>
 
             {% elif request.session.rol == "Superadmin" %}
                 <a href="{% url 'panel_superadmin' %}">🏠 Panel</a>

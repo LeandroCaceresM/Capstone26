@@ -1,5 +1,10 @@
 import re
 
+from django.shortcuts import redirect
+
+from app.constants import ROL_ADMIN, ROL_SUPERADMIN
+
+
 # ==================================================
 # FUNCIONES DE NORMALIZACIÓN
 # ==================================================
@@ -49,3 +54,14 @@ def limpiar_titulo(texto):
         return texto.title()
 
     return None
+
+def redireccion_panel(request):
+    rol = request.session.get("rol")
+
+    if rol == ROL_ADMIN:
+        return redirect("panel_presidente")
+
+    if rol == ROL_SUPERADMIN:
+        return redirect("panel_superadmin")
+
+    return redirect("panel_vecino")

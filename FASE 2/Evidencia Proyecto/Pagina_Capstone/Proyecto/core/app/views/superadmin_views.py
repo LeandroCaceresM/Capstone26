@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.db import models
 
+from app.constants import CARGO_PRESIDENTE, ROL_ADMIN, ROL_SUPERADMIN, ROL_USUARIO, VIGENCIA_ACTIVA
 from app.models import *
 from app.utils import *
 from app.validators import *
@@ -16,7 +17,7 @@ from app.decorators import role_required
 # =========================
 
 @never_cache
-@role_required("Superadmin")
+@role_required(ROL_SUPERADMIN)
 def panel_superadmin_view(request):
 
     total_juntas = Juntavecinos.objects.count()
@@ -32,7 +33,7 @@ def panel_superadmin_view(request):
 # =========================
 
 @never_cache
-@role_required("Superadmin")
+@role_required(ROL_SUPERADMIN)
 def listar_juntas_view(request):
 
     juntas = Juntavecinos.objects.all()
@@ -42,7 +43,7 @@ def listar_juntas_view(request):
     })
 
 @never_cache
-@role_required("Superadmin")
+@role_required(ROL_SUPERADMIN)
 def crear_junta_view(request):
 
     regiones = Region.objects.all().order_by("nom_region")
@@ -72,7 +73,7 @@ def crear_junta_view(request):
     })
 
 @never_cache
-@role_required("Superadmin")
+@role_required(ROL_SUPERADMIN)
 def editar_junta_view(request, id_junta):
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
@@ -98,7 +99,7 @@ def editar_junta_view(request, id_junta):
     })
 
 @never_cache
-@role_required("Superadmin")
+@role_required(ROL_SUPERADMIN)
 def eliminar_junta_view(request, id_junta):
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
@@ -133,7 +134,7 @@ def eliminar_junta_view(request, id_junta):
 # SUPERADMIN - VECINOS EN JUNTA
 # =========================
 @never_cache
-@role_required("Superadmin")
+@role_required(ROL_SUPERADMIN)
 def vecinos_junta_view(request, id_junta):
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
@@ -162,7 +163,7 @@ def vecinos_junta_view(request, id_junta):
     })
 
 @never_cache
-@role_required("Superadmin")
+@role_required(ROL_SUPERADMIN)
 def asignar_vecino_junta_view(request, id_junta):
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
@@ -172,7 +173,7 @@ def asignar_vecino_junta_view(request, id_junta):
     ).values_list("id_vecino", flat=True)
 
     vecinos = Vecino.objects.filter(
-        vigencia="S"
+        vigencia=VIGENCIA_ACTIVA
     ).exclude(
         id_vecino__in=vecinos_con_junta
     ).order_by("pri_nombre", "apell_paterno")
@@ -244,7 +245,7 @@ def asignar_vecino_junta_view(request, id_junta):
     })
 
 @never_cache
-@role_required("Superadmin")    
+@role_required(ROL_SUPERADMIN)    
 def quitar_vecino_junta_view(request, id_junta, id_vecino):
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
@@ -275,7 +276,7 @@ def quitar_vecino_junta_view(request, id_junta, id_vecino):
 # =========================
 
 @never_cache
-@role_required("Superadmin")
+@role_required(ROL_SUPERADMIN)
 def crear_directiva_view(request, id_junta):
     
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
@@ -299,7 +300,7 @@ def crear_directiva_view(request, id_junta):
     })
 
 @never_cache
-@role_required("Superadmin")
+@role_required(ROL_SUPERADMIN)
 def asignar_cargo_junta_view(request, id_junta):
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
@@ -365,8 +366,8 @@ def asignar_cargo_junta_view(request, id_junta):
                 fecha_cargo_fin_real=None
             )
 
-            if cargo.nombre_cargo.lower() == "presidente":
-                rol_admin = Rol.objects.get(nombre_rol="Admin")
+            if cargo.nombre_cargo.lower() == CARGO_PRESIDENTE.lower():
+                rol_admin = Rol.objects.get(nombre_rol=ROL_ADMIN)
                 vecino.id_rol = rol_admin
                 vecino.save()
 
@@ -411,7 +412,7 @@ def asignar_cargo_junta_view(request, id_junta):
     })
 
 @never_cache
-@role_required("Superadmin")    
+@role_required(ROL_SUPERADMIN)    
 def quitar_cargo_vecino_view(request, id_junta, id_vecino):
 
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
@@ -429,8 +430,8 @@ def quitar_cargo_vecino_view(request, id_junta, id_vecino):
         cargo_actual.fecha_cargo_fin_real = timezone.now().date()
         cargo_actual.save()
 
-        if nombre_cargo == "presidente":
-            rol_usuario = Rol.objects.get(nombre_rol="Usuario")
+        if nombre_cargo == CARGO_PRESIDENTE:
+            rol_usuario = Rol.objects.get(nombre_rol=ROL_USUARIO)
             vecino.id_rol = rol_usuario
             vecino.save()
 
@@ -449,13 +450,13 @@ def quitar_cargo_vecino_view(request, id_junta, id_vecino):
 # ========================= 
 
 @never_cache
-@role_required("Superadmin")
+@role_required(ROL_SUPERADMIN)
 def gestionar_vecinos_view(request):
 
     busqueda = request.GET.get("q", "")
     filtro_junta = request.GET.get("junta", "Todas")
 
-    vecinos = Vecino.objects.filter(vigencia="S").order_by("pri_nombre", "apell_paterno")
+    vecinos = Vecino.objects.filter(vigencia=VIGENCIA_ACTIVA).order_by("pri_nombre", "apell_paterno")
     juntas = Juntavecinos.objects.all().order_by("nombre")
 
     if busqueda:
@@ -507,7 +508,7 @@ def gestionar_vecinos_view(request):
     })
     
 @never_cache
-@role_required("Superadmin")
+@role_required(ROL_SUPERADMIN)
 def editar_vecino_superadmin_view(request, id_vecino):
 
     vecino = get_object_or_404(Vecino, id_vecino=id_vecino)
