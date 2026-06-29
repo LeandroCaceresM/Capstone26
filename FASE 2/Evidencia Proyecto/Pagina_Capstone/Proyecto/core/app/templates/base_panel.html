@@ -1,10 +1,20 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/menu.css' %}">
+{% endblock %}
 
 {% block body %}
 
+<header class="mobile-topbar">
+    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+    <strong>UrbanLink</strong>
+</header>
+
 <div class="layout">
 
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
 
         <h2 class="sidebar-logo">UrbanLink</h2>
 
@@ -64,5 +74,14 @@
     </main>
 
 </div>
+
+<script>
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const sidebar = document.getElementById("sidebar");
+
+    mobileMenuBtn.addEventListener("click", () => {
+        sidebar.classList.toggle("active");
+    });
+</script>
 
 {% endblock %}

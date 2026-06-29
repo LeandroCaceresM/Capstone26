@@ -6,6 +6,7 @@ Panel Vecino
 {% endblock %}
 
 {% block head %}
+{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/panel_vecino.css' %}">
 {% endblock %}
 
@@ -20,19 +21,21 @@ Panel Vecino
         <section class="dashboard-box resumen-datos">
             <h2>Resumen datos</h2>
 
-            <p>
-                <strong>Junta:</strong><br>
-                {{ residencia.id_vivienda.id_junta.nombre }}
-            </p>
+            <div class="info-row">
+                <span>Junta</span>
+                <strong>{{ residencia.id_vivienda.id_junta.nombre }}</strong>
+            </div>
 
-            <p>
-                <strong>Cargo:</strong><br>
-                {% if cargo_actual %}
-                    {{ cargo_actual.id_cargo.nombre_cargo }}
-                {% else %}
-                    Vecino
-                {% endif %}
-            </p>
+            <div class="info-row">
+                <span>Cargo</span>
+                <strong>
+                    {% if cargo_actual %}
+                        {{ cargo_actual.id_cargo.nombre_cargo }}
+                    {% else %}
+                        Vecino
+                    {% endif %}
+                </strong>
+            </div>
         </section>
 
         <section class="dashboard-box prox-eventos">
@@ -60,7 +63,8 @@ Panel Vecino
                 {% for noticia in ultimas_noticias %}
                     <div class="mini-card">
                         <strong>{{ noticia.titulo }}</strong>
-                        <p>{{ noticia.descripcion|truncatechars:100 }}</p>
+                        <p>{{ noticia.descripcion|truncatechars:75 }}</p>
+                        <small>{{ noticia.fecha_publicacion|date:"d/m/Y H:i" }}</small>
                     </div>
                 {% endfor %}
             {% else %}
@@ -101,26 +105,25 @@ Panel Vecino
             </div>
 
             {% if ultimas_solicitudes %}
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead>
-                            <tr>
-                                <th>Tipo</th>
-                                <th>Estado</th>
-                                <th>Fecha</th>
-                            </tr>
-                        </thead>
+                <div class="solicitudes-list">
+                    {% for solicitud in ultimas_solicitudes %}
+                        <div class="solicitud-row">
+                            <div>
+                                <span>Tipo</span>
+                                <strong>{{ solicitud.id_tsolicitud.tipo_solicitud }}</strong>
+                            </div>
 
-                        <tbody>
-                            {% for solicitud in ultimas_solicitudes %}
-                                <tr>
-                                    <td>{{ solicitud.id_tsolicitud.tipo_solicitud }}</td>
-                                    <td>{{ solicitud.estado }}</td>
-                                    <td>{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                            <div>
+                                <span>Estado</span>
+                                <strong class="estado-text">{{ solicitud.estado }}</strong>
+                            </div>
+
+                            <div>
+                                <span>Fecha</span>
+                                <strong>{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</strong>
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
             {% else %}
                 <p class="empty-text">Aún no tienes solicitudes registradas.</p>

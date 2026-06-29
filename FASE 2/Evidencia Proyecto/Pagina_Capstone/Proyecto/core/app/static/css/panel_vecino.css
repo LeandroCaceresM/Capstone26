@@ -4,109 +4,198 @@
 }
 
 .panel-page h1{
-    text-align: left;
-    margin-bottom: 28px;
+    text-align:left;
+    margin-bottom:20px;
+    font-size:32px;
 }
 
 .panel-dashboard{
-    display: grid;
-    grid-template-columns: 1fr 1fr 2fr;
-    gap: 20px;
+    display:grid;
+    grid-template-columns:1fr 1fr 2fr;
+    gap:16px;
 }
 
 .dashboard-box{
-    background: white;
-    border-radius: 22px;
-    padding: 22px;
-    box-shadow: 0 4px 14px rgba(0,0,0,.08);
+    background:white;
+    border-radius:20px;
+    padding:15px;
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
 }
 
 .dashboard-box h2{
-    font-size: 20px;
-    text-align: center;
-    margin-bottom: 18px;
-}
-
-.resumen-datos{
-    min-height: 230px;
-}
-
-.prox-eventos{
-    min-height: 230px;
-}
-
-.ultimas-noticias{
-    min-height: 230px;
-}
-
-.resumen-solicitudes{
-    min-height: 230px;
+    font-size:18px;
+    text-align:center;
+    margin-bottom:14px;
 }
 
 .ultimas-solicitudes{
-    grid-column: 2 / 4;
-    min-height: 230px;
+    grid-column:2 / 4;
 }
 
-.box-title-link{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
+.info-row{
+    background:#f6f8fc;
+    border-radius:14px;
+    padding:14px;
+    margin-bottom:12px;
 }
 
-.box-title-link h2{
-    margin: 0;
-    text-align: left;
+.info-row span{
+    display:block;
+    color:#526587;
+    font-size:13px;
+}
+
+.info-row strong{
+    display:block;
+    margin-top:4px;
+    font-size:16px;
 }
 
 .mini-card{
-    background: #f6f8fc;
-    border-radius: 14px;
-    padding: 14px;
-    margin-bottom: 12px;
+    background:#f6f8fc;
+    border-radius:14px;
+    padding:10px;
+    margin-bottom:10px;
+}
+
+.mini-card strong{
+    display:block;
+    font-size:15px;
 }
 
 .mini-card p{
-    margin: 6px 0 0 0;
-    color: #526587;
+    margin:5px 0;
+    color:#526587;
+    font-size:14px;
+}
+
+.mini-card small{
+    color:#6b7280;
+    font-size:12px;
 }
 
 .solicitudes-grid{
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
 }
 
 .solicitud-stat{
-    background: #f6f8fc;
-    border-radius: 14px;
-    padding: 18px;
-    text-align: center;
+    background:#f6f8fc;
+    border-radius:14px;
+    padding:14px 8px;
+    text-align:center;
 }
 
 .solicitud-stat strong{
-    display: block;
-    font-size: 28px;
-    color: #1565c0;
+    display:block;
+    font-size:26px;
+    color:#1565c0;
 }
 
 .solicitud-stat span{
-    color: #526587;
-    font-size: 14px;
+    color:#526587;
+    font-size:13px;
+}
+
+.table{
+    margin-top:0;
+}
+
+.table th{
+    font-size:14px;
+}
+
+.table td{
+    font-size:14px;
+    padding:9px 12px;
+}
+
+.box-title-link{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+}
+
+.box-title-link h2{
+    margin:0;
+    text-align:left;
 }
 
 .empty-text{
-    color: #6b7280;
-    margin: 0;
+    color:#6b7280;
+    margin:0;
 }
 
-@media (max-width: 1100px){
+@media(max-width:1100px){
     .panel-dashboard{
-        grid-template-columns: 1fr;
+        grid-template-columns:1fr;
     }
 
     .ultimas-solicitudes{
-        grid-column: auto;
+        grid-column:auto;
+    }
+}
+
+@media(max-width:768px){
+    .panel-page h1{
+        text-align:center;
+        font-size:22px;
+    }
+
+    .dashboard-box{
+        border-radius:16px;
+        padding:15px;
+    }
+
+    .dashboard-box h2{
+        font-size:15px;
+    }
+
+    .mini-card strong,
+    .mini-card p{
+        overflow-wrap:break-word;
+    }
+
+    .table{
+        min-width:520px;
+        font-size:12px;
+    }
+}
+
+.solicitudes-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.solicitud-row{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:12px;
+    background:#f6f8fc;
+    border-radius:14px;
+    padding:14px;
+}
+
+.solicitud-row span{
+    display:block;
+    font-size:12px;
+    color:#526587;
+    margin-bottom:4px;
+}
+
+.solicitud-row strong{
+    font-size:14px;
+}
+
+.estado-text{
+    color:#1565c0;
+}
+
+@media(max-width:768px){
+    .solicitud-row{
+        grid-template-columns:1fr;
     }
 }

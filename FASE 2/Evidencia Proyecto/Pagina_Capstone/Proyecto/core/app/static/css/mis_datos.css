@@ -1,67 +1,77 @@
 .datos-page{
-    max-width: 900px;
+    max-width: 850px;
     margin: 0 auto;
 }
 
 .datos-page h1{
     text-align: center;
+    font-size: 34px;
+    margin-bottom: 24px;
 }
 
 .datos-card{
     background: white;
-    border-radius: 14px;
-    padding: 32px;
-    margin-top: 25px;
-    box-shadow: 0 4px 14px rgba(0,0,0,.12);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.08);
 }
 
 .datos-grid{
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
-    margin-bottom: 25px;
+    gap: 16px;
+    margin-bottom: 24px;
 }
 
 .datos-info{
     background: #f6f8fc;
+    border-radius: 14px;
     padding: 18px;
-    border-radius: 12px;
 }
 
 .datos-info small{
+    display: block;
     color: #526587;
+    margin-bottom: 8px;
 }
 
 .datos-info p{
-    margin-top: 8px;
-    font-weight: 600;
+    margin: 0;
+    font-weight: 700;
+    font-size: 16px;
+    overflow-wrap: break-word;
 }
 
 .form-section{
-    margin-top: 28px;
+    margin-top: 20px;
+}
+
+.form-section label{
+    display: block;
+    margin-bottom: 8px;
 }
 
 .form-input{
     width: 100%;
-    padding: 12px;
+    padding: 13px;
     border: 1px solid #d7dbe5;
     border-radius: 10px;
-    margin-top: 8px;
+    margin: 0;
 }
 
 .firma-card{
     background: #f6f8fc;
     border-radius: 14px;
-    padding: 22px;
-    margin: 14px 0 20px 0;
+    padding: 18px;
+    margin: 14px 0 18px 0;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
 .firma-preview{
-    width: 260px;
-    max-height: 140px;
+    width: 240px;
+    max-height: 130px;
     object-fit: contain;
     border-radius: 10px;
     border: 1px solid #ddd;
@@ -72,15 +82,52 @@
     width: 100%;
     border: 2px dashed #cfd6e6;
     border-radius: 12px;
-    padding: 35px;
+    padding: 28px;
     text-align: center;
     color: #6b7280;
 }
 
 .datos-btn{
-    margin-top: 25px;
+    margin-top: 24px;
     width: 100%;
     padding: 14px;
     border-radius: 12px;
     font-weight: bold;
+}
+
+/* Móvil */
+@media(max-width:768px){
+
+    .datos-page{
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .datos-page h1{
+        font-size: 26px;
+        margin-bottom: 20px;
+    }
+
+    .datos-card{
+        padding: 20px;
+        border-radius: 16px;
+    }
+
+    .datos-grid{
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .datos-info{
+        padding: 16px;
+    }
+
+    .datos-info p{
+        font-size: 15px;
+    }
+
+    .firma-preview{
+        width: 100%;
+        max-height: 140px;
+    }
 }

@@ -1,5 +1,5 @@
 /* ===========================
-   UrbanLink
+   UrbanLink - Estilos Globales
 =========================== */
 
 *{
@@ -9,13 +9,18 @@
     font-family:Segoe UI, Arial, sans-serif;
 }
 
+html{
+    scroll-behavior:smooth;
+}
+
 body{
     background:#f4f6f9;
     color:#222;
-    padding:40px;
+    margin:0;
+    padding:0px;
 }
 
-/* ---------- Tarjetas ---------- */
+/* ---------- Contenedores ---------- */
 
 .container{
     width:95%;
@@ -26,12 +31,13 @@ body{
     border-radius:12px;
     box-shadow:0 6px 18px rgba(0,0,0,.08);
 }
+
 /* ---------- Titulos ---------- */
 
 h1{
+    color:#1565c0;
     margin-bottom:25px;
     text-align:center;
-    color:#1565c0;
 }
 
 h2{
@@ -57,7 +63,6 @@ textarea{
     border-radius:8px;
 
     font-size:15px;
-
     transition:.2s;
 }
 
@@ -66,9 +71,7 @@ select:focus,
 textarea:focus{
 
     outline:none;
-
     border-color:#1976d2;
-
     box-shadow:0 0 0 3px rgba(25,118,210,.15);
 
 }
@@ -81,54 +84,42 @@ button{
     color:white;
 
     border:none;
-
     padding:12px 20px;
 
     border-radius:8px;
 
     cursor:pointer;
-
     transition:.2s;
 
 }
 
 button:hover{
-
     background:#125aa3;
-
 }
 
 /* ---------- Links ---------- */
 
 a{
-
-    text-decoration:none;
     color:#1976d2;
-
+    text-decoration:none;
 }
 
 a:hover{
-
     text-decoration:underline;
-
 }
 
 /* ---------- Mensajes ---------- */
 
 .messages{
-
     margin-bottom:20px;
-
 }
 
 .message{
 
     padding:12px;
-
     margin-bottom:10px;
 
     border-radius:8px;
-
     font-weight:bold;
 
 }
@@ -157,18 +148,14 @@ a:hover{
 /* ---------- Tablas ---------- */
 
 table{
-
     width:100%;
     border-collapse:collapse;
-
     margin-top:20px;
-
 }
 
 th{
 
     background:#1976d2;
-
     color:white;
 
 }
@@ -177,228 +164,83 @@ th,
 td{
 
     padding:12px;
-
     border:1px solid #ddd;
 
 }
 
 tr:nth-child(even){
-
     background:#f8f8f8;
-
 }
 
-/* ===========================
-   Layout panel con sidebar
-=========================== */
-
-.layout{
-    display:flex;
-    min-height:100vh;
-}
-
-.sidebar{
-    width:250px;
-    background:#0d47a1;
-    color:white;
-    padding:25px 20px;
-    display:flex;
-    flex-direction:column;
-    position:fixed;
-    top:0;
-    left:0;
-    bottom:0;
-}
-
-.sidebar-logo{
-    color:white;
-    margin-bottom:25px;
-    text-align:center;
-}
-
-.sidebar-user{
-    background:rgba(255,255,255,.12);
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:25px;
-    text-align:center;
-}
-
-.sidebar-user span{
-    font-size:14px;
-    opacity:.85;
-}
-
-.sidebar-menu{
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-}
-
-.sidebar-menu a,
-.sidebar-footer a{
-    color:white;
-    padding:10px 12px;
-    border-radius:8px;
-    text-decoration:none;
-    transition:.2s;
-}
-
-.sidebar-menu a:hover,
-.sidebar-footer a:hover{
-    background:rgba(255,255,255,.15);
-    text-decoration:none;
-}
-
-.sidebar-footer{
-    margin-top:auto;
-    display:flex;
-    flex-direction:column;
-}
-
-.main-content{
-    margin-left:250px;
-    padding:35px;
-    width:calc(100% - 250px);
-}
-
-/* Paneles ahora ocupan mejor el ancho */
-.main-content .container{
-    max-width:1200px;
-    width:100%;
-    margin:0 auto;
-}
+/* ---------- Dashboard ---------- */
 
 .dashboard-cards{
+
     display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
     gap:15px;
+
     margin:20px 0;
+
 }
 
 .card{
+
     background:white;
     padding:20px;
+
     border-radius:10px;
+
     box-shadow:0 4px 12px rgba(0,0,0,.08);
+
     text-align:center;
+
 }
 
 .card strong{
+
     display:block;
+    margin-top:8px;
+
     font-size:28px;
     color:#1976d2;
-    margin-top:8px;
+
 }
 
-.cert-card{
-    max-width:900px;
-    background:white;
-    border-radius:14px;
-    overflow:hidden;
-    box-shadow:0 4px 14px rgba(0,0,0,.12);
-    margin-top:30px;
-}
+/* ---------- Responsive Global ---------- */
 
-.cert-header{
-    background:#1d5cff;
-    color:white;
-    padding:35px;
-    display:flex;
-    align-items:center;
-    gap:20px;
-}
+@media(max-width:768px){
 
-.cert-header h2{
-    color:white;
-    margin:0;
-}
+    body{
+        padding:0;
+    }
 
-.cert-header p{
-    margin-top:6px;
-}
+    .container{
 
-.cert-icon{
-    width:70px;
-    height:70px;
-    border-radius:14px;
-    background:rgba(255,255,255,.2);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:36px;
-}
+        width:100%;
+        margin:0;
+        border-radius:0;
+        padding:18px;
 
-.cert-body{
-    padding:35px;
-}
+        box-shadow:none;
 
-.cert-grid{
-    display:grid;
-    grid-template-columns:repeat(2, 1fr);
-    gap:20px;
-}
+    }
 
-.cert-info{
-    background:#f6f8fc;
-    padding:20px;
-    border-radius:14px;
-}
+    h1{
+        font-size:24px;
+    }
 
-.cert-info small{
-    color:#526587;
-}
+    h2{
+        font-size:20px;
+    }
 
-.cert-info p{
-    margin-top:8px;
-    font-size:17px;
-}
+    table{
+        font-size:13px;
+    }
 
-.cert-alert{
-    margin-top:25px;
-    padding:18px;
-    border-radius:12px;
-}
+    th,
+    td{
+        padding:8px;
+    }
 
-.cert-alert.warning{
-    background:#fff8db;
-    border:1px solid #f2cf42;
-    color:#9a6700;
-}
-
-.cert-alert.success{
-    background:#e7f7ec;
-    border:1px solid #6ac47e;
-    color:#1e7d38;
-}
-
-.cert-btn{
-    display:block;
-    text-align:center;
-    margin-top:25px;
-    padding:16px;
-    border-radius:12px;
-    background:#1d5cff;
-    color:white;
-    font-weight:bold;
-    text-decoration:none;
-}
-
-.cert-btn:hover{
-    text-decoration:none;
-    background:#174bcc;
-}
-
-.cert-btn.disabled{
-    background:#85a7f7;
-    border:none;
-    cursor:not-allowed;
-    width:100%;
-}
-
-.cert-note{
-    text-align:center;
-    margin-top:25px;
-    font-size:14px;
-    color:#526587;
 }
