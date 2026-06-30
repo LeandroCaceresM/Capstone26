@@ -19,13 +19,33 @@ from app.decorators import role_required
 @never_cache
 @role_required(ROL_SUPERADMIN)
 def panel_superadmin_view(request):
-
     total_juntas = Juntavecinos.objects.count()
+
     total_vecinos = Vecino.objects.count()
+
+    usuarios_activos = Vecino.objects.filter(
+        vigencia="S"
+    ).count()
+
+    total_presidentes = Vecino.objects.filter(
+        id_rol__nombre_rol=ROL_ADMIN
+    ).count()
+
+    ultimas_juntas = (
+        Juntavecinos.objects
+        .select_related("id_comuna__id_region")
+        .order_by("-fecha_creacion")[:5]
+    )
+
+    vecinos_recientes = Vecino.objects.all().order_by("-fecha_registro")[:5]
 
     return render(request, "panel_superadmin.html", {
         "total_juntas": total_juntas,
         "total_vecinos": total_vecinos,
+        "usuarios_activos": usuarios_activos,
+        "total_presidentes": total_presidentes,
+        "ultimas_juntas": ultimas_juntas,
+        "vecinos_recientes": vecinos_recientes,
     })
 
 # =========================

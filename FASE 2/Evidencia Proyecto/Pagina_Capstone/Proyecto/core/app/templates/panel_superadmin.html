@@ -1,26 +1,95 @@
 {% extends "base_panel.html" %}
+{% load static %}
 
 {% block titulo %}
-Panel Principal | SuperAdmin
+Panel Superadmin
+{% endblock %}
+
+{% block head %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/panel_superadmin.css' %}">
 {% endblock %}
 
 {% block contenido %}
 
-<h1>Panel SuperAdmin</h1>
+<div class="superadmin-page">
 
-<p>Total juntas: {{ total_juntas }}</p>
-<p>Total vecinos: {{ total_vecinos }}</p>
+    <h1>Panel Superadmin</h1>
 
-<ul>
-    <li>
-        <a href="{% url 'listar_juntas' %}">
-            Gestionar juntas de vecinos
-        </a>
-    </li>
-    <li>
-        <a href="{% url 'gestionar_vecinos' %}">
-            Gestionar vecinos</a>
-    </li>
-</ul>
+    <div class="superadmin-grid">
+
+        <section class="superadmin-box stat-box">
+            <h2>Juntas registradas</h2>
+            <strong>{{ total_juntas }}</strong>
+            <span>Total del sistema</span>
+        </section>
+
+        <section class="superadmin-box stat-box">
+            <h2>Vecinos registrados</h2>
+            <strong>{{ total_vecinos }}</strong>
+            <span>Usuarios totales</span>
+        </section>
+
+        <section class="superadmin-box stat-box">
+            <h2>Usuarios activos</h2>
+            <strong>{{ usuarios_activos }}</strong>
+            <span>Cuentas vigentes</span>
+        </section>
+
+        <section class="superadmin-box stat-box">
+            <h2>Presidentes</h2>
+            <strong>{{ total_presidentes }}</strong>
+            <span>Administradores de junta</span>
+        </section>
+
+    </div>
+
+    <section class="superadmin-box section-box">
+        <h2>Últimas juntas registradas</h2>
+
+        {% if ultimas_juntas %}
+            <div class="simple-list">
+                {% for junta in ultimas_juntas %}
+                    <div class="simple-item">
+
+                        <strong>{{ junta.nombre }}</strong>
+
+                        <span>
+                            📍
+                            {{ junta.id_comuna.nom_comuna }},
+                            {{ junta.id_comuna.id_region.nom_region }}
+                        </span>
+
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty-text">
+                No hay juntas registradas.
+            </p>
+        {% endif %}
+    </section>
+
+    <section class="superadmin-box section-box">
+        <h2>Vecinos recientes</h2>
+
+        {% if vecinos_recientes %}
+            <div class="simple-list">
+                {% for vecino in vecinos_recientes %}
+                    <div class="simple-item">
+                        <strong>
+                            {{ vecino.pri_nombre }}
+                            {{ vecino.apell_paterno }}
+                        </strong>
+                        <span>{{ vecino.correo }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty-text">No hay vecinos registrados.</p>
+        {% endif %}
+    </section>
+
+</div>
 
 {% endblock %}

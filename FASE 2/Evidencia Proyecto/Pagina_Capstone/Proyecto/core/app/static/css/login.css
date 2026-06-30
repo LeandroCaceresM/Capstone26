@@ -1,0 +1,59 @@
+.login-page{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:24px;
+    background:#f4f6f9;
+}
+
+.login-card{
+    width:100%;
+    max-width:460px;
+    background:white;
+    border-radius:20px;
+    padding:34px;
+    box-shadow:0 8px 25px rgba(0,0,0,.10);
+}
+
+.login-brand{
+    text-align:center;
+    margin-bottom:24px;
+}
+
+.login-brand h1{
+    margin:0;
+    color:#1565c0;
+}
+
+.login-card h2{
+    text-align:center;
+    margin-bottom:24px;
+    color:#1565c0;
+}
+
+.login-links{
+    margin-top:22px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    text-align:center;
+}
+
+.login-btn{
+    width:100%;
+    margin-top:8px;
+    font-weight:bold;
+}
+
+@media(max-width:768px){
+    .login-page{
+        align-items:flex-start;
+        padding-top:40px;
+    }
+
+    .login-card{
+        padding:26px;
+        border-radius:16px;
+    }
+}
