@@ -1,0 +1,173 @@
+.solicitudes-admin-page{
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.solicitudes-admin-page h1{
+    text-align: center;
+    font-size: 34px;
+    margin-bottom: 24px;
+}
+
+.filtros-card,
+.solicitud-admin-card,
+.empty-card{
+    background: white;
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.08);
+}
+
+.filtros-card{
+    margin-bottom: 22px;
+}
+
+.filtros-grid{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.filtros-actions{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 8px;
+}
+
+.resultados-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.resultados-header h2{
+    margin: 0;
+}
+
+.resultados-header span{
+    background: #1565c0;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-weight: bold;
+}
+
+.solicitudes-admin-list{
+    display: grid;
+    gap: 16px;
+}
+
+.solicitud-admin-header{
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.solicitud-admin-header h3{
+    margin: 0;
+    font-size: 20px;
+}
+
+.solicitud-admin-header small{
+    color: #526587;
+}
+
+.estado{
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.estado-enproceso{
+    background: #fff3cd;
+    color: #856404;
+}
+
+.estado-aprobado{
+    background: #d4edda;
+    color: #155724;
+}
+
+.estado-rechazado{
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.descripcion{
+    margin: 16px 0;
+    color: #374151;
+}
+
+.solicitud-admin-meta{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+.solicitud-admin-meta div,
+.comentario-card{
+    background: #f6f8fc;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.solicitud-admin-meta small,
+.comentario-card small{
+    display: block;
+    color: #526587;
+    margin-bottom: 5px;
+}
+
+.comentario-card{
+    margin-top: 14px;
+}
+
+.comentario-card p{
+    margin: 0;
+}
+
+.btn-revisar{
+    display: inline-block;
+    margin-top: 16px;
+    background: #1976d2;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.btn-revisar:hover{
+    background: #125aa3;
+    color: white;
+    text-decoration: none;
+}
+
+.empty-card{
+    text-align: center;
+    color: #6b7280;
+}
+
+@media(max-width: 768px){
+    .solicitudes-admin-page h1{
+        font-size: 24px;
+    }
+
+    .filtros-grid{
+        grid-template-columns: 1fr;
+    }
+
+    .solicitud-admin-header{
+        flex-direction: column;
+    }
+
+    .solicitud-admin-meta{
+        grid-template-columns: 1fr;
+    }
+}

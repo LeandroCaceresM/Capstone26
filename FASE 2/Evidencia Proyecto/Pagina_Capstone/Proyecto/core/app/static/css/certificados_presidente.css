@@ -1,0 +1,98 @@
+.certificados-page{
+    max-width:1100px;
+    margin:0 auto;
+}
+
+.certificados-page h1{
+    text-align:center;
+    font-size:34px;
+    margin-bottom:26px;
+}
+
+.certificados-box{
+    background:white;
+    border-radius:18px;
+    padding:24px;
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
+    margin-bottom:20px;
+}
+
+.form-group{
+    margin-bottom:18px;
+}
+
+.acciones-form{
+    display:flex;
+    gap:12px;
+    align-items:center;
+}
+
+.total-registros{
+    margin-bottom:16px;
+    font-size:18px;
+}
+
+.table-responsive{
+    overflow-x:auto;
+}
+
+.panel-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.panel-table th{
+    background:#1565c0;
+    color:white;
+}
+
+.panel-table th,
+.panel-table td{
+    padding:14px;
+    border:1px solid #ddd;
+}
+
+.panel-table tbody tr:hover{
+    background:#f8fbff;
+}
+
+.empty-text{
+    text-align:center;
+    color:#666;
+}
+
+@media(max-width:768px){
+
+    .certificados-page h1{
+        font-size:26px;
+    }
+
+    .certificados-box{
+        padding:18px;
+    }
+
+    .acciones-form{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .acciones-form button,
+    .acciones-form a{
+        width:100%;
+        text-align:center;
+    }
+
+    .panel-table{
+        min-width:700px;
+    }
+
+}
+
+.badge-certificado{
+    background:#eef5ff;
+    color:#1565c0;
+    padding:6px 10px;
+    border-radius:999px;
+    font-weight:600;
+    white-space:nowrap;
+}

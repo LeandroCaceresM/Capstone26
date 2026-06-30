@@ -1,0 +1,137 @@
+.cerrar-page{
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.cerrar-page h1{
+    text-align: center;
+    font-size: 34px;
+    margin-bottom: 24px;
+}
+
+.cerrar-card{
+    background: white;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.08);
+}
+
+.solicitud-header{
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+    margin-bottom: 22px;
+}
+
+.solicitud-header h2{
+    margin: 0 0 6px 0;
+}
+
+.solicitud-header p{
+    margin: 0;
+    color: #526587;
+}
+
+.estado{
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.estado-enproceso{
+    background: #fff3cd;
+    color: #856404;
+}
+
+.estado-aprobado{
+    background: #d4edda;
+    color: #155724;
+}
+
+.estado-rechazado{
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.solicitud-info-grid{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.solicitud-info-grid div{
+    background: #f6f8fc;
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.solicitud-info-grid .full{
+    grid-column: 1 / -1;
+}
+
+.solicitud-info-grid small{
+    display: block;
+    color: #526587;
+    margin-bottom: 6px;
+}
+
+.solicitud-info-grid strong{
+    display: block;
+    overflow-wrap: break-word;
+}
+
+.acciones{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.btn-aprobar{
+    background: #198754;
+}
+
+.btn-aprobar:hover{
+    background: #146c43;
+}
+
+.btn-rechazar{
+    background: #dc3545;
+}
+
+.btn-rechazar:hover{
+    background: #b02a37;
+}
+
+@media(max-width:768px){
+    .cerrar-page h1{
+        font-size: 26px;
+    }
+
+    .cerrar-card{
+        padding: 18px;
+    }
+
+    .solicitud-header{
+        flex-direction: column;
+    }
+
+    .solicitud-info-grid{
+        grid-template-columns: 1fr;
+    }
+
+    .acciones{
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .acciones a{
+        text-align: center;
+    }
+}
+

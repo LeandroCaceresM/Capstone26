@@ -1,43 +1,106 @@
 {% extends "base_panel.html" %}
+{% load static %}
 
 {% block titulo %}
 Cerrar Solicitud
 {% endblock %}
 
+{% block head %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/cerrar_solicitud.css' %}">
+{% endblock %}
+
 {% block contenido %}
 
-<h1>Cerrar solicitud</h1>
+<div class="cerrar-page">
 
-<p>
-    <strong>Vecino:</strong>
-    {{ solicitud.id_vecino.pri_nombre }}
-    {{ solicitud.id_vecino.apell_paterno }}
-    {{ solicitud.id_vecino.apell_materno }}
-</p>
+    <h1>Cerrar solicitud</h1>
 
-<p><strong>Tipo solicitud:</strong> {{ solicitud.id_tsolicitud.tipo_solicitud }}</p>
-<p><strong>Descripción:</strong> {{ solicitud.descripcion }}</p>
-<p><strong>Emitido:</strong> {{ solicitud.fecha_solicitud }}</p>
-<p><strong>Estado actual:</strong> {{ solicitud.estado }}</p>
+    <div class="cerrar-card">
 
-<form method="POST">
-    {% csrf_token %}
+        <div class="solicitud-header">
+            <div>
+                <h2>{{ solicitud.id_tsolicitud.tipo_solicitud }}</h2>
+                <p>
+                    {{ solicitud.id_vecino.pri_nombre }}
+                    {{ solicitud.id_vecino.apell_paterno }}
+                    {{ solicitud.id_vecino.apell_materno }}
+                </p>
+            </div>
 
-    <label>Comentario del presidente</label><br>
-    <textarea name="comentario_presidente" rows="5" required></textarea>
+            <span class="estado estado-{{ solicitud.estado|lower|cut:' ' }}">
+                {{ solicitud.estado }}
+            </span>
+        </div>
 
-    <br><br>
+        <div class="solicitud-info-grid">
+            <div>
+                <small>Vecino</small>
+                <strong>
+                    {{ solicitud.id_vecino.pri_nombre }}
+                    {{ solicitud.id_vecino.apell_paterno }}
+                </strong>
+            </div>
 
-    <button type="submit" name="accion" value="aprobar">
-        Aprobar
-    </button>
+            <div>
+                <small>Emitido</small>
+                <strong>{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</strong>
+            </div>
 
-    <button type="submit" name="accion" value="rechazar">
-        Rechazar
-    </button>
-</form>
-<br>
+            <div class="full">
+                <small>Descripción</small>
+                <strong>{{ solicitud.descripcion }}</strong>
+            </div>
+        </div>
 
-<a href="{% url 'solicitudes_presidente' %}">Volver</a>
+        <form method="POST">
+            {% csrf_token %}
+
+            <label>Comentario del presidente</label>
+            <textarea
+                name="comentario_presidente"
+                rows="5"
+                placeholder="Escribe un comentario para el vecino..."
+                required
+            ></textarea>
+
+            <div class="acciones">
+                <button
+                    class="btn-aprobar"
+                    type="submit"
+                    name="accion"
+                    value="aprobar"
+                    onclick="return confirmarCierre('APROBAR');"
+                >
+                    Aprobar
+                </button>
+
+                <button
+                    class="btn-rechazar"
+                    type="submit"
+                    name="accion"
+                    value="rechazar"
+                    onclick="return confirmarCierre('RECHAZAR');"
+                >
+                    Rechazar
+                </button>
+
+                <a href="{% url 'solicitudes_presidente' %}">
+                    Volver
+                </a>
+            </div>
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+    function confirmarCierre(accion){
+        return confirm(
+            "¿Confirma que desea " + accion + " esta solicitud?"
+        );
+    }
+</script>
 
 {% endblock %}

@@ -1,56 +1,118 @@
 {% extends "base_panel.html" %}
+{% load static %}
 
 {% block titulo %}
 Certificados emitidos
 {% endblock %}
 
+{% block head %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/certificados_presidente.css' %}">
+{% endblock %}
+
 {% block contenido %}
 
-<h1>Certificados emitidos</h1>
+<div class="certificados-page">
 
-<form method="GET">
-    <label>Buscar vecino:</label>
-    <input
-        type="text"
-        name="q"
-        value="{{ busqueda }}"
-        placeholder="Nombre, apellido o RUT"
-    >
+    <h1>Certificados emitidos</h1>
 
-    <button type="submit">Buscar</button>
-    <a href="{% url 'certificados_presidente' %}">Limpiar</a>
-</form>
+    <section class="certificados-box">
 
-<br>
+        <form method="GET" class="filtros-form">
 
-<p>Total certificados encontrados: {{ certificados|length }}</p>
+            <div class="form-group">
+                <label>Buscar vecino</label>
 
-<div style="max-height: 650px; overflow-y: auto; border: 1px solid #ccc; padding: 15px;">
-    {% if certificados %}
-        <table border="1" cellpadding="8">
-            <tr>
-                <th>N° certificado</th>
-                <th>Vecino</th>
-                <th>RUT</th>
-                <th>Fecha emisión</th>
-            </tr>
+                <input
+                    type="text"
+                    name="q"
+                    value="{{ busqueda }}"
+                    placeholder="Nombre, apellido o RUT"
+                >
+            </div>
 
-            {% for certificado in certificados %}
-                <tr>
-                    <td>{{ certificado.numero_certificado }}</td>
-                    <td>
-                        {{ certificado.id_vecino.pri_nombre }}
-                        {{ certificado.id_vecino.apell_paterno }}
-                        {{ certificado.id_vecino.apell_materno }}
-                    </td>
-                    <td>{{ certificado.id_vecino.rut }}</td>
-                    <td>{{ certificado.fecha_emision|date:"d/m/Y H:i" }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>No se encontraron certificados.</p>
-    {% endif %}
+            <div class="acciones-form">
+                <button type="submit">
+                    Buscar
+                </button>
+
+                <a href="{% url 'certificados_presidente' %}">
+                    Limpiar
+                </a>
+            </div>
+
+        </form>
+
+    </section>
+
+    <p class="total-registros">
+        Total certificados encontrados:
+        <strong>{{ certificados|length }}</strong>
+    </p>
+
+    <section class="certificados-box">
+
+        {% if certificados %}
+
+        <div class="table-responsive">
+
+            <table class="panel-table">
+
+                <thead>
+                    <tr>
+                        <th>N° certificado</th>
+                        <th>Vecino</th>
+                        <th>RUT</th>
+                        <th>Fecha emisión</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                {% for certificado in certificados %}
+
+                    <tr>
+
+                        <td>
+                            <span class="badge-certificado">
+                                {{ certificado.numero_certificado }}
+                            </span>
+                        </td>
+
+                        <td>
+                            {{ certificado.id_vecino.pri_nombre }}
+                            {{ certificado.id_vecino.apell_paterno }}
+                            {{ certificado.id_vecino.apell_materno }}
+                        </td>
+
+                        <td>
+                            {{ certificado.id_vecino.rut }}
+                        </td>
+
+                        <td>
+                            {{ certificado.fecha_emision|date:"d/m/Y H:i" }}
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+            <p class="empty-text">
+                No se encontraron certificados.
+            </p>
+
+        {% endif %}
+
+    </section>
+
 </div>
 
 {% endblock %}

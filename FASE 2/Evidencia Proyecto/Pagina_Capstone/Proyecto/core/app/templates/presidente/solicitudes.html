@@ -1,92 +1,137 @@
 {% extends "base_panel.html" %}
+{% load static %}
 
 {% block titulo %}
 Solicitudes
 {% endblock %}
 
+{% block head %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/solicitudes_presidente.css' %}">
+{% endblock %}
+
 {% block contenido %}
 
-<h1>Solicitudes - {{ junta.nombre }}</h1>
+<div class="solicitudes-admin-page">
 
-<form method="GET">
-    <label>Estado</label>
-    <select name="estado">
-        <option value="Todas" {% if filtro_estado == "Todas" %}selected{% endif %}>Todas</option>
-        <option value="EN PROCESO" {% if filtro_estado == "EN PROCESO" %}selected{% endif %}>En proceso</option>
-        <option value="APROBADO" {% if filtro_estado == "APROBADO" %}selected{% endif %}>Aprobadas</option>
-        <option value="RECHAZADO" {% if filtro_estado == "RECHAZADO" %}selected{% endif %}>Rechazadas</option>
-    </select>
+    <h1>Solicitudes - {{ junta.nombre }}</h1>
 
-    <label>Tipo solicitud</label>
-    <select name="tipo">
-        <option value="Todas" {% if filtro_tipo == "Todas" %}selected{% endif %}>Todas</option>
-        {% for tipo in tipos %}
-            <option value="{{ tipo.id_tsolicitud }}"
-                {% if filtro_tipo == tipo.id_tsolicitud|stringformat:"s" %}selected{% endif %}>
-                {{ tipo.tipo_solicitud }}
-            </option>
-        {% endfor %}
-    </select>
+    <form method="GET" class="filtros-card">
 
-    <label>Buscar vecino</label>
-    <input
-        type="text"
-        name="q"
-        value="{{ busqueda }}"
-        placeholder="Nombre, apellido o RUT"
-    >
-
-    <label>Ordenar por</label>
-    <select name="orden">
-        <option value="recientes" {% if orden == "recientes" %}selected{% endif %}>Más recientes</option>
-        <option value="antiguas" {% if orden == "antiguas" %}selected{% endif %}>Más antiguas</option>
-        <option value="vecino_az" {% if orden == "vecino_az" %}selected{% endif %}>Vecino A-Z</option>
-        <option value="vecino_za" {% if orden == "vecino_za" %}selected{% endif %}>Vecino Z-A</option>
-        <option value="estado" {% if orden == "estado" %}selected{% endif %}>Estado</option>
-        <option value="tipo" {% if orden == "tipo" %}selected{% endif %}>Tipo solicitud</option>
-    </select>
-
-    <button type="submit">Filtrar</button>
-
-    <a href="{% url 'solicitudes_presidente' %}">
-        Limpiar filtros
-    </a>
-</form>
-<br>
-
-<p>Total solicitudes encontradas: {{ solicitudes_data|length }}</p>
-
-<div style="max-height: 650px; overflow-y: auto; border: 1px solid #ccc; padding: 15px;">
-    {% if solicitudes_data %}
-        {% for item in solicitudes_data %}
-            <div style="border:1px solid #ccc; padding:15px; margin-bottom:15px;">
-                <p>
-                    <strong>Vecino:</strong>
-                    {{ item.solicitud.id_vecino.pri_nombre }}
-                    {{ item.solicitud.id_vecino.apell_paterno }}
-                    {{ item.solicitud.id_vecino.apell_materno }}
-                </p>
-
-                <p><strong>Tipo solicitud:</strong> {{ item.solicitud.id_tsolicitud.tipo_solicitud }}</p>
-                <p><strong>Descripción:</strong> {{ item.solicitud.descripcion }}</p>
-                <p><strong>Emitido:</strong> {{ item.solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</p>
-                <p><strong>Estado:</strong> {{ item.solicitud.estado }}</p>
-
-                {% if item.solicitud.estado != "EN PROCESO" %}
-                    <p><strong>Resuelto:</strong> {{ item.fecha_resuelta|date:"d/m/Y H:i" }}</p>
-                    <p><strong>Comentario presidente:</strong> {{ item.solicitud.comentario_presidente }}</p>
-                {% endif %}
-
-                {% if item.solicitud.estado == "EN PROCESO" %}
-                    <a href="{% url 'cerrar_solicitud' item.solicitud.id_solicitud %}">
-                        Revisar / Cerrar solicitud
-                    </a>
-                {% endif %}
+        <div class="filtros-grid">
+            <div>
+                <label>Estado</label>
+                <select name="estado">
+                    <option value="Todas" {% if filtro_estado == "Todas" %}selected{% endif %}>Todas</option>
+                    <option value="EN PROCESO" {% if filtro_estado == "EN PROCESO" %}selected{% endif %}>En proceso</option>
+                    <option value="APROBADO" {% if filtro_estado == "APROBADO" %}selected{% endif %}>Aprobadas</option>
+                    <option value="RECHAZADO" {% if filtro_estado == "RECHAZADO" %}selected{% endif %}>Rechazadas</option>
+                </select>
             </div>
-        {% endfor %}
+
+            <div>
+                <label>Tipo solicitud</label>
+                <select name="tipo">
+                    <option value="Todas" {% if filtro_tipo == "Todas" %}selected{% endif %}>Todas</option>
+                    {% for tipo in tipos %}
+                        <option value="{{ tipo.id_tsolicitud }}"
+                            {% if filtro_tipo == tipo.id_tsolicitud|stringformat:"s" %}selected{% endif %}>
+                            {{ tipo.tipo_solicitud }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>Buscar vecino</label>
+                <input type="text" name="q" value="{{ busqueda }}" placeholder="Nombre, apellido o RUT">
+            </div>
+
+            <div>
+                <label>Ordenar por</label>
+                <select name="orden">
+                    <option value="recientes" {% if orden == "recientes" %}selected{% endif %}>Más recientes</option>
+                    <option value="antiguas" {% if orden == "antiguas" %}selected{% endif %}>Más antiguas</option>
+                    <option value="vecino_az" {% if orden == "vecino_az" %}selected{% endif %}>Vecino A-Z</option>
+                    <option value="vecino_za" {% if orden == "vecino_za" %}selected{% endif %}>Vecino Z-A</option>
+                    <option value="estado" {% if orden == "estado" %}selected{% endif %}>Estado</option>
+                    <option value="tipo" {% if orden == "tipo" %}selected{% endif %}>Tipo solicitud</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="filtros-actions">
+            <button type="submit">Filtrar</button>
+            <a href="{% url 'solicitudes_presidente' %}">Limpiar filtros</a>
+        </div>
+
+    </form>
+
+    <div class="resultados-header">
+        <h2>Solicitudes encontradas</h2>
+        <span>{{ solicitudes_data|length }}</span>
+    </div>
+
+    {% if solicitudes_data %}
+        <div class="solicitudes-admin-list">
+            {% for item in solicitudes_data %}
+                <div class="solicitud-admin-card">
+
+                    <div class="solicitud-admin-header">
+                        <div>
+                            <h3>
+                                {{ item.solicitud.id_vecino.pri_nombre }}
+                                {{ item.solicitud.id_vecino.apell_paterno }}
+                                {{ item.solicitud.id_vecino.apell_materno }}
+                            </h3>
+                            <small>{{ item.solicitud.id_tsolicitud.tipo_solicitud }}</small>
+                        </div>
+
+                        <span class="estado estado-{{ item.solicitud.estado|lower|cut:' ' }}">
+                            {{ item.solicitud.estado }}
+                        </span>
+                    </div>
+
+                    <p class="descripcion">
+                        {{ item.solicitud.descripcion }}
+                    </p>
+
+                    <div class="solicitud-admin-meta">
+                        <div>
+                            <small>Emitido</small>
+                            <strong>{{ item.solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</strong>
+                        </div>
+
+                        {% if item.solicitud.estado != "EN PROCESO" %}
+                            <div>
+                                <small>Resuelto</small>
+                                <strong>{{ item.fecha_resuelta|date:"d/m/Y H:i" }}</strong>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if item.solicitud.estado != "EN PROCESO" %}
+                        <div class="comentario-card">
+                            <small>Comentario presidente</small>
+                            <p>{{ item.solicitud.comentario_presidente|default:"Sin comentario" }}</p>
+                        </div>
+                    {% endif %}
+
+                    {% if item.solicitud.estado == "EN PROCESO" %}
+                        <a class="btn-revisar" href="{% url 'cerrar_solicitud' item.solicitud.id_solicitud %}">
+                            Revisar / Cerrar solicitud
+                        </a>
+                    {% endif %}
+
+                </div>
+            {% endfor %}
+        </div>
     {% else %}
-        <p>No hay solicitudes para este filtro.</p>
+        <div class="empty-card">
+            No hay solicitudes para este filtro.
+        </div>
     {% endif %}
+
 </div>
 
 {% endblock %}
