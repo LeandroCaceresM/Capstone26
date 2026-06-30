@@ -23,6 +23,7 @@ from app.utils import (
 from app.validators import (
     es_mayor_16,
     formatear_rut,
+    validar_correo,
     validar_rut,
     validar_telefono,
 )
@@ -54,6 +55,13 @@ def registro_view(request):
         apell_materno = limpiar_mayusculas(request.POST.get("apell_materno"))
         telefono = limpiar_telefono(request.POST.get("telefono"))
         fecha_de_nacimiento = request.POST.get("fecha_de_nacimiento")
+        
+        if not validar_correo(correo):
+            messages.error(
+                request,
+                "Ingrese un correo válido. Debe contener @ y terminar en .com o .cl."
+            )
+            return render_registro(datos)
 
         if not validar_telefono(telefono):
             messages.error(request, "Ingrese un número de teléfono válido de 8 o 9 dígitos.")
@@ -120,7 +128,7 @@ def registro_view(request):
 @never_cache
 def login_view(request):
     if request.method == "POST":
-        correo = request.POST.get("correo")
+        correo = limpiar_correo(request.POST.get("correo"))
         password = request.POST.get("password")
 
         try:
@@ -142,6 +150,17 @@ def login_view(request):
                 messages.error(
                     request,
                     "Tu cuenta se encuentra inactiva. Contacta al administrador del sistema."
+                )
+                return redirect("login")
+            
+            if not Vecino.objects.filter(correo=correo).exists():
+                messages.error(request, "No existe una cuenta registrada con ese correo.")
+                return redirect("login")
+
+            if not validar_correo(correo):
+                messages.error(
+                    request,
+                    "Ingrese un correo válido. Debe contener @ y terminar en .com o .cl."
                 )
                 return redirect("login")
 
@@ -195,26 +214,53 @@ def logout_view(request):
 def recuperar_contrasenia(request):
     return render(request, "recuperar_contrasenia.html")
 
+
 @never_cache
 def enviar_recuperacion(request):
     if request.method == "POST":
-        correo = request.POST.get("correo")
-        supabase.auth.reset_password_email(
-            correo,
-            {
-                "redirect_to": "http://127.0.0.1:8000/cambiar_contrasenia/"
-            }
-        )
-        messages.success(
-            request,
-            "Revisa tu correo para cambiar la contraseña."
-        )
+        correo = limpiar_correo(request.POST.get("correo"))
+
+        if not validar_correo(correo):
+            messages.error(
+                request,
+                "Ingrese un correo válido. Debe contener @ y terminar en .com o .cl."
+            )
+            return redirect("recuperar_contrasenia")
+
+        if not Vecino.objects.filter(correo=correo, vigencia="S").exists():
+            messages.error(
+                request,
+                "No existe una cuenta activa registrada con ese correo."
+            )
+            return redirect("recuperar_contrasenia")
+
+        try:
+            supabase.auth.reset_password_email(
+                correo,
+                {
+                    "redirect_to": "http://127.0.0.1:8000/cambiar_contrasenia/"
+                }
+            )
+
+            messages.success(
+                request,
+                "Revisa tu correo para cambiar la contraseña."
+            )
+
+        except Exception as e:
+            messages.error(
+                request,
+                f"Error al enviar recuperación: {e}"
+            )
+
     return redirect("recuperar_contrasenia")
+
 
 @never_cache
 def cambiar_contrasenia(request):
     access_token = request.GET.get("access_token")
     refresh_token = request.GET.get("refresh_token")
+
     if access_token and refresh_token:
         try:
             supabase.auth.set_session(
@@ -230,6 +276,14 @@ def cambiar_contrasenia(request):
 
     if request.method == "POST":
         password = request.POST.get("password")
+
+        if not password or len(password) < 6:
+            messages.error(
+                request,
+                "La contraseña debe tener al menos 6 caracteres."
+            )
+            return redirect("cambiar_contrasenia")
+
         try:
             supabase.auth.update_user({
                 "password": password
@@ -241,14 +295,11 @@ def cambiar_contrasenia(request):
             )
 
             return redirect("login")
-        except Exception as e:
 
+        except Exception as e:
             messages.error(
                 request,
                 f"Error al cambiar contraseña: {e}"
             )
-    return render(
-        request,
-        "cambiar_contrasenia.html"
-    )
 
+    return render(request, "cambiar_contrasenia.html")

@@ -57,3 +57,11 @@
         border-radius:16px;
     }
 }
+
+.login-description{
+    text-align:center;
+    color:#6b7280;
+    margin:-8px 0 24px;
+    line-height:1.5;
+    font-size:15px;
+}

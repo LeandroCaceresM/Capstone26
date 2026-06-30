@@ -6,49 +6,41 @@ Cambiar Contraseña
 
 {% block contenido %}
 
-<h1>Cambiar Contraseña</h1>
+<h2>Cambiar Contraseña</h2>
+
+<p class="login-description">
+    Ingresa una nueva contraseña para recuperar el acceso a tu cuenta.
+</p>
 
 <form method="POST">
-
     {% csrf_token %}
 
-    <label>Nueva contraseña</label><br>
+    <label>Nueva contraseña</label>
 
-    <input 
+    <input
         type="password"
         name="password"
         placeholder="Nueva contraseña"
+        minlength="6"
         required
     >
 
-    <br><br>
-
-    <button type="submit">
+    <button class="login-btn" type="submit">
         Cambiar contraseña
     </button>
-
 </form>
 
-
 <script>
-
-    // Obtener tokens desde el # de Supabase
     const hash = window.location.hash.substring(1);
-
     const params = new URLSearchParams(hash);
 
     const access_token = params.get("access_token");
     const refresh_token = params.get("refresh_token");
 
-
-    // Si vienen desde Supabase, mandarlos a Django
     if(access_token && refresh_token){
-
         window.location.href =
         `/cambiar_contrasenia/?access_token=${access_token}&refresh_token=${refresh_token}`;
-
     }
-
 </script>
 
 {% endblock %}

@@ -1,0 +1,19 @@
+.login-card{
+    max-width: 760px;
+}
+
+.registro-grid{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0 18px;
+}
+
+@media(max-width:768px){
+    .login-card{
+        max-width: 100%;
+    }
+
+    .registro-grid{
+        grid-template-columns: 1fr;
+    }
+}

@@ -79,3 +79,14 @@ def es_mayor_16(fecha_nacimiento):
 
 def validar_telefono(telefono):
     return telefono.isdigit() and 8 <= len(telefono) <= 9
+
+# =========================
+# Correo
+# =========================
+
+def validar_correo(correo):
+    if not correo:
+        return False
+
+    patron = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(com|cl)$"
+    return re.match(patron, correo) is not None

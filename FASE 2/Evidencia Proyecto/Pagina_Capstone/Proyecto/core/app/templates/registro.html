@@ -5,113 +5,103 @@
 Registro
 {% endblock %}
 
+{% block head %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/registro.css' %}">
+{% endblock %}
+
 {% block contenido %}
 
-<h1>Registro de Vecino</h1>
+<h2>Registro de Vecino</h2>
 
 <form method="POST">
     {% csrf_token %}
 
-    <label>Rut</label><br>
-    <input
-        type="text"
-        id="rut"
-        name="rut"
-        value="{{ datos.rut|default:'' }}"
-        maxlength="12"
-        placeholder="12.345.678-K"
-        autocomplete="off"
-        required
-    >
-    <br><br>
+    <div class="registro-grid">
 
-    <label>Primer Nombre</label><br>
-    <input
-        type="text"
-        name="pri_nombre"
-        value="{{ datos.pri_nombre|default:'' }}"
-        required
-    >
-    <br><br>
+        <div>
+            <label>Rut</label>
+            <input
+                type="text"
+                id="rut"
+                name="rut"
+                value="{{ datos.rut|default:'' }}"
+                maxlength="12"
+                placeholder="12.345.678-K"
+                autocomplete="off"
+                required
+            >
+        </div>
 
-    <label>Segundo Nombre</label><br>
-    <input
-        type="text"
-        name="seg_nombre"
-        value="{{ datos.seg_nombre|default:'' }}"
-    >
-    <br><br>
+        <div>
+            <label>Primer Nombre</label>
+            <input type="text" name="pri_nombre" value="{{ datos.pri_nombre|default:'' }}" required>
+        </div>
 
-    <label>Apellido Paterno</label><br>
-    <input
-        type="text"
-        name="apell_paterno"
-        value="{{ datos.apell_paterno|default:'' }}"
-        required
-    >
-    <br><br>
+        <div>
+            <label>Segundo Nombre</label>
+            <input type="text" name="seg_nombre" value="{{ datos.seg_nombre|default:'' }}">
+        </div>
 
-    <label>Apellido Materno</label><br>
-    <input
-        type="text"
-        name="apell_materno"
-        value="{{ datos.apell_materno|default:'' }}"
-        required
-    >
-    <br><br>
+        <div>
+            <label>Apellido Paterno</label>
+            <input type="text" name="apell_paterno" value="{{ datos.apell_paterno|default:'' }}" required>
+        </div>
 
-    <label>Correo</label><br>
-    <input
-        type="email"
-        name="correo"
-        value="{{ datos.correo|default:'' }}"
-        placeholder="Tucorreo@ejemplo.com" 
-        required
-    >
-    <br><br>
+        <div>
+            <label>Apellido Materno</label>
+            <input type="text" name="apell_materno" value="{{ datos.apell_materno|default:'' }}" required>
+        </div>
 
-    <label>Teléfono</label><br>
-    <input
-        type="text"
-        name="telefono"
-        value="{{ datos.telefono|default:'' }}"
-        maxlength="9"
-        pattern="[0-9]{8,9}"
-        placeholder="Ej: 912345678"
-        title="Ingrese un teléfono de 8 o 9 dígitos."
-        required
-    >
-    <br><br>
+        <div>
+            <label>Correo</label>
+            <input
+                type="email"
+                name="correo"
+                value="{{ datos.correo|default:'' }}"
+                placeholder="Tucorreo@ejemplo.com"
+                required
+            >
+        </div>
 
-    <label>Fecha de Nacimiento</label><br>
-    <input
-        type="date"
-        name="fecha_de_nacimiento"
-        value="{{ datos.fecha_de_nacimiento|default:'' }}"
-        max="{{ fecha_maxima }}"
-        required
-    >
-    <br><br>
+        <div>
+            <label>Teléfono</label>
+            <input
+                type="text"
+                name="telefono"
+                value="{{ datos.telefono|default:'' }}"
+                maxlength="9"
+                pattern="[0-9]{8,9}"
+                placeholder="Ej: 912345678"
+                required
+            >
+        </div>
 
-    <label>Contraseña</label><br>
-    <input
-        type="password"
-        name="password"
-        required
-    >
-    <br><br>
+        <div>
+            <label>Fecha de Nacimiento</label>
+            <input
+                type="date"
+                name="fecha_de_nacimiento"
+                value="{{ datos.fecha_de_nacimiento|default:'' }}"
+                max="{{ fecha_maxima }}"
+                required
+            >
+        </div>
 
-    <button type="submit">
+    </div>
+
+    <label>Contraseña</label>
+    <input type="password" name="password" required>
+
+    <button class="login-btn" type="submit">
         Registrarse
     </button>
 
 </form>
 
-<br>
-
-<a href="{% url 'login' %}">
-Volver al Login
-</a>
+<div class="login-links">
+    <a href="{% url 'login' %}">Volver al login</a>
+</div>
 
 {% endblock %}
 
