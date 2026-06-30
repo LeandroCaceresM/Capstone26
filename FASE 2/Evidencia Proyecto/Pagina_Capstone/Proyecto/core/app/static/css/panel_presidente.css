@@ -49,6 +49,7 @@
     display: block;
     margin-top: 6px;
     font-size: 18px;
+    overflow-wrap: break-word;
 }
 
 .stat-box{
@@ -92,10 +93,12 @@
 }
 
 .estado{
+    display: inline-block;
     padding: 6px 10px;
     border-radius: 999px;
     font-size: 13px;
     font-weight: bold;
+    white-space: nowrap;
 }
 
 .estado-enproceso{
@@ -132,21 +135,102 @@
     margin-top: 4px;
 }
 
+.big-number{
+    font-size: 36px;
+    color: #1565c0;
+    font-weight: 700;
+}
+
+/* Tablet */
+@media(max-width: 1000px){
+    .presidente-grid{
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .datos-junta{
+        grid-column: 1 / -1;
+        grid-row: auto;
+    }
+}
+
+/* Teléfono */
 @media(max-width: 768px){
+
+    .presidente-page{
+        width: 100%;
+        max-width: 100%;
+    }
+
     .presidente-page h1{
-        font-size: 26px;
+        font-size: 24px;
+        margin-bottom: 18px;
+    }
+
+    .presidente-grid{
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .datos-junta{
+        grid-column: 1 / -1;
     }
 
     .presidente-box{
-        padding: 18px;
+        padding: 15px;
+        border-radius: 16px;
+    }
+
+    .presidente-box h2{
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+
+    .info-row{
+        padding: 13px;
+    }
+
+    .info-row span{
+        font-size: 12px;
+    }
+
+    .info-row strong{
+        font-size: 14px;
+    }
+
+    .stat-box strong{
+        font-size: 32px;
+    }
+
+    .stat-box span{
+        font-size: 12px;
+    }
+
+    .solicitudes-box,
+    .actividad-box{
+        margin-top: 14px;
     }
 
     .panel-table{
         min-width: 620px;
-        font-size: 13px;
+        font-size: 12px;
+    }
+
+    .panel-table th,
+    .panel-table td{
+        padding: 9px;
+    }
+
+    .estado{
+        font-size: 11px;
+        padding: 5px 8px;
     }
 
     .actividad-item{
         gap: 12px;
+        padding: 13px;
+    }
+
+    .actividad-item .icono{
+        font-size: 22px;
     }
 }

@@ -32,6 +32,7 @@ def panel_presidente_view(request):
     certificados_emitidos = 0
     noticias_activas = 0
     eventos_proximos = 0
+    cantidad_vecinos = 0
     ultimas_solicitudes = []
 
     if residencia:
@@ -68,6 +69,11 @@ def panel_presidente_view(request):
             "id_vecino",
             "id_tsolicitud"
         ).order_by("-fecha_solicitud")[:5]
+        
+        cantidad_vecinos = HistVivienda.objects.filter(
+            id_vivienda__id_junta=junta,
+            fecha_ter__isnull=True
+        ).count()
 
     return render(request, "panel_presidente.html", {
         "presidente": presidente,
@@ -77,6 +83,7 @@ def panel_presidente_view(request):
         "noticias_activas": noticias_activas,
         "eventos_proximos": eventos_proximos,
         "ultimas_solicitudes": ultimas_solicitudes,
+        "cantidad_vecinos": cantidad_vecinos,
     })
     
 # =========================

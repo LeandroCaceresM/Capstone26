@@ -22,7 +22,7 @@ Panel Presidente
             <h2>Resumen junta</h2>
 
             <div class="info-row">
-                <span>Junta actual</span>
+                <span>Nombre de junta</span>
                 <strong>
                     {% if junta %}
                         {{ junta.nombre }}
@@ -33,12 +33,12 @@ Panel Presidente
             </div>
 
             <div class="info-row">
-                <span>Presidente</span>
-                <strong>
-                    {{ presidente.pri_nombre }}
-                    {{ presidente.apell_paterno }}
+                <span>Vecinos registrados</span>
+                <strong class="big-number">
+                    {{ cantidad_vecinos }}
                 </strong>
             </div>
+        
         </section>
 
         <section class="presidente-box stat-box">
