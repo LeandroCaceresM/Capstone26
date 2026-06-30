@@ -1,54 +1,123 @@
 {% extends "base_panel.html" %}
+{% load static %}
 
 {% block titulo %}
 Gestionar eventos
 {% endblock %}
 
+{% block head %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/eventos.css' %}">
+{% endblock %}
+
 {% block contenido %}
+
+<div class="eventos-page">
 
 <h1>Eventos de {{ junta.nombre }}</h1>
 
-<h2>Crear evento</h2>
+<div class="evento-form-card">
 
-<form method="POST">
-    {% csrf_token %}
+    <h2>Crear nuevo evento</h2>
 
-    <label>Título</label>
-    <input type="text" name="titulo" maxlength="120" required>
+    <form method="POST">
 
-    <label>Descripción</label>
-    <textarea name="descripcion" rows="5"></textarea>
+        {% csrf_token %}
 
-    <label>Fecha y hora</label>
-    <input type="datetime-local" name="fecha_evento" required>
+        <label>Título</label>
+        <input type="text" name="titulo" maxlength="120" required>
 
-    <label>Lugar</label>
-    <input type="text" name="lugar" placeholder="Ej: Sede vecinal">
+        <label>Descripción</label>
+        <textarea name="descripcion" rows="4"></textarea>
 
-    <button type="submit">Crear evento</button>
-</form>
+        <div class="form-row">
 
-<hr>
+            <div>
+                <label>Fecha y hora</label>
+                <input type="datetime-local" name="fecha_evento" required>
+            </div>
 
-<h2>Eventos registrados</h2>
+            <div>
+                <label>Lugar</label>
+                <input
+                    type="text"
+                    name="lugar"
+                    placeholder="Ej: Sede vecinal">
+            </div>
+
+        </div>
+
+        <button class="btn-primary">
+            Crear evento
+        </button>
+
+    </form>
+
+</div>
+
+<h2 class="mt">Eventos registrados</h2>
 
 {% if eventos %}
-    {% for evento in eventos %}
-        <div class="datos-card">
-            <h3>{{ evento.titulo }}</h3>
-            <p>{{ evento.descripcion }}</p>
-            <p><strong>Fecha:</strong> {{ evento.fecha_evento|date:"d/m/Y H:i" }}</p>
-            <p><strong>Lugar:</strong> {{ evento.lugar|default:"No especificado" }}</p>
-            <p>
-                <a href="{% url 'editar_evento' evento.id_evento %}">Editar</a>
-                |
-                <a href="{% url 'eliminar_evento' evento.id_evento %}">Eliminar</a>
-            </p>
+
+<div class="eventos-grid">
+
+{% for evento in eventos %}
+
+<div class="evento-card">
+
+    <div class="evento-fecha">
+
+        <strong>{{ evento.fecha_evento|date:"d" }}</strong>
+
+        <span>{{ evento.fecha_evento|date:"M" }}</span>
+
+    </div>
+
+    <div class="evento-info">
+
+        <h3>{{ evento.titulo }}</h3>
+
+        <p>{{ evento.descripcion }}</p>
+
+        <div class="evento-meta">
+
+            <span>🕒 {{ evento.fecha_evento|date:"H:i" }}</span>
+
+            <span>
+                📍 {{ evento.lugar|default:"No especificado" }}
+            </span>
+
         </div>
-        <br>
-    {% endfor %}
+
+        <div class="evento-actions">
+
+            <a href="{% url 'editar_evento' evento.id_evento %}">
+                Editar
+            </a>
+
+            <a class="danger"
+               href="{% url 'eliminar_evento' evento.id_evento %}">
+                Eliminar
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
 {% else %}
-    <p>No hay eventos registrados.</p>
+
+<div class="empty-card">
+No hay eventos registrados.
+</div>
+
 {% endif %}
+
+</div>
 
 {% endblock %}
