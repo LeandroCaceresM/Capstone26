@@ -20,8 +20,65 @@ from app.decorators import role_required
 @never_cache
 @role_required(ROL_ADMIN)
 def panel_presidente_view(request):
-    return render(request, "panel_presidente.html")
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
 
+    residencia = obtener_residencia_actual(presidente)
+
+    junta = None
+    solicitudes_pendientes = 0
+    certificados_emitidos = 0
+    noticias_activas = 0
+    eventos_proximos = 0
+    ultimas_solicitudes = []
+
+    if residencia:
+        junta = residencia.id_vivienda.id_junta
+
+        vecinos_ids = HistVivienda.objects.filter(
+            id_vivienda__id_junta=junta,
+            fecha_ter__isnull=True
+        ).values_list("id_vecino", flat=True)
+
+        solicitudes_pendientes = Solicitud.objects.filter(
+            id_vecino__in=vecinos_ids,
+            estado=ESTADO_EN_PROCESO
+        ).count()
+
+        certificados_emitidos = CertificadoDeResidencia.objects.filter(
+            id_vecino2=presidente
+        ).count()
+
+        noticias_activas = Noticia.objects.filter(
+            id_junta=junta,
+            vigencia=VIGENCIA_ACTIVA
+        ).count()
+
+        eventos_proximos = Evento.objects.filter(
+            id_junta=junta,
+            vigencia=VIGENCIA_ACTIVA,
+            fecha_evento__gte=timezone.now()
+        ).count()
+
+        ultimas_solicitudes = Solicitud.objects.filter(
+            id_vecino__in=vecinos_ids
+        ).select_related(
+            "id_vecino",
+            "id_tsolicitud"
+        ).order_by("-fecha_solicitud")[:5]
+
+    return render(request, "panel_presidente.html", {
+        "presidente": presidente,
+        "junta": junta,
+        "solicitudes_pendientes": solicitudes_pendientes,
+        "certificados_emitidos": certificados_emitidos,
+        "noticias_activas": noticias_activas,
+        "eventos_proximos": eventos_proximos,
+        "ultimas_solicitudes": ultimas_solicitudes,
+    })
+    
 # =========================
 # VISTAS SOLICITUDES
 # =========================

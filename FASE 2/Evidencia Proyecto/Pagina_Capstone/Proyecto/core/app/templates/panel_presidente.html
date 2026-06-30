@@ -1,24 +1,140 @@
 {% extends "base_panel.html" %}
+{% load static %}
 
 {% block titulo %}
-Panel Principal | Presidente
+Panel Presidente
+{% endblock %}
+
+{% block head %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/panel_presidente.css' %}">
 {% endblock %}
 
 {% block contenido %}
 
-<h1>Panel Presidente de Junta</h1>
+<div class="presidente-page">
 
-<ul>
-    <li><a href="{% url 'mis_datos' %}">Mis datos</a></li>
-</ul>
+    <h1>Panel Presidente</h1>
 
-<h2>Servicios disponibles</h2>
+    <div class="presidente-grid">
 
-<ul>
-    <li><a href="{% url 'solicitudes_presidente' %}">Solicitudes</a></li>
-    <li><a href="{% url 'vecinos_mi_junta' %}">Vecinos de la junta</a></li>
-    <li><a href="{% url 'certificados_presidente' %}">Certificados emitidos</a></li>
-    <li><a href="{% url 'generar_certificado' %}">Descargar mi certificado de residencia</a></li>
-</ul>
+        <section class="presidente-box datos-junta">
+            <h2>Resumen junta</h2>
+
+            <div class="info-row">
+                <span>Junta actual</span>
+                <strong>
+                    {% if junta %}
+                        {{ junta.nombre }}
+                    {% else %}
+                        Sin junta asociada
+                    {% endif %}
+                </strong>
+            </div>
+
+            <div class="info-row">
+                <span>Presidente</span>
+                <strong>
+                    {{ presidente.pri_nombre }}
+                    {{ presidente.apell_paterno }}
+                </strong>
+            </div>
+        </section>
+
+        <section class="presidente-box stat-box">
+            <h2>Solicitudes pendientes</h2>
+            <strong>{{ solicitudes_pendientes }}</strong>
+            <span>Por revisar</span>
+        </section>
+
+        <section class="presidente-box stat-box">
+            <h2>Certificados emitidos</h2>
+            <strong>{{ certificados_emitidos }}</strong>
+            <span>Firmados por ti</span>
+        </section>
+
+        <section class="presidente-box stat-box">
+            <h2>Noticias activas</h2>
+            <strong>{{ noticias_activas }}</strong>
+            <span>Publicadas</span>
+        </section>
+
+        <section class="presidente-box stat-box">
+            <h2>Eventos próximos</h2>
+            <strong>{{ eventos_proximos }}</strong>
+            <span>Programados</span>
+        </section>
+
+    </div>
+
+    <section class="presidente-box solicitudes-box">
+        <div class="box-header">
+            <h2>Últimas solicitudes</h2>
+        </div>
+
+        {% if ultimas_solicitudes %}
+            <div class="table-responsive">
+                <table class="panel-table">
+                    <thead>
+                        <tr>
+                            <th>Vecino</th>
+                            <th>Solicitud</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for solicitud in ultimas_solicitudes %}
+                            <tr>
+                                <td>
+                                    {{ solicitud.id_vecino.pri_nombre }}
+                                    {{ solicitud.id_vecino.apell_paterno }}
+                                </td>
+                                <td>{{ solicitud.id_tsolicitud.tipo_solicitud }}</td>
+                                <td>
+                                    <span class="estado estado-{{ solicitud.estado|lower|cut:' ' }}">
+                                        {{ solicitud.estado }}
+                                    </span>
+                                </td>
+                                <td>{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="empty-text">No existen solicitudes recientes.</p>
+        {% endif %}
+    </section>
+
+    <section class="presidente-box actividad-box">
+        <h2>Actividad reciente</h2>
+
+        <div class="actividad-item">
+            <div class="icono">📄</div>
+            <div>
+                <strong>Tienes {{ solicitudes_pendientes }} solicitudes pendientes.</strong>
+                <small>Requieren revisión.</small>
+            </div>
+        </div>
+
+        <div class="actividad-item">
+            <div class="icono">📰</div>
+            <div>
+                <strong>Hay {{ noticias_activas }} noticias publicadas.</strong>
+            </div>
+        </div>
+
+        <div class="actividad-item">
+            <div class="icono">📅</div>
+            <div>
+                <strong>Existen {{ eventos_proximos }} eventos próximos.</strong>
+            </div>
+        </div>
+    </section>
+
+</div>
 
 {% endblock %}
+

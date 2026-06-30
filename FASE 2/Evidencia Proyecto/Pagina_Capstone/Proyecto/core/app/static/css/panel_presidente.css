@@ -1,0 +1,152 @@
+.presidente-page{
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.presidente-page h1{
+    text-align: center;
+    font-size: 34px;
+    margin-bottom: 26px;
+}
+
+.presidente-grid{
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 18px;
+}
+
+.presidente-box{
+    background: white;
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.08);
+}
+
+.presidente-box h2{
+    font-size: 18px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.datos-junta{
+    grid-row: span 2;
+}
+
+.info-row{
+    background: #f6f8fc;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+.info-row span{
+    display: block;
+    color: #526587;
+    font-size: 14px;
+}
+
+.info-row strong{
+    display: block;
+    margin-top: 6px;
+    font-size: 18px;
+}
+
+.stat-box{
+    text-align: center;
+}
+
+.stat-box strong{
+    display: block;
+    font-size: 42px;
+    color: #1565c0;
+}
+
+.stat-box span{
+    color: #526587;
+}
+
+.solicitudes-box,
+.actividad-box{
+    margin-top: 18px;
+}
+
+.table-responsive{
+    overflow-x: auto;
+}
+
+.panel-table{
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.panel-table th{
+    background: #1565c0;
+    color: white;
+}
+
+.panel-table th,
+.panel-table td{
+    padding: 14px;
+    border: 1px solid #ddd;
+}
+
+.estado{
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.estado-enproceso{
+    background: #fff3cd;
+    color: #856404;
+}
+
+.estado-aprobado{
+    background: #d4edda;
+    color: #155724;
+}
+
+.estado-rechazado{
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.actividad-item{
+    display: flex;
+    gap: 18px;
+    padding: 15px;
+    border-radius: 14px;
+    background: #f6f8fc;
+    margin-bottom: 12px;
+}
+
+.actividad-item .icono{
+    font-size: 26px;
+}
+
+.actividad-item small{
+    display: block;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+@media(max-width: 768px){
+    .presidente-page h1{
+        font-size: 26px;
+    }
+
+    .presidente-box{
+        padding: 18px;
+    }
+
+    .panel-table{
+        min-width: 620px;
+        font-size: 13px;
+    }
+
+    .actividad-item{
+        gap: 12px;
+    }
+}
