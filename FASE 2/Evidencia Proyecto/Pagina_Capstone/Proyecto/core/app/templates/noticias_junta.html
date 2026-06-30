@@ -1,29 +1,50 @@
 {% extends "base_panel.html" %}
+{% load static %}
 
 {% block titulo %}
 Noticias de la junta
 {% endblock %}
 
+{% block head %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/noticias.css' %}">
+{% endblock %}
+
 {% block contenido %}
 
-<h1>Noticias de {{ junta.nombre }}</h1>
+<div class="noticias-page">
 
-{% if noticias %}
-    {% for noticia in noticias %}
-        <div class="datos-card">
-            <h2>{{ noticia.titulo }}</h2>
-            <p>{{ noticia.descripcion }}</p>
-            <small>
-                Publicado el {{ noticia.fecha_publicacion|date:"d/m/Y H:i" }}
-                {% if noticia.id_vecino %}
-                    por {{ noticia.id_vecino.pri_nombre }} {{ noticia.id_vecino.apell_paterno }}
-                {% endif %}
-            </small>
+    <h1>Noticias de {{ junta.nombre }}</h1>
+
+    {% if noticias %}
+        <div class="noticias-grid">
+            {% for noticia in noticias %}
+                <div class="noticia-card">
+                    <div class="noticia-card-header">
+                        <h3>{{ noticia.titulo }}</h3>
+                        <small>{{ noticia.fecha_publicacion|date:"d/m/Y H:i" }}</small>
+                    </div>
+
+                    <p>{{ noticia.descripcion }}</p>
+
+                    {% if noticia.id_vecino %}
+                        <div class="noticia-autor">
+                            Publicado por
+                            <strong>
+                                {{ noticia.id_vecino.pri_nombre }}
+                                {{ noticia.id_vecino.apell_paterno }}
+                            </strong>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
         </div>
-        <br>
-    {% endfor %}
-{% else %}
-    <p>Aún no hay noticias publicadas para esta junta.</p>
-{% endif %}
+    {% else %}
+        <div class="empty-card">
+            Aún no hay noticias publicadas para esta junta.
+        </div>
+    {% endif %}
+
+</div>
 
 {% endblock %}

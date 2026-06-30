@@ -1,51 +1,85 @@
 {% extends "base_panel.html" %}
+{% load static %}
 
 {% block titulo %}
 Vecinos de la junta
 {% endblock %}
 
+{% block head %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/vecinos_junta.css' %}">
+{% endblock %}
+
 {% block contenido %}
 
-<h1>Vecinos de la junta</h1>
+<div class="vecinos-page">
 
-<p><strong>Junta:</strong> {{ junta.nombre }}</p>
+    <h1>Vecinos de la junta</h1>
 
-{% if vecinos_data %}
-    <table border="1" cellpadding="8">
-        <tr>
-            <th>Nombre</th>
-            <th>RUT</th>
-            <th>Correo</th>
-            <th>Teléfono</th>
-            <th>Cargo</th>
-            <th>Condiciones</th>
-        </tr>
+    <div class="junta-card">
+        <span>Junta actual</span>
+        <strong>{{ junta.nombre }}</strong>
+    </div>
 
-        {% for item in vecinos_data %}
-            <tr>
-                <td>
-                    {{ item.vecino.pri_nombre }}
-                    {{ item.vecino.apell_paterno }}
-                    {{ item.vecino.apell_materno }}
-                </td>
-                <td>{{ item.vecino.rut }}</td>
-                <td>{{ item.vecino.correo }}</td>
-                <td>{{ item.vecino.telefono }}</td>
-                <td>{{ item.cargo }}</td>
-                <td>
-                    {% if item.condiciones %}
-                        {% for condicion in item.condiciones %}
-                            {{ condicion.id_tipo_discap.nom_tipo_discap }}{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-                    {% else %}
-                        Sin condiciones
-                    {% endif %}
-                </td>
-            </tr>
-        {% endfor %}
-    </table>
-{% else %}
-    <p>No hay vecinos registrados actualmente en esta junta.</p>
-{% endif %}
+    {% if vecinos_data %}
+        <div class="vecinos-grid">
+            {% for item in vecinos_data %}
+                <div class="vecino-card">
+
+                    <div class="vecino-header">
+                        <div class="vecino-avatar">
+                            {{ item.vecino.pri_nombre|slice:":1" }}{{ item.vecino.apell_paterno|slice:":1" }}
+                        </div>
+
+                        <div>
+                            <h2>
+                                {{ item.vecino.pri_nombre }}
+                                {{ item.vecino.apell_paterno }}
+                                {{ item.vecino.apell_materno }}
+                            </h2>
+                            <span class="cargo-badge">{{ item.cargo }}</span>
+                        </div>
+                    </div>
+
+                    <div class="vecino-info">
+                        <div>
+                            <small>RUT</small>
+                            <p>{{ item.vecino.rut }}</p>
+                        </div>
+
+                        <div>
+                            <small>Teléfono</small>
+                            <p>{{ item.vecino.telefono|default:"Sin teléfono" }}</p>
+                        </div>
+
+                        <div class="full">
+                            <small>Correo</small>
+                            <p>{{ item.vecino.correo|default:"Sin correo" }}</p>
+                        </div>
+
+                        <div class="full">
+                            <small>Condiciones</small>
+                            <p>
+                                {% if item.condiciones %}
+                                    {% for condicion in item.condiciones %}
+                                        {{ condicion.id_tipo_discap.nom_tipo_discap }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    Sin condiciones
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-card">
+            No hay vecinos registrados actualmente en esta junta.
+        </div>
+    {% endif %}
+
+</div>
 
 {% endblock %}

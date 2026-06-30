@@ -217,6 +217,21 @@ def vecinos_mi_junta_view(request):
     registros = obtener_vecinos_activos_junta(junta)
     vecinos_data = construir_vecinos_data(registros)
 
+    orden_cargos = {
+        "Presidente": 1,
+        "Secretario": 2,
+        "Tesorero": 3,
+        "Vecino": 4,
+    }
+
+    vecinos_data.sort(
+        key=lambda item: (
+            orden_cargos.get(item["cargo"], 99),
+            item["vecino"].apell_paterno,
+            item["vecino"].pri_nombre
+        )
+    )
+
     return render(request, "vecinos_junta.html", {
         "junta": junta,
         "vecinos_data": vecinos_data,

@@ -1,0 +1,133 @@
+.vecinos-page{
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.vecinos-page h1{
+    text-align: center;
+    font-size: 34px;
+    margin-bottom: 22px;
+}
+
+.junta-card{
+    background: white;
+    border-radius: 16px;
+    padding: 18px 22px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.08);
+}
+
+.junta-card span{
+    display: block;
+    color: #526587;
+    font-size: 14px;
+}
+
+.junta-card strong{
+    display: block;
+    margin-top: 4px;
+    font-size: 20px;
+}
+
+.vecinos-grid{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.vecino-card{
+    background: white;
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.08);
+}
+
+.vecino-header{
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.vecino-avatar{
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    background: #1565c0;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+}
+
+.vecino-header h2{
+    margin: 0 0 6px 0;
+    font-size: 18px;
+}
+
+.cargo-badge{
+    display: inline-block;
+    background: #e8f0fe;
+    color: #1565c0;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.vecino-info{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.vecino-info div{
+    background: #f6f8fc;
+    border-radius: 12px;
+    padding: 13px;
+}
+
+.vecino-info .full{
+    grid-column: 1 / -1;
+}
+
+.vecino-info small{
+    color: #526587;
+}
+
+.vecino-info p{
+    margin: 5px 0 0 0;
+    font-weight: 600;
+    overflow-wrap: break-word;
+}
+
+.empty-card{
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    text-align: center;
+    color: #6b7280;
+}
+
+@media(max-width:768px){
+    .vecinos-page h1{
+        font-size: 26px;
+    }
+
+    .vecinos-grid{
+        grid-template-columns: 1fr;
+    }
+
+    .vecino-card{
+        padding: 18px;
+    }
+
+    .vecino-info{
+        grid-template-columns: 1fr;
+    }
+
+    .vecino-info .full{
+        grid-column: auto;
+    }
+}
