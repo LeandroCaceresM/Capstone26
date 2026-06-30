@@ -4,7 +4,7 @@
 }
 
 .sidebar{
-    width:300px;
+    width:250px;
     background:#0d47a1;
     color:white;
     padding:25px 20px;
@@ -45,6 +45,7 @@
 .sidebar-footer a{
     color:white;
     padding:10px 12px;
+    font-size:15px;
     border-radius:8px;
     text-decoration:none;
     transition:.2s;
