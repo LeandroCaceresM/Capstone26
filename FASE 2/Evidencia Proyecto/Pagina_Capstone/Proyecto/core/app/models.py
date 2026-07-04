@@ -32,6 +32,17 @@ class Comuna(models.Model):
     class Meta:
         managed = False
         db_table = 'comuna'
+        
+
+#Sector de una comuna
+class Sector(models.Model):
+    id_sector = models.UUIDField(primary_key=True)
+    nombre_sector = models.CharField(max_length=150)
+    id_comuna = models.ForeignKey("Comuna", models.DO_NOTHING, db_column="id_comuna")
+
+    class Meta:
+        managed = False
+        db_table = "sector"
 
 #Directiva que corresponde a x junta durante x fecha
 class Directiva(models.Model):
@@ -98,7 +109,7 @@ class Juntavecinos(models.Model):
     nombre = models.CharField(max_length=150)
     direccion = models.CharField(max_length=300)
     fecha_creacion = models.DateTimeField()
-    id_comuna = models.ForeignKey('Comuna', models.DO_NOTHING, db_column='id_comuna')
+    id_sector = models.ForeignKey("Sector", models.DO_NOTHING, db_column="id_sector")
 
     class Meta:
         managed = False

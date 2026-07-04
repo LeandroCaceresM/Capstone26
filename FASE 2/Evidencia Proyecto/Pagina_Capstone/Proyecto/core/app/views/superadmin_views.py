@@ -33,7 +33,7 @@ def panel_superadmin_view(request):
 
     ultimas_juntas = (
         Juntavecinos.objects
-        .select_related("id_comuna__id_region")
+        .select_related("id_sector__id_comuna__id_region")
         .order_by("-fecha_creacion")[:5]
     )
 
