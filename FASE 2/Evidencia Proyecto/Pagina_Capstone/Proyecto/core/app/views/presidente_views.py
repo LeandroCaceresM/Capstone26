@@ -267,6 +267,7 @@ def asignar_vecino_vivienda_view(request, id_vivienda):
     )
 
     if request.method == "POST":
+
         vecino = get_object_or_404(
             Vecino,
             id_vecino=request.POST.get("id_vecino")
@@ -278,30 +279,14 @@ def asignar_vecino_vivienda_view(request, id_vivienda):
         ).exists()
 
         if ya_tiene_vivienda:
-            messages.error(request, "Este vecino ya tiene una vivienda activa.")
-            return redirect("asignar_vecino_vivienda", id_vivienda=vivienda.id_vivienda)
-
-        fecha_hoy = timezone.now().date()
-
-        historial_existente = HistVivienda.objects.filter(
-            fecha_ini=fecha_hoy,
-            id_vivienda=vivienda,
-            id_vecino=vecino
-        ).first()
-
-        if historial_existente:
-            historial_existente.fecha_ter = None
-            historial_existente.save()
-
-            messages.success(request, "Vecino reasignado correctamente a la vivienda.")
-            return redirect("detalle_vivienda", id_vivienda=vivienda.id_vivienda)
-
-        HistVivienda.objects.create(
-            fecha_ini=fecha_hoy,
-            fecha_ter=None,
-            id_vivienda=vivienda,
-            id_vecino=vecino
-        )
+            messages.error(
+                request,
+                "Este vecino ya tiene una vivienda activa."
+            )
+            return redirect(
+                "asignar_vecino_vivienda",
+                id_vivienda=vivienda.id_vivienda
+            )
 
         HistVivienda.objects.create(
             id_hist_vivienda=uuid.uuid4(),
@@ -311,8 +296,15 @@ def asignar_vecino_vivienda_view(request, id_vivienda):
             id_vecino=vecino
         )
 
-        messages.success(request, "Vecino asignado correctamente a la vivienda.")
-        return redirect("detalle_vivienda", id_vivienda=vivienda.id_vivienda)
+        messages.success(
+            request,
+            "Vecino asignado correctamente."
+        )
+
+        return redirect(
+            "detalle_vivienda",
+            id_vivienda=vivienda.id_vivienda
+        )
 
     return render(request, "presidente/asignar_vecino_vivienda.html", {
         "junta": junta,
