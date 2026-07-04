@@ -1,0 +1,55 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Viviendas de la junta
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Viviendas de {{ junta.nombre }}</h1>
+
+<a href="#">
+    + Agregar vivienda
+</a>
+
+<br><br>
+
+{% if viviendas %}
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Dirección</th>
+            <th>Tipo</th>
+            <th>Block</th>
+            <th>Depto</th>
+            <th>Estado</th>
+        </tr>
+
+        {% for vivienda in viviendas %}
+            <tr>
+                <td>
+                    {{ vivienda.nombre_calle }}
+                    {{ vivienda.numero_calle }}
+                </td>
+
+                <td>
+                    {% if vivienda.tipo_vivienda == "C" %}
+                        Casa
+                    {% else %}
+                        Departamento
+                    {% endif %}
+                </td>
+
+                <td>{{ vivienda.num_block|default:"-" }}</td>
+                <td>{{ vivienda.num_dpto|default:"-" }}</td>
+
+                <td>
+                    Pendiente calcular ocupación
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No hay viviendas registradas en esta junta.</p>
+{% endif %}
+
+{% endblock %}

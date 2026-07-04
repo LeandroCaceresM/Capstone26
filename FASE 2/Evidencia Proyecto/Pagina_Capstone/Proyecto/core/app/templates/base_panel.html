@@ -36,6 +36,7 @@
             {% elif request.session.rol == "Admin" %}
                 <a href="{% url 'panel_presidente' %}">🏠 Panel</a>
                 <a href="{% url 'mis_datos' %}">👤 Mis datos</a>
+                <a href="{% url 'viviendas_junta' %}">🏠 Viviendas</a>
                 <a href="{% url 'solicitudes_presidente' %}">📄 Solicitudes</a>
                 <a href="{% url 'vecinos_mi_junta' %}">👥 Vecinos de la junta</a>
                 <a href="{% url 'certificado_residencia' %}">📑 Certificados</a>

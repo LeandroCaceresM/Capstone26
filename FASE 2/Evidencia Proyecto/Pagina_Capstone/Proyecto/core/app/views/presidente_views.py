@@ -86,6 +86,38 @@ def panel_presidente_view(request):
         "cantidad_vecinos": cantidad_vecinos,
     })
     
+    
+# =========================
+# VISTAS VIVIENDAS
+# =========================
+
+@never_cache
+@role_required(ROL_ADMIN)
+def viviendas_junta_view(request):
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    viviendas = Vivienda.objects.filter(
+        id_junta=junta
+    ).order_by("nombre_calle", "numero_calle")
+
+    return render(request, "presidente/viviendas_junta.html", {
+        "junta": junta,
+        "viviendas": viviendas,
+    })
+
+
+
 # =========================
 # VISTAS SOLICITUDES
 # =========================
@@ -497,5 +529,4 @@ def eliminar_evento_view(request, id_evento):
     return render(request, "presidente/eliminar_evento.html", {
         "evento": evento
     })
-
 

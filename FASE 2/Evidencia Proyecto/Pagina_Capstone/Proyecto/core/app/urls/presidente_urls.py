@@ -4,6 +4,12 @@ from app import views
 urlpatterns = [
     path("panel-presidente/", views.panel_presidente_view, name="panel_presidente"),
 
+    path(
+        "presidente/viviendas/",
+        views.viviendas_junta_view,
+        name="viviendas_junta"
+    ),
+    
     path("presidente/solicitudes/", views.solicitudes_presidente_view, name="solicitudes_presidente"),
     path("presidente/solicitudes/<uuid:id_solicitud>/cerrar/", views.cerrar_solicitud_view, name="cerrar_solicitud"),
 
