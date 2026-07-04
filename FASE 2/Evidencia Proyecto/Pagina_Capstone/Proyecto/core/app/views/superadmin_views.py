@@ -125,8 +125,9 @@ def crear_sector_view(request):
 @never_cache
 @role_required(ROL_SUPERADMIN)
 def listar_juntas_view(request):
-
-    juntas = Juntavecinos.objects.all()
+    juntas = Juntavecinos.objects.select_related(
+        "id_sector__id_comuna__id_region"
+    ).order_by("nombre")
 
     return render(request, "superadmin/juntas/listar.html", {
         "juntas": juntas

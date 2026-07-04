@@ -15,6 +15,21 @@ urlpatterns = [
         views.crear_vivienda_view,
         name="crear_vivienda"
     ),
+    path(
+        "presidente/viviendas/<uuid:id_vivienda>/",
+        views.detalle_vivienda_view,
+        name="detalle_vivienda"
+    ),
+    path(
+        "presidente/viviendas/<uuid:id_vivienda>/asignar-vecino/",
+        views.asignar_vecino_vivienda_view,
+        name="asignar_vecino_vivienda"
+    ),
+    path(
+        "presidente/viviendas/<uuid:id_vivienda>/retirar/<uuid:id_vecino>/",
+        views.retirar_vecino_vivienda_view,
+        name="retirar_vecino_vivienda"
+    ),
     
     path("presidente/solicitudes/", views.solicitudes_presidente_view, name="solicitudes_presidente"),
     path("presidente/solicitudes/<uuid:id_solicitud>/cerrar/", views.cerrar_solicitud_view, name="cerrar_solicitud"),

@@ -1,0 +1,87 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Detalle vivienda
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Detalle vivienda</h1>
+
+<p>
+    <strong>Dirección:</strong>
+    {{ vivienda.nombre_calle }} {{ vivienda.numero_calle }}
+</p>
+
+<p>
+    <strong>Tipo:</strong>
+    {% if vivienda.tipo_vivienda == "C" %}
+        Casa
+    {% else %}
+        Departamento
+    {% endif %}
+</p>
+
+{% if vivienda.tipo_vivienda == "D" %}
+    <p><strong>Block:</strong> {{ vivienda.num_block }}</p>
+    <p><strong>Depto:</strong> {{ vivienda.num_dpto }}</p>
+{% endif %}
+
+<a href="{% url 'asignar_vecino_vivienda' vivienda.id_vivienda %}">
+    + Asignar vecino a esta vivienda
+</a>
+
+<br><br>
+
+<h2>Residentes actuales</h2>
+
+{% if residentes_actuales %}
+    {% for registro in residentes_actuales %}
+        <p>
+            {{ registro.id_vecino.pri_nombre }}
+            {{ registro.id_vecino.apell_paterno }}
+            {{ registro.id_vecino.apell_materno }}
+        </p>
+
+        <a href="{% url 'retirar_vecino_vivienda' vivienda.id_vivienda registro.id_vecino.id_vecino %}">
+            Retirar de vivienda
+        </a>
+    {% endfor %}
+{% else %}
+    <p>Esta vivienda no tiene residentes activos.</p>
+{% endif %}
+
+<h2>Historial de residentes</h2>
+
+{% if historial_residentes %}
+    <table>
+        <tr>
+            <th>Vecino</th>
+            <th>Desde</th>
+            <th>Hasta</th>
+        </tr>
+
+        {% for registro in historial_residentes %}
+            <tr>
+                <td>
+                    {{ registro.id_vecino.pri_nombre }}
+                    {{ registro.id_vecino.apell_paterno }}
+                </td>
+                <td>{{ registro.fecha_ini|date:"d/m/Y" }}</td>
+                <td>
+                    {% if registro.fecha_ter %}
+                        {{ registro.fecha_ter|date:"d/m/Y" }}
+                    {% else %}
+                        Actual
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+
+<br>
+
+<a href="{% url 'viviendas_junta' %}">Volver</a>
+
+{% endblock %}

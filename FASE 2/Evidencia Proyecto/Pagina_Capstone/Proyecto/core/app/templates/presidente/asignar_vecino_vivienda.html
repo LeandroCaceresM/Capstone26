@@ -1,0 +1,44 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Asignar vecino a vivienda
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Asignar vecino a vivienda</h1>
+
+<p>
+    <strong>Vivienda:</strong>
+    {{ vivienda.nombre_calle }} {{ vivienda.numero_calle }}
+</p>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Vecino disponible</label>
+    <select name="id_vecino" required>
+        <option value="">Seleccione un vecino</option>
+
+        {% for vecino in vecinos_disponibles %}
+            <option value="{{ vecino.id_vecino }}">
+                {{ vecino.pri_nombre }}
+                {{ vecino.apell_paterno }}
+                {{ vecino.apell_materno }}
+                - {{ vecino.rut }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">
+        Asignar vecino
+    </button>
+</form>
+
+<br>
+
+<a href="{% url 'detalle_vivienda' vivienda.id_vivienda %}">
+    Volver
+</a>
+
+{% endblock %}

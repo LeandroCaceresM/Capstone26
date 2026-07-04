@@ -1,47 +1,45 @@
 {% extends "base_panel.html" %}
 
 {% block titulo %}
-Gestionar Juntas
+Juntas
 {% endblock %}
 
 {% block contenido %}
 
-<h1>Gestionar Juntas de Vecinos</h1>
+<h1>Juntas de vecinos</h1>
 
 <a href="{% url 'crear_junta' %}">
-    + Crear Nueva Junta
+    + Crear junta
 </a>
 
 {% if juntas %}
-    <table border="1" cellpadding="8">
+    <table>
         <tr>
             <th>Nombre</th>
-            <th>Dirección</th>
+            <th>Dirección sede</th>
+            <th>Sector</th>
             <th>Comuna</th>
             <th>Región</th>
-            <th>Fecha creación</th>
             <th>Acciones</th>
         </tr>
 
         {% for junta in juntas %}
-        <tr>
-            <td>{{ junta.nombre }}</td>
-            <td>{{ junta.direccion }}</td>
-            <td>{{ junta.id_comuna.nom_comuna }}</td>
-            <td>{{ junta.id_comuna.id_region.nom_region }}</td>
-            <td>{{ junta.fecha_creacion }}</td>
-            <td>
-                <a href="{% url 'editar_junta' junta.id_junta %}">Editar</a> |
-                <a href="{% url 'eliminar_junta' junta.id_junta %}">Eliminar</a> |
-                <a href="{% url 'vecinos_junta' junta.id_junta %}">Ver vecinos</a>
-            </td>
-        </tr>
+            <tr>
+                <td>{{ junta.nombre }}</td>
+                <td>{{ junta.direccion }}</td>
+                <td>{{ junta.id_sector.nombre_sector }}</td>
+                <td>{{ junta.id_sector.id_comuna.nom_comuna }}</td>
+                <td>{{ junta.id_sector.id_comuna.id_region.nom_region }}</td>
+                <td>
+                    <a href="{% url 'editar_junta' junta.id_junta %}">Editar</a>
+                    |
+                    <a href="{% url 'eliminar_junta' junta.id_junta %}">Eliminar</a>
+                </td>
+            </tr>
         {% endfor %}
     </table>
 {% else %}
-    <p>No existe ninguna junta aún.</p>
+    <p>No hay juntas registradas.</p>
 {% endif %}
-
-<br>
 
 {% endblock %}

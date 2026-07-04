@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.db import models
 
-from app.constants import ESTADO_APROBADO, ESTADO_EN_PROCESO, ESTADO_RECHAZADO, ROL_ADMIN, VIGENCIA_ACTIVA, VIGENCIA_INACTIVA
+from app.constants import ESTADO_APROBADO, ESTADO_EN_PROCESO, ESTADO_RECHAZADO, ROL_ADMIN, ROL_USUARIO, VIGENCIA_ACTIVA, VIGENCIA_INACTIVA
 from app.models import *
 from app.services.vecino_service import obtener_residencia_actual
 from app.services.evento_service import obtener_eventos_junta
@@ -124,10 +124,18 @@ def viviendas_junta_view(request):
             "residentes": residentes_activos,
             "ocupada": residentes_activos.exists()
         })
+        
+    total_viviendas = len(viviendas_data)
+    viviendas_ocupadas = sum(1 for item in viviendas_data if item["ocupada"])
+    viviendas_disponibles = total_viviendas - viviendas_ocupadas
+        
 
     return render(request, "presidente/viviendas_junta.html", {
         "junta": junta,
         "viviendas_data": viviendas_data,
+        "total_viviendas": total_viviendas,
+        "viviendas_ocupadas": viviendas_ocupadas,
+        "viviendas_disponibles": viviendas_disponibles,
     })
 
 @never_cache
@@ -183,6 +191,182 @@ def crear_vivienda_view(request):
     return render(request, "presidente/crear_vivienda.html", {
         "junta": junta
     })
+
+@never_cache
+@role_required(ROL_ADMIN)
+def detalle_vivienda_view(request, id_vivienda):
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    vivienda = get_object_or_404(
+        Vivienda,
+        id_vivienda=id_vivienda,
+        id_junta=junta
+    )
+
+    residentes_actuales = HistVivienda.objects.filter(
+        id_vivienda=vivienda,
+        fecha_ter__isnull=True
+    ).select_related("id_vecino")
+
+    historial_residentes = HistVivienda.objects.filter(
+        id_vivienda=vivienda
+    ).select_related("id_vecino").order_by("-fecha_ini")
+
+    return render(request, "presidente/detalle_vivienda.html", {
+        "junta": junta,
+        "vivienda": vivienda,
+        "residentes_actuales": residentes_actuales,
+        "historial_residentes": historial_residentes,
+    })
+
+@never_cache
+@role_required(ROL_ADMIN)
+def asignar_vecino_vivienda_view(request, id_vivienda):
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    vivienda = get_object_or_404(
+        Vivienda,
+        id_vivienda=id_vivienda,
+        id_junta=junta
+    )
+
+    vecinos_con_vivienda = HistVivienda.objects.filter(
+        fecha_ter__isnull=True
+    ).values_list("id_vecino", flat=True)
+
+    vecinos_disponibles = Vecino.objects.filter(
+        vigencia=VIGENCIA_ACTIVA,
+        id_rol__nombre_rol=ROL_USUARIO
+    ).exclude(
+        id_vecino__in=vecinos_con_vivienda
+    ).order_by(
+        "apell_paterno",
+        "pri_nombre"
+    )
+
+    if request.method == "POST":
+        vecino = get_object_or_404(
+            Vecino,
+            id_vecino=request.POST.get("id_vecino")
+        )
+
+        ya_tiene_vivienda = HistVivienda.objects.filter(
+            id_vecino=vecino,
+            fecha_ter__isnull=True
+        ).exists()
+
+        if ya_tiene_vivienda:
+            messages.error(request, "Este vecino ya tiene una vivienda activa.")
+            return redirect("asignar_vecino_vivienda", id_vivienda=vivienda.id_vivienda)
+
+        fecha_hoy = timezone.now().date()
+
+        historial_existente = HistVivienda.objects.filter(
+            fecha_ini=fecha_hoy,
+            id_vivienda=vivienda,
+            id_vecino=vecino
+        ).first()
+
+        if historial_existente:
+            historial_existente.fecha_ter = None
+            historial_existente.save()
+
+            messages.success(request, "Vecino reasignado correctamente a la vivienda.")
+            return redirect("detalle_vivienda", id_vivienda=vivienda.id_vivienda)
+
+        HistVivienda.objects.create(
+            fecha_ini=fecha_hoy,
+            fecha_ter=None,
+            id_vivienda=vivienda,
+            id_vecino=vecino
+        )
+
+        HistVivienda.objects.create(
+            fecha_ini=timezone.now().date(),
+            fecha_ter=None,
+            id_vivienda=vivienda,
+            id_vecino=vecino
+        )
+
+        messages.success(request, "Vecino asignado correctamente a la vivienda.")
+        return redirect("detalle_vivienda", id_vivienda=vivienda.id_vivienda)
+
+    return render(request, "presidente/asignar_vecino_vivienda.html", {
+        "junta": junta,
+        "vivienda": vivienda,
+        "vecinos_disponibles": vecinos_disponibles,
+    })
+
+
+@never_cache
+@role_required(ROL_ADMIN)
+def retirar_vecino_vivienda_view(request, id_vivienda, id_vecino):
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    vivienda = get_object_or_404(
+        Vivienda,
+        id_vivienda=id_vivienda,
+        id_junta=junta
+    )
+
+    vecino = get_object_or_404(
+        Vecino,
+        id_vecino=id_vecino
+    )
+
+    registro = get_object_or_404(
+        HistVivienda,
+        id_vivienda=vivienda,
+        id_vecino=vecino,
+        fecha_ter__isnull=True
+    )
+
+    if request.method == "POST":
+        registro.fecha_ter = timezone.now().date()
+        registro.save()
+
+        messages.success(request, "Vecino retirado correctamente de la vivienda.")
+        return redirect("detalle_vivienda", id_vivienda=vivienda.id_vivienda)
+
+    return render(request, "presidente/retirar_vecino_vivienda.html", {
+        "vivienda": vivienda,
+        "vecino": vecino,
+    })
+
+
 
 # =========================
 # VISTAS SOLICITUDES

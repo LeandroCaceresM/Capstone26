@@ -1,0 +1,34 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Retirar vecino
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Retirar vecino de vivienda</h1>
+
+<p>
+    ¿Seguro que deseas retirar a
+    <strong>
+        {{ vecino.pri_nombre }} {{ vecino.apell_paterno }}
+    </strong>
+    de la vivienda
+    <strong>
+        {{ vivienda.nombre_calle }} {{ vivienda.numero_calle }}
+    </strong>?
+</p>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <button type="submit">
+        Sí, retirar
+    </button>
+
+    <a href="{% url 'detalle_vivienda' vivienda.id_vivienda %}">
+        Cancelar
+    </a>
+</form>
+
+{% endblock %}
