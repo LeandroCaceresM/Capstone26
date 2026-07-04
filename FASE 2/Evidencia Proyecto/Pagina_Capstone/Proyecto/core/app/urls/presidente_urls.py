@@ -10,6 +10,12 @@ urlpatterns = [
         name="viviendas_junta"
     ),
     
+    path(
+        "presidente/viviendas/crear/",
+        views.crear_vivienda_view,
+        name="crear_vivienda"
+    ),
+    
     path("presidente/solicitudes/", views.solicitudes_presidente_view, name="solicitudes_presidente"),
     path("presidente/solicitudes/<uuid:id_solicitud>/cerrar/", views.cerrar_solicitud_view, name="cerrar_solicitud"),
 

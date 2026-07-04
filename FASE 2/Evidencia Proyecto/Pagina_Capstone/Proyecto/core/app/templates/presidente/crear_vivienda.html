@@ -1,0 +1,57 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Crear vivienda
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Crear vivienda</h1>
+
+<p><strong>Junta:</strong> {{ junta.nombre }}</p>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Tipo de vivienda</label>
+    <select name="tipo_vivienda" id="tipo_vivienda" required>
+        <option value="C">Casa</option>
+        <option value="D">Departamento</option>
+    </select>
+
+    <label>Nombre calle</label>
+    <input type="text" name="nombre_calle" required>
+
+    <label>Número calle</label>
+    <input type="number" name="numero_calle" required>
+
+    <div id="datos_departamento" style="display:none;">
+        <label>Block</label>
+        <input type="number" name="num_block">
+
+        <label>Departamento</label>
+        <input type="number" name="num_dpto">
+    </div>
+
+    <button type="submit">Guardar vivienda</button>
+
+    <a href="{% url 'viviendas_junta' %}">Volver</a>
+</form>
+
+<script>
+    const tipoVivienda = document.getElementById("tipo_vivienda");
+    const datosDepartamento = document.getElementById("datos_departamento");
+
+    function actualizarCampos(){
+        if(tipoVivienda.value === "D"){
+            datosDepartamento.style.display = "block";
+        }else{
+            datosDepartamento.style.display = "none";
+        }
+    }
+
+    tipoVivienda.addEventListener("change", actualizarCampos);
+    actualizarCampos();
+</script>
+
+{% endblock %}

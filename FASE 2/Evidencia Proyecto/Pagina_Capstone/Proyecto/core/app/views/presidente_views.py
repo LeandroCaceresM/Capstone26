@@ -111,12 +111,78 @@ def viviendas_junta_view(request):
         id_junta=junta
     ).order_by("nombre_calle", "numero_calle")
 
+    viviendas_data = []
+
+    for vivienda in viviendas:
+        residentes_activos = HistVivienda.objects.filter(
+            id_vivienda=vivienda,
+            fecha_ter__isnull=True
+        ).select_related("id_vecino")
+
+        viviendas_data.append({
+            "vivienda": vivienda,
+            "residentes": residentes_activos,
+            "ocupada": residentes_activos.exists()
+        })
+
     return render(request, "presidente/viviendas_junta.html", {
         "junta": junta,
-        "viviendas": viviendas,
+        "viviendas_data": viviendas_data,
     })
 
+@never_cache
+@role_required(ROL_ADMIN)
+def crear_vivienda_view(request):
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
 
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    if request.method == "POST":
+        tipo_vivienda = request.POST.get("tipo_vivienda")
+        nombre_calle = limpiar_mayusculas(request.POST.get("nombre_calle"))
+        numero_calle = request.POST.get("numero_calle")
+        num_block = request.POST.get("num_block") or None
+        num_dpto = request.POST.get("num_dpto") or None
+
+        if tipo_vivienda == "C":
+            num_block = None
+            num_dpto = None
+
+        if Vivienda.objects.filter(
+            id_junta=junta,
+            nombre_calle=nombre_calle,
+            numero_calle=numero_calle,
+            num_block=num_block,
+            num_dpto=num_dpto
+        ).exists():
+            messages.error(request, "Esta vivienda ya existe en la junta.")
+            return redirect("crear_vivienda")
+
+        Vivienda.objects.create(
+            id_vivienda=uuid.uuid4(),
+            tipo_vivienda=tipo_vivienda,
+            nombre_calle=nombre_calle,
+            numero_calle=numero_calle,
+            num_block=num_block,
+            num_dpto=num_dpto,
+            id_junta=junta
+        )
+
+        messages.success(request, "Vivienda creada correctamente.")
+        return redirect("viviendas_junta")
+
+    return render(request, "presidente/crear_vivienda.html", {
+        "junta": junta
+    })
 
 # =========================
 # VISTAS SOLICITUDES

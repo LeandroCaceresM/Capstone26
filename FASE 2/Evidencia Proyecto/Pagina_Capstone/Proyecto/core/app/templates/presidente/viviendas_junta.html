@@ -8,13 +8,12 @@ Viviendas de la junta
 
 <h1>Viviendas de {{ junta.nombre }}</h1>
 
-<a href="#">
+<a href="{% url 'crear_vivienda' %}">
     + Agregar vivienda
 </a>
-
 <br><br>
 
-{% if viviendas %}
+{% if viviendas_data %}
     <table border="1" cellpadding="8">
         <tr>
             <th>Dirección</th>
@@ -24,26 +23,30 @@ Viviendas de la junta
             <th>Estado</th>
         </tr>
 
-        {% for vivienda in viviendas %}
+        {% for item in viviendas_data %}
             <tr>
                 <td>
-                    {{ vivienda.nombre_calle }}
-                    {{ vivienda.numero_calle }}
+                    {{ item.vivienda.nombre_calle }}
+                    {{ item.vivienda.numero_calle }}
                 </td>
-
+                
                 <td>
-                    {% if vivienda.tipo_vivienda == "C" %}
+                    {% if item.vivienda.tipo_vivienda == "C" %}
                         Casa
                     {% else %}
                         Departamento
                     {% endif %}
                 </td>
 
-                <td>{{ vivienda.num_block|default:"-" }}</td>
-                <td>{{ vivienda.num_dpto|default:"-" }}</td>
+                <td>{{ item.vivienda.vivienda.num_block|default:"-" }}</td>
+                <td>{{ item.vivienda.vivienda.num_dpto|default:"-" }}</td>
 
                 <td>
-                    Pendiente calcular ocupación
+                    {% if item.ocupada %}
+                        Ocupada
+                    {% else %}
+                        Disponible
+                    {% endif %}
                 </td>
             </tr>
         {% endfor %}
