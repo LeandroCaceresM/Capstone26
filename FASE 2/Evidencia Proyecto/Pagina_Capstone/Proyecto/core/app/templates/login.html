@@ -12,19 +12,79 @@ Iniciar sesión
     {% csrf_token %}
 
     <label>Correo</label>
-    <input type="email" name="correo" placeholder="Tucorreo@ejemplo.com" required>
+    <input
+        id="correo"
+        type="email"
+        name="correo"
+        placeholder="Tucorreo@ejemplo.com"
+        required
+    >
 
     <label>Contraseña</label>
-    <input type="password" name="password" required>
+    <input
+        id="password"
+        type="password"
+        name="password"
+        required
+    >
 
     <button class="login-btn" type="submit">
         Ingresar
     </button>
 </form>
 
-<div class="login-links">
-    <a href="{% url 'registro' %}">Crear cuenta</a>
-    <a href="{% url 'recuperar_contrasenia' %}">¿Olvidaste tu contraseña?</a>
+<div class="demo-users">
+
+    <p class="demo-title">Acceso rápido</p>
+
+    <button type="button" onclick="loginDemo('vecino')">
+        👤 Vecino
+    </button>
+
+    <button type="button" onclick="loginDemo('presidente')">
+        👑 Presidente
+    </button>
+
+    <button type="button" onclick="loginDemo('superadmin')">
+        🛠 Superadmin
+    </button>
+
 </div>
 
+<div class="login-links">
+    <a href="{% url 'registro' %}">Crear cuenta</a>
+    <a href="{% url 'recuperar_contrasenia' %}">
+        ¿Olvidaste tu contraseña?
+    </a>
+</div>
+
+<script>
+
+function loginDemo(tipo){
+
+    const correo = document.getElementById("correo");
+    const password = document.getElementById("password");
+
+    switch(tipo){
+
+        case "vecino":
+            correo.value = "le.caceres@duocuc.cl";
+            password.value = "123456";
+            break;
+
+        case "presidente":
+            correo.value = "agu.jara@duocuc.cl";
+            password.value = "pepepopo";
+            break;
+
+        case "superadmin":
+            correo.value = "ed.delgado@duocuc.cl";
+            password.value = "123456";
+            break;
+    }
+
+}
+
+</script>
+ 
 {% endblock %}

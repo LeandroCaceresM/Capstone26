@@ -65,3 +65,32 @@
     line-height:1.5;
     font-size:15px;
 }
+
+.demo-users{
+    margin-top:20px;
+    text-align:center;
+}
+
+.demo-title{
+    margin-bottom:12px;
+    font-size:14px;
+    color:#666;
+    font-weight:600;
+}
+
+.demo-users button{
+    background:#eef5ff;
+    color:#1565c0;
+    border:1px solid #1565c0;
+    border-radius:10px;
+    padding:8px 14px;
+    margin:4px;
+    cursor:pointer;
+    transition:.2s;
+    font-size:14px;
+}
+
+.demo-users button:hover{
+    background:#1565c0;
+    color:white;
+}
