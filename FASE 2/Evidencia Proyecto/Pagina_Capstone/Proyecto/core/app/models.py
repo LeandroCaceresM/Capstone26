@@ -93,7 +93,7 @@ class HistEstSol(models.Model):
 
 #Para saber si un vecino sigue viviendo ahi o si es arrendatario, o en caso de que un vecino se transladó a otra parte
 class HistVivienda(models.Model):
-    pk = models.CompositePrimaryKey('fecha_ini', 'id_vivienda', 'id_vecino')
+    id_hist_vivienda = models.UUIDField(primary_key=True)
     fecha_ini = models.DateField()
     fecha_ter = models.DateField(blank=True, null=True)
     id_vivienda = models.ForeignKey('Vivienda', models.DO_NOTHING, db_column='id_vivienda')

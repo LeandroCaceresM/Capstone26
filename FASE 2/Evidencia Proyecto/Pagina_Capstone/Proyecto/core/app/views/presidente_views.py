@@ -304,6 +304,7 @@ def asignar_vecino_vivienda_view(request, id_vivienda):
         )
 
         HistVivienda.objects.create(
+            id_hist_vivienda=uuid.uuid4(),
             fecha_ini=timezone.now().date(),
             fecha_ter=None,
             id_vivienda=vivienda,
