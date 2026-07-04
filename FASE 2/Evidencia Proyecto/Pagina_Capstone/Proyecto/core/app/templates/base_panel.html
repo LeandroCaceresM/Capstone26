@@ -45,6 +45,7 @@
 
             {% elif request.session.rol == "Superadmin" %}
                 <a href="{% url 'panel_superadmin' %}">🏠 Panel</a>
+                <a href="{% url 'listar_sectores' %}">📍 Gestionar sectores</a>
                 <a href="{% url 'listar_juntas' %}">🏘️ Gestionar juntas</a>
                 <a href="{% url 'gestionar_vecinos' %}">👥 Gestionar vecinos</a>
             {% endif %}

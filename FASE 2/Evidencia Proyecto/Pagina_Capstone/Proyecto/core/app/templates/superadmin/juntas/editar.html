@@ -11,40 +11,50 @@ Editar Junta
 <form method="POST">
     {% csrf_token %}
 
-    <label>Nombre de la junta</label><br>
-    <input type="text" name="nombre" value="{{ junta.nombre }}" required><br><br>
+    <label>Nombre de la junta</label>
+    <input type="text" name="nombre" value="{{ junta.nombre }}" required>
 
-    <label>Dirección</label><br>
-    <input type="text" name="direccion" value="{{ junta.direccion }}" required><br><br>
+    <label>Dirección sede</label>
+    <input type="text" name="direccion" value="{{ junta.direccion }}" required>
 
-    <label>Región</label><br>
+    <label>Región</label>
     <select id="region_select" required>
         <option value="">Seleccione una región</option>
         {% for region in regiones %}
             <option value="{{ region.id_region }}"
-                {% if region.id_region == junta.id_comuna.id_region.id_region %}selected{% endif %}>
+                {% if region.id_region == junta.id_sector.id_comuna.id_region.id_region %}selected{% endif %}>
                 {{ region.nom_region }}
             </option>
         {% endfor %}
     </select>
 
-    <br><br>
-
-    <label>Comuna</label><br>
-    <select name="id_comuna" id="comuna_select" required>
+    <label>Comuna</label>
+    <select id="comuna_select" required>
         <option value="">Seleccione una comuna</option>
         {% for comuna in comunas %}
-            <option 
+            <option
                 value="{{ comuna.id_comuna }}"
                 data-region="{{ comuna.id_region.id_region }}"
-                {% if comuna.id_comuna == junta.id_comuna.id_comuna %}selected{% endif %}
+                {% if comuna.id_comuna == junta.id_sector.id_comuna.id_comuna %}selected{% endif %}
             >
                 {{ comuna.nom_comuna }}
             </option>
         {% endfor %}
     </select>
 
-    <br><br>
+    <label>Sector</label>
+    <select name="id_sector" id="sector_select" required>
+        <option value="">Seleccione un sector</option>
+        {% for sector in sectores %}
+            <option
+                value="{{ sector.id_sector }}"
+                data-comuna="{{ sector.id_comuna.id_comuna }}"
+                {% if sector.id_sector == junta.id_sector.id_sector %}selected{% endif %}
+            >
+                {{ sector.nombre_sector }}
+            </option>
+        {% endfor %}
+    </select>
 
     <button type="submit">Actualizar Junta</button>
 </form>
@@ -56,39 +66,58 @@ Editar Junta
 <script>
     const regionSelect = document.getElementById("region_select");
     const comunaSelect = document.getElementById("comuna_select");
-    const comunaActual = "{{ junta.id_comuna.id_comuna }}";
+    const sectorSelect = document.getElementById("sector_select");
 
-    const comunaOptions = Array.from(comunaSelect.options).map(option => option.cloneNode(true));
+    const comunaActual = "{{ junta.id_sector.id_comuna.id_comuna }}";
+    const sectorActual = "{{ junta.id_sector.id_sector }}";
 
-    function filtrarComunas() {
-        const regionId = regionSelect.value;
+    const comunaOptions = Array.from(comunaSelect.options).filter(option => option.value !== "");
+    const sectorOptions = Array.from(sectorSelect.options).filter(option => option.value !== "");
 
-        comunaSelect.innerHTML = "";
-
-        const opcionInicial = document.createElement("option");
-        opcionInicial.value = "";
-        opcionInicial.textContent = "Seleccione una comuna";
-        comunaSelect.appendChild(opcionInicial);
+    function cargarComunas(regionId, mantenerActual = false){
+        comunaSelect.innerHTML = '<option value="">Seleccione una comuna</option>';
 
         comunaOptions.forEach(option => {
-            if (!option.value) return;
-
-            if (option.dataset.region === regionId) {
+            if(option.dataset.region === regionId){
                 comunaSelect.appendChild(option.cloneNode(true));
             }
         });
 
-        if (comunaActual) {
+        comunaSelect.disabled = false;
+
+        if(mantenerActual){
             comunaSelect.value = comunaActual;
         }
     }
 
-    regionSelect.addEventListener("change", function () {
-        filtrarComunas();
-        comunaSelect.value = "";
+    function cargarSectores(comunaId, mantenerActual = false){
+        sectorSelect.innerHTML = '<option value="">Seleccione un sector</option>';
+
+        sectorOptions.forEach(option => {
+            if(option.dataset.comuna === comunaId){
+                sectorSelect.appendChild(option.cloneNode(true));
+            }
+        });
+
+        sectorSelect.disabled = false;
+
+        if(mantenerActual){
+            sectorSelect.value = sectorActual;
+        }
+    }
+
+    regionSelect.addEventListener("change", () => {
+        cargarComunas(regionSelect.value, false);
+        sectorSelect.innerHTML = '<option value="">Seleccione una comuna primero</option>';
+        sectorSelect.disabled = true;
     });
 
-    filtrarComunas();
+    comunaSelect.addEventListener("change", () => {
+        cargarSectores(comunaSelect.value, false);
+    });
+
+    cargarComunas(regionSelect.value, true);
+    cargarSectores(comunaActual, true);
 </script>
 
 {% endblock %}

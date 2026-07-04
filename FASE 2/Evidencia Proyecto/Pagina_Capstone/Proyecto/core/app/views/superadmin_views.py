@@ -48,6 +48,76 @@ def panel_superadmin_view(request):
         "vecinos_recientes": vecinos_recientes,
     })
 
+
+@never_cache
+@role_required(ROL_SUPERADMIN)
+def listar_sectores_view(request):
+    busqueda = request.GET.get("q", "")
+
+    sectores = Sector.objects.select_related(
+        "id_comuna",
+        "id_comuna__id_region"
+    ).order_by(
+        "id_comuna__id_region__nom_region",
+        "id_comuna__nom_comuna",
+        "nombre_sector"
+    )
+
+    if busqueda:
+        sectores = sectores.filter(
+            models.Q(nombre_sector__icontains=busqueda) |
+            models.Q(id_comuna__nom_comuna__icontains=busqueda) |
+            models.Q(id_comuna__id_region__nom_region__icontains=busqueda)
+        )
+
+    return render(request, "superadmin/sectores/listar.html", {
+        "sectores": sectores,
+        "busqueda": busqueda,
+    })
+
+# =========================
+# SUPERADMIN - GESTIÓN DE SECTORES
+# =========================
+
+@never_cache
+@role_required(ROL_SUPERADMIN)
+def crear_sector_view(request):
+    regiones = Region.objects.all().order_by("nom_region")
+
+    comunas = Comuna.objects.select_related(
+        "id_region"
+    ).order_by(
+        "id_region__nom_region",
+        "nom_comuna"
+    )
+
+    if request.method == "POST":
+        nombre_sector = limpiar_mayusculas(request.POST.get("nombre_sector"))
+        id_comuna = request.POST.get("id_comuna")
+
+        comuna = get_object_or_404(Comuna, id_comuna=id_comuna)
+
+        if Sector.objects.filter(
+            nombre_sector=nombre_sector,
+            id_comuna=comuna
+        ).exists():
+            messages.error(request, "Este sector ya existe en la comuna seleccionada.")
+            return redirect("crear_sector")
+
+        Sector.objects.create(
+            id_sector=uuid.uuid4(),
+            nombre_sector=nombre_sector,
+            id_comuna=comuna
+        )
+
+        messages.success(request, "Sector creado correctamente.")
+        return redirect("listar_sectores")
+
+    return render(request, "superadmin/sectores/crear.html", {
+        "regiones": regiones,
+        "comunas": comunas,
+    })
+
 # =========================
 # SUPERADMIN - GESTIÓN DE JUNTAS
 # =========================
@@ -65,23 +135,35 @@ def listar_juntas_view(request):
 @never_cache
 @role_required(ROL_SUPERADMIN)
 def crear_junta_view(request):
-
     regiones = Region.objects.all().order_by("nom_region")
-    comunas = Comuna.objects.select_related("id_region").all().order_by("nom_comuna")
+
+    comunas = Comuna.objects.select_related(
+        "id_region"
+    ).all().order_by("nom_comuna")
+
+    sectores = Sector.objects.select_related(
+        "id_comuna__id_region"
+    ).all().order_by(
+        "id_comuna__id_region__nom_region",
+        "id_comuna__nom_comuna",
+        "nombre_sector"
+    )
 
     if request.method == "POST":
-        nombre = limpiar_mayusculas(request.POST.get("nombre"))
+        nombre = limpiar_titulo(request.POST.get("nombre"))
         direccion = limpiar_titulo(request.POST.get("direccion"))
-        id_comuna = request.POST.get("id_comuna")
 
-        comuna = get_object_or_404(Comuna, id_comuna=id_comuna)
+        sector = get_object_or_404(
+            Sector,
+            id_sector=request.POST.get("id_sector")
+        )
 
         Juntavecinos.objects.create(
             id_junta=uuid.uuid4(),
             nombre=nombre,
             direccion=direccion,
             fecha_creacion=timezone.now(),
-            id_comuna=comuna
+            id_sector=sector
         )
 
         messages.success(request, "Junta creada correctamente.")
@@ -89,24 +171,39 @@ def crear_junta_view(request):
 
     return render(request, "superadmin/juntas/crear.html", {
         "regiones": regiones,
-        "comunas": comunas
+        "comunas": comunas,
+        "sectores": sectores,
     })
 
 @never_cache
 @role_required(ROL_SUPERADMIN)
 def editar_junta_view(request, id_junta):
-
     junta = get_object_or_404(Juntavecinos, id_junta=id_junta)
+
     regiones = Region.objects.all().order_by("nom_region")
-    comunas = Comuna.objects.select_related("id_region").all().order_by("nom_comuna")
+
+    comunas = Comuna.objects.select_related(
+        "id_region"
+    ).all().order_by("nom_comuna")
+
+    sectores = Sector.objects.select_related(
+        "id_comuna__id_region"
+    ).all().order_by(
+        "id_comuna__id_region__nom_region",
+        "id_comuna__nom_comuna",
+        "nombre_sector"
+    )
 
     if request.method == "POST":
-        junta.nombre = request.POST.get("nombre")
+        junta.nombre = limpiar_titulo(request.POST.get("nombre"))
         junta.direccion = limpiar_titulo(request.POST.get("direccion"))
 
-        id_comuna = request.POST.get("id_comuna")
-        junta.id_comuna = get_object_or_404(Comuna, id_comuna=id_comuna)
+        sector = get_object_or_404(
+            Sector,
+            id_sector=request.POST.get("id_sector")
+        )
 
+        junta.id_sector = sector
         junta.save()
 
         messages.success(request, "Junta actualizada correctamente.")
@@ -115,7 +212,8 @@ def editar_junta_view(request, id_junta):
     return render(request, "superadmin/juntas/editar.html", {
         "junta": junta,
         "regiones": regiones,
-        "comunas": comunas
+        "comunas": comunas,
+        "sectores": sectores,
     })
 
 @never_cache

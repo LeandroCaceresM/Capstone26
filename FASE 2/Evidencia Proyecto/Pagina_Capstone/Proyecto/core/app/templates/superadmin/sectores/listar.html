@@ -1,0 +1,47 @@
+{% extends "base_panel.html" %}
+{% load static %}
+
+{% block titulo %}
+Sectores
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Sectores</h1>
+
+<a href="{% url 'crear_sector' %}">+ Crear sector</a>
+
+<form method="GET">
+    <label>Buscar sector</label>
+    <input
+        type="text"
+        name="q"
+        value="{{ busqueda }}"
+        placeholder="Sector, comuna o región"
+    >
+
+    <button type="submit">Buscar</button>
+    <a href="{% url 'listar_sectores' %}">Limpiar</a>
+</form>
+
+{% if sectores %}
+    <table>
+        <tr>
+            <th>Sector</th>
+            <th>Comuna</th>
+            <th>Región</th>
+        </tr>
+
+        {% for sector in sectores %}
+            <tr>
+                <td>{{ sector.nombre_sector }}</td>
+                <td>{{ sector.id_comuna.nom_comuna }}</td>
+                <td>{{ sector.id_comuna.id_region.nom_region }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No hay sectores registrados.</p>
+{% endif %}
+
+{% endblock %}

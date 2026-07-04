@@ -4,6 +4,10 @@ from app import views
 urlpatterns = [
     path("panel-superadmin/", views.panel_superadmin_view, name="panel_superadmin"),
 
+
+    path("superadmin/sectores/", views.listar_sectores_view, name="listar_sectores"),
+    path("superadmin/sectores/crear/", views.crear_sector_view, name="crear_sector"),
+    
     path("superadmin/juntas/", views.listar_juntas_view, name="listar_juntas"),
     path("superadmin/juntas/crear/", views.crear_junta_view, name="crear_junta"),
     path("superadmin/juntas/editar/<uuid:id_junta>/", views.editar_junta_view, name="editar_junta"),

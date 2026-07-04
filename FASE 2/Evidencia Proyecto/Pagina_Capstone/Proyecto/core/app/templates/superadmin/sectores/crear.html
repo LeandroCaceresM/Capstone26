@@ -1,0 +1,103 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Crear sector
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Crear sector</h1>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Región</label>
+    <select id="regionSelect" required>
+        <option value="">Seleccione una región</option>
+
+        {% for region in regiones %}
+            <option value="{{ region.id_region }}">
+                {{ region.nom_region }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Comuna</label>
+    <label>Comuna</label>
+    <select name="id_comuna" id="comunaSelect" required disabled>
+        <option value="">Primero seleccione una región</option>
+
+        {% for comuna in comunas %}
+            <option
+                value="{{ comuna.id_comuna }}"
+                data-region="{{ comuna.id_region.id_region }}"
+            >
+                {{ comuna.nom_comuna }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Nombre del sector</label>
+    <input
+        type="text"
+        name="nombre_sector"
+        placeholder="Ej: Lorenzo Arenas"
+        required
+    >
+
+    <button type="submit">Guardar sector</button>
+
+    <a href="{% url 'listar_sectores' %}">Volver</a>
+</form>
+
+<script>
+    const regionSelect = document.getElementById("regionSelect");
+    const comunaSelect = document.getElementById("comunaSelect");
+
+    const comunaOptions = Array.from(comunaSelect.options).filter(
+        option => option.value !== ""
+    );
+
+    function resetComunas(){
+        comunaSelect.innerHTML = "";
+
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Primero seleccione una región";
+        comunaSelect.appendChild(option);
+
+        comunaSelect.disabled = true;
+    }
+
+    function cargarComunas(regionId){
+        comunaSelect.innerHTML = "";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = "Seleccione una comuna";
+        comunaSelect.appendChild(defaultOption);
+
+        comunaOptions.forEach(option => {
+            if(option.dataset.region === regionId){
+                comunaSelect.appendChild(option.cloneNode(true));
+            }
+        });
+
+        comunaSelect.disabled = false;
+    }
+
+    resetComunas();
+
+    regionSelect.addEventListener("change", () => {
+        const regionId = regionSelect.value;
+
+        if(!regionId){
+            resetComunas();
+            return;
+        }
+
+        cargarComunas(regionId);
+    });
+</script>
+
+{% endblock %}

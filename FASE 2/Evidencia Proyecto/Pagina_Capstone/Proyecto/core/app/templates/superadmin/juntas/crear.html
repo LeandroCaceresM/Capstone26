@@ -11,13 +11,13 @@ Crear Junta
 <form method="POST">
     {% csrf_token %}
 
-    <label>Nombre de la junta</label><br>
-    <input type="text" name="nombre" required><br><br>
+    <label>Nombre de la junta</label>
+    <input type="text" name="nombre" required>
 
-    <label>Dirección</label><br>
-    <input type="text" name="direccion" required><br><br>
+    <label>Dirección sede</label>
+    <input type="text" name="direccion" required>
 
-    <label>Región</label><br>
+    <label>Región</label>
     <select id="region_select" required>
         <option value="">Seleccione una región</option>
         {% for region in regiones %}
@@ -27,50 +27,31 @@ Crear Junta
         {% endfor %}
     </select>
 
-    <br><br>
-
-    <label>Comuna</label><br>
-    <select name="id_comuna" id="comuna_select" required>
-        <option value="">Seleccione una comuna</option>
+    <label>Comuna</label>
+    <select id="comuna_select" required disabled>
+        <option value="">Primero seleccione una región</option>
         {% for comuna in comunas %}
-            <option 
+            <option
                 value="{{ comuna.id_comuna }}"
                 data-region="{{ comuna.id_region.id_region }}"
-                {% if junta and comuna.id_comuna == junta.id_comuna.id_comuna %}selected{% endif %}
             >
                 {{ comuna.nom_comuna }}
             </option>
         {% endfor %}
     </select>
 
-    <script>
-        const regionSelect = document.getElementById("region_select");
-        const comunaSelect = document.getElementById("comuna_select");
-        const comunaOptions = Array.from(comunaSelect.options);
-
-        function filtrarComunas() {
-            const regionId = regionSelect.value;
-
-            comunaSelect.innerHTML = "";
-
-            const opcionInicial = document.createElement("option");
-            opcionInicial.value = "";
-            opcionInicial.textContent = "Seleccione una comuna";
-            comunaSelect.appendChild(opcionInicial);
-
-            comunaOptions.forEach(option => {
-                if (!option.value) return;
-
-                if (option.dataset.region === regionId) {
-                    comunaSelect.appendChild(option);
-                }
-            });
-        }
-
-        regionSelect.addEventListener("change", filtrarComunas);
-    </script>
-    
-    <br><br>
+    <label>Sector</label>
+    <select name="id_sector" id="sector_select" required disabled>
+        <option value="">Primero seleccione una comuna</option>
+        {% for sector in sectores %}
+            <option
+                value="{{ sector.id_sector }}"
+                data-comuna="{{ sector.id_comuna.id_comuna }}"
+            >
+                {{ sector.nombre_sector }}
+            </option>
+        {% endfor %}
+    </select>
 
     <button type="submit">Guardar Junta</button>
 </form>
@@ -78,5 +59,64 @@ Crear Junta
 <br>
 
 <a href="{% url 'listar_juntas' %}">Volver</a>
+
+<script>
+    const regionSelect = document.getElementById("region_select");
+    const comunaSelect = document.getElementById("comuna_select");
+    const sectorSelect = document.getElementById("sector_select");
+
+    const comunaOptions = Array.from(comunaSelect.options).filter(option => option.value !== "");
+    const sectorOptions = Array.from(sectorSelect.options).filter(option => option.value !== "");
+
+    function resetComunas(){
+        comunaSelect.innerHTML = '<option value="">Primero seleccione una región</option>';
+        comunaSelect.disabled = true;
+    }
+
+    function resetSectores(){
+        sectorSelect.innerHTML = '<option value="">Primero seleccione una comuna</option>';
+        sectorSelect.disabled = true;
+    }
+
+    regionSelect.addEventListener("change", () => {
+        const regionId = regionSelect.value;
+
+        resetComunas();
+        resetSectores();
+
+        if(!regionId) return;
+
+        comunaSelect.innerHTML = '<option value="">Seleccione una comuna</option>';
+
+        comunaOptions.forEach(option => {
+            if(option.dataset.region === regionId){
+                comunaSelect.appendChild(option.cloneNode(true));
+            }
+        });
+
+        comunaSelect.disabled = false;
+    });
+
+    comunaSelect.addEventListener("change", () => {
+        const comunaId = comunaSelect.value;
+
+        resetSectores();
+
+        if(!comunaId) return;
+
+        sectorSelect.innerHTML = '<option value="">Seleccione un sector</option>';
+
+        sectorOptions.forEach(option => {
+            if(option.dataset.comuna === comunaId){
+                sectorSelect.appendChild(option.cloneNode(true));
+            }
+        });
+
+        sectorSelect.disabled = false;
+    });
+
+    resetComunas();
+    resetSectores();
+</script>
 
 {% endblock %}
