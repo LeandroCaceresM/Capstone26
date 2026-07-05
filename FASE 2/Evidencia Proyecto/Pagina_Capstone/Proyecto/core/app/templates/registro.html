@@ -35,22 +35,43 @@ Registro
 
         <div>
             <label>Primer Nombre</label>
-            <input type="text" name="pri_nombre" value="{{ datos.pri_nombre|default:'' }}" required>
+            <input 
+                type="text" 
+                pattern="^(?=.*[A-Za-zÁÉÍÓÚáéíóúÑñ])[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]+$" 
+                title="Ingrese solo letras." 
+                name="pri_nombre" 
+                value="{{ datos.pri_nombre|default:'' }}" 
+                required>
         </div>
 
         <div>
             <label>Segundo Nombre</label>
-            <input type="text" name="seg_nombre" value="{{ datos.seg_nombre|default:'' }}">
+            <input 
+                type="text" 
+                pattern="^(?=.*[A-Za-zÁÉÍÓÚáéíóúÑñ])[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]+$" 
+                title="Ingrese solo letras." 
+                name="seg_nombre" 
+                value="{{ datos.seg_nombre|default:'' }}">
         </div>
 
         <div>
             <label>Apellido Paterno</label>
-            <input type="text" name="apell_paterno" value="{{ datos.apell_paterno|default:'' }}" required>
+            <input 
+                type="text" 
+                pattern="^(?=.*[A-Za-zÁÉÍÓÚáéíóúÑñ])[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]+$" 
+                name="apell_paterno" 
+                value="{{ datos.apell_paterno|default:'' }}" 
+                required>
         </div>
 
         <div>
             <label>Apellido Materno</label>
-            <input type="text" name="apell_materno" value="{{ datos.apell_materno|default:'' }}" required>
+            <input 
+                type="text" 
+                pattern="^(?=.*[A-Za-zÁÉÍÓÚáéíóúÑñ])[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]+$"  
+                name="apell_materno" 
+                value="{{ datos.apell_materno|default:'' }}" 
+                required>
         </div>
 
         <div>

@@ -24,6 +24,7 @@ from app.validators import (
     es_mayor_16,
     formatear_rut,
     validar_correo,
+    validar_nombre_persona,
     validar_rut,
     validar_telefono,
 )
@@ -56,6 +57,24 @@ def registro_view(request):
         telefono = limpiar_telefono(request.POST.get("telefono"))
         fecha_de_nacimiento = request.POST.get("fecha_de_nacimiento")
         
+        
+        if not validar_nombre_persona(pri_nombre):
+            messages.error(request, "El primer nombre solo puede contener letras.")
+            return render_registro(datos)
+
+        if seg_nombre and not validar_nombre_persona(seg_nombre, obligatorio=False):
+            messages.error(request, "El segundo nombre solo puede contener letras.")
+            return render_registro(datos)
+
+        if not validar_nombre_persona(apell_paterno):
+            messages.error(request, "El apellido paterno solo puede contener letras.")
+            return render_registro(datos)
+
+        if not validar_nombre_persona(apell_materno):
+            messages.error(request, "El apellido materno solo puede contener letras.")
+            return render_registro(datos)        
+        
+
         if not validar_correo(correo):
             messages.error(
                 request,

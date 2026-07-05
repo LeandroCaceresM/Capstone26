@@ -7,6 +7,25 @@ from datetime import date
 # =========================
 
 # =========================
+# NOMBRE DE VECINO
+# =========================
+
+def validar_nombre_persona(texto, obligatorio=True):
+    if not texto:
+        return not obligatorio
+
+    texto = texto.strip()
+
+    patron = r"^[A-Za-zÁÉÍÓÚáéíóúÑñ\s'-]+$"
+
+    tiene_letra = re.search(r"[A-Za-zÁÉÍÓÚáéíóúÑñ]", texto)
+
+    return (
+        re.fullmatch(patron, texto) is not None
+        and tiene_letra is not None
+    )
+
+# =========================
 # RUT
 # =========================
 
