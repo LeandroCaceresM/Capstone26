@@ -116,7 +116,9 @@ def solicitar_incorporacion_view(request):
         "id_region"
     ).order_by("nom_comuna")
 
-    juntas = Juntavecinos.objects.select_related(
+    juntas = Juntavecinos.objects.filter(
+        estado_validacion="VALIDADA"
+    ).select_related(
         "id_sector__id_comuna__id_region"
     ).order_by("nombre")
 
@@ -151,7 +153,7 @@ def solicitar_incorporacion_view(request):
         extension = os.path.splitext(documento.name)[1].lower()
         nombre_archivo = f"incorporaciones/{vecino.id_vecino}_{uuid.uuid4()}{extension}"
 
-        supabase_storage.storage.from_("documentos-domicilio").upload(
+        supabase_storage.storage.from_("documentos-juntas").upload(
             path=nombre_archivo,
             file=documento.read(),
             file_options={
@@ -161,7 +163,7 @@ def solicitar_incorporacion_view(request):
         )
 
         documento_url = supabase_storage.storage.from_(
-            "documentos-domicilio"
+            "documentos-juntas"
         ).get_public_url(nombre_archivo)
 
         tipo_solicitud = get_object_or_404(
@@ -295,7 +297,7 @@ def solicitar_cambio_domicilio_view(request):
         extension = os.path.splitext(documento.name)[1].lower()
         nombre_archivo = f"cambios_domicilio/{vecino.id_vecino}_{uuid.uuid4()}{extension}"
 
-        supabase_storage.storage.from_("documentos-domicilio").upload(
+        supabase_storage.storage.from_("documentos-juntas").upload(
             path=nombre_archivo,
             file=documento.read(),
             file_options={
@@ -305,7 +307,7 @@ def solicitar_cambio_domicilio_view(request):
         )
 
         documento_url = supabase_storage.storage.from_(
-            "documentos-domicilio"
+            "documentos-juntas"
         ).get_public_url(nombre_archivo)
 
         tipo_solicitud = get_object_or_404(

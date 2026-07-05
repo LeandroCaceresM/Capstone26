@@ -1,3 +1,4 @@
+import os
 import uuid
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -11,6 +12,7 @@ from app.models import *
 from app.utils import *
 from app.validators import *
 from app.decorators import role_required
+from app.supabase_storage_client import supabase_storage
 
 # =========================
 # SUPERADMIN - GENERAL
@@ -159,15 +161,50 @@ def crear_junta_view(request):
             id_sector=request.POST.get("id_sector")
         )
 
+        documento = request.FILES.get("documento_respaldo")
+
+        if not documento:
+            messages.error(
+                request,
+                "Debe adjuntar un documento que respalde la existencia de la junta."
+            )
+            return redirect("crear_junta")
+
+        extension = os.path.splitext(documento.name)[1].lower()
+
+        nombre_archivo = (
+            f"juntas/{uuid.uuid4()}{extension}"
+        )
+
+        supabase_storage.storage.from_("documentos-juntas").upload(
+            path=nombre_archivo,
+            file=documento.read(),
+            file_options={
+                "content-type": documento.content_type,
+                "upsert": "false"
+            }
+        )
+
+        documento_url = (
+            supabase_storage.storage
+            .from_("documentos-juntas")
+            .get_public_url(nombre_archivo)
+        )
+
         Juntavecinos.objects.create(
             id_junta=uuid.uuid4(),
             nombre=nombre,
             direccion=direccion,
             fecha_creacion=timezone.now(),
-            id_sector=sector
+            id_sector=sector,
+            estado_validacion="PENDIENTE",
+            documento_respaldo=documento_url
         )
 
-        messages.success(request, "Junta creada correctamente.")
+        messages.success(
+            request,
+            "La junta fue registrada y quedó pendiente de validación."
+        )
         return redirect("listar_juntas")
 
     return render(request, "superadmin/juntas/crear.html", {

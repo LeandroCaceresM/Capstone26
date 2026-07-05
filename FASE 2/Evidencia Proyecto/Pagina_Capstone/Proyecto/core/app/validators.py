@@ -103,9 +103,43 @@ def validar_telefono(telefono):
 # Correo
 # =========================
 
-def validar_correo(correo):
+def validar_correo(correo):        
+
     if not correo:
         return False
 
     patron = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(com|cl)$"
     return re.match(patron, correo) is not None
+
+# =========================
+# Contaseña
+# =========================
+
+def validar_password(password):
+    if not password:
+        return False, "Debe ingresar una contraseña."
+
+    if len(password) < 8:
+        return False, "La contraseña debe tener al menos 8 caracteres."
+
+    if not re.search(r"[A-Za-z]", password):
+        return False, "La contraseña debe contener al menos una letra."
+
+    if not re.search(r"\d", password):
+        return False, "La contraseña debe contener al menos un número."
+
+    comunes = {
+        "12345678",
+        "123456789",
+        "password",
+        "qwerty",
+        "asdfghj",
+        "admin123",
+        "123123123",
+        "abcdefgh"
+    }
+
+    if password.lower() in comunes:
+        return False, "La contraseña es demasiado común."
+
+    return True, ""

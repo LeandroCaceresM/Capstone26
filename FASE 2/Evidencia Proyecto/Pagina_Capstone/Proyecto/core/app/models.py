@@ -110,6 +110,9 @@ class Juntavecinos(models.Model):
     direccion = models.CharField(max_length=300)
     fecha_creacion = models.DateTimeField()
     id_sector = models.ForeignKey("Sector", models.DO_NOTHING, db_column="id_sector")
+    
+    estado_validacion = models.CharField(max_length=20, default="PENDIENTE")
+    documento_respaldo = models.CharField(max_length=500, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -268,6 +271,32 @@ class SolicitudIncorporacion(models.Model):
     class Meta:
         managed = False
         db_table = "solicitud_incorporacion"
+
+class SolicitudRegistroJunta(models.Model):
+    id_solicitud_registro = models.UUIDField(primary_key=True)
+
+    id_solicitud = models.ForeignKey(
+        Solicitud,
+        models.DO_NOTHING,
+        db_column="id_solicitud"
+    )
+
+    nombre_junta = models.CharField(max_length=150)
+    direccion = models.CharField(max_length=300)
+
+    id_sector = models.ForeignKey(
+        Sector,
+        models.DO_NOTHING,
+        db_column="id_sector"
+    )
+
+    documento_personalidad_url = models.CharField(max_length=500, blank=True, null=True)
+    documento_directiva_url = models.CharField(max_length=500, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = "solicitud_registro_junta"
+
 
 #Noticias de una junta de vecinos
 class Noticia(models.Model):

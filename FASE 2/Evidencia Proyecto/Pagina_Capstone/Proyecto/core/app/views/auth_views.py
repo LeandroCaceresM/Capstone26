@@ -25,6 +25,7 @@ from app.validators import (
     formatear_rut,
     validar_correo,
     validar_nombre_persona,
+    validar_password,
     validar_rut,
     validar_telefono,
 )
@@ -92,6 +93,13 @@ def registro_view(request):
 
         if not validar_rut(rut):
             messages.error(request, "El RUT ingresado no es válido.")
+            return render_registro(datos)
+        
+
+        password_valida, mensaje = validar_password(password)
+
+        if not password_valida:
+            messages.error(request, mensaje)
             return render_registro(datos)
 
         rut = formatear_rut(rut)

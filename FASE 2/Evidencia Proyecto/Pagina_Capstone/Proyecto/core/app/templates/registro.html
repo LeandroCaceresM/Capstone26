@@ -112,7 +112,10 @@ Registro
     </div>
 
     <label>Contraseña</label>
-    <input type="password" name="password" required>
+    <small>
+        La contraseña debe tener al menos 8 caracteres e incluir letras y números.
+    </small>
+    <input type="password" name="password" minlength="8" required>
 
     <button class="login-btn" type="submit">
         Registrarse

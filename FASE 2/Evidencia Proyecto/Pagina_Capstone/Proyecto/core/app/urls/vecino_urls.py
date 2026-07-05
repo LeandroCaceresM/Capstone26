@@ -9,6 +9,12 @@ urlpatterns = [
     path("solicitar-incorporacion/",views.solicitar_incorporacion_view,name="solicitar_incorporacion"),
 
     path(
+        "solicitar-registro-junta/",
+        views.solicitar_registro_junta_view,
+        name="solicitar_registro_junta"
+    ),
+
+    path(
         "mis-datos/solicitar-cambio-domicilio/",
         views.solicitar_cambio_domicilio_view,
         name="solicitar_cambio_domicilio"
