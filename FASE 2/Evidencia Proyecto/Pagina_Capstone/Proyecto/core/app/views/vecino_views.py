@@ -270,10 +270,10 @@ def solicitar_cambio_domicilio_view(request):
 
     junta = residencia_actual.id_vivienda.id_junta
 
-    viviendas_disponibles = Vivienda.objects.filter(
+    viviendas = Vivienda.objects.filter(
         id_junta=junta
     ).exclude(
-        histvivienda__fecha_ter__isnull=True
+        id_vivienda=residencia_actual.id_vivienda.id_vivienda
     ).order_by(
         "nombre_calle",
         "numero_calle"
@@ -285,6 +285,28 @@ def solicitar_cambio_domicilio_view(request):
             id_vivienda=request.POST.get("id_vivienda_destino"),
             id_junta=junta
         )
+
+        documento = request.FILES.get("documento")
+
+        if not documento:
+            messages.error(request, "Debe adjuntar una evidencia de domicilio.")
+            return redirect("solicitar_cambio_domicilio")
+
+        extension = os.path.splitext(documento.name)[1].lower()
+        nombre_archivo = f"cambios_domicilio/{vecino.id_vecino}_{uuid.uuid4()}{extension}"
+
+        supabase_storage.storage.from_("documentos-domicilio").upload(
+            path=nombre_archivo,
+            file=documento.read(),
+            file_options={
+                "content-type": documento.content_type,
+                "upsert": "false"
+            }
+        )
+
+        documento_url = supabase_storage.storage.from_(
+            "documentos-domicilio"
+        ).get_public_url(nombre_archivo)
 
         tipo_solicitud = get_object_or_404(
             Tiposolicitud,
@@ -314,7 +336,9 @@ def solicitar_cambio_domicilio_view(request):
         SolicitudCambioDomicilio.objects.create(
             id_solicitud_cambio=uuid.uuid4(),
             id_solicitud=solicitud,
-            id_vivienda_destino=vivienda_destino
+            id_vivienda_destino=vivienda_destino,
+            tipo_documento="Evidencia de domicilio",
+            documento_url=documento_url
         )
 
         messages.success(request, "Solicitud de cambio de domicilio enviada correctamente.")
@@ -322,8 +346,9 @@ def solicitar_cambio_domicilio_view(request):
 
     return render(request, "vecino/solicitar_cambio_domicilio.html", {
         "residencia_actual": residencia_actual,
-        "viviendas_disponibles": viviendas_disponibles,
+        "viviendas": viviendas,
     })
+
 
 @never_cache
 @role_required(ROL_USUARIO)

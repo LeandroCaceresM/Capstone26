@@ -14,14 +14,14 @@ Cambio de domicilio
     {{ residencia_actual.id_vivienda.numero_calle }}
 </p>
 
-<form method="POST">
+<form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
 
     <label>Nueva vivienda</label>
     <select name="id_vivienda_destino" required>
-        <option value="">Seleccione una vivienda disponible</option>
+        <option value="">Seleccione una vivienda</option>
 
-        {% for vivienda in viviendas_disponibles %}
+        {% for vivienda in viviendas %}
             <option value="{{ vivienda.id_vivienda }}">
                 {{ vivienda.nombre_calle }} {{ vivienda.numero_calle }}
                 {% if vivienda.tipo_vivienda == "D" %}
@@ -30,6 +30,19 @@ Cambio de domicilio
             </option>
         {% endfor %}
     </select>
+
+    <label>Evidencia de domicilio</label>
+    <p class="form-help">
+        Adjunta una cuenta de luz, agua, contrato de arriendo, escritura,
+        certificado de residencia u otro documento que acredite el nuevo domicilio.
+    </p>
+
+    <input
+        type="file"
+        name="documento"
+        accept=".pdf,.jpg,.jpeg,.png"
+        required
+    >
 
     <label>Motivo del cambio</label>
     <textarea
