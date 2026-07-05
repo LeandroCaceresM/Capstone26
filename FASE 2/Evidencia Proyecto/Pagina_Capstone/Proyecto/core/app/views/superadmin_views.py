@@ -5,9 +5,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
-from django.db import models
+from django.db import models, transaction
 
-from app.constants import CARGO_PRESIDENTE, ROL_ADMIN, ROL_SUPERADMIN, ROL_USUARIO, VIGENCIA_ACTIVA
+from app.constants import CARGO_PRESIDENTE, ESTADO_APROBADO, ESTADO_EN_PROCESO, ESTADO_RECHAZADO, ROL_ADMIN, ROL_SUPERADMIN, ROL_USUARIO, VIGENCIA_ACTIVA
 from app.models import *
 from app.utils import *
 from app.validators import *
@@ -51,6 +51,137 @@ def panel_superadmin_view(request):
     })
 
 
+
+# =========================
+# SUPERADMIN - GESTIÓN DE SOLICITUDES
+# =========================
+
+
+@never_cache
+@role_required(ROL_SUPERADMIN)
+def solicitudes_superadmin_view(request):
+    solicitudes = Solicitud.objects.filter(
+        id_tsolicitud__tipo_solicitud="Registro de junta"
+    ).select_related(
+        "id_vecino",
+        "id_tsolicitud"
+    ).order_by("-fecha_solicitud")
+
+    solicitudes_data = []
+
+    for solicitud in solicitudes:
+        registro = SolicitudRegistroJunta.objects.filter(
+            id_solicitud=solicitud
+        ).select_related(
+            "id_sector__id_comuna__id_region"
+        ).first()
+
+        solicitudes_data.append({
+            "solicitud": solicitud,
+            "registro": registro
+        })
+
+    return render(request, "superadmin/solicitudes/listar.html", {
+        "solicitudes_data": solicitudes_data
+    })
+
+@never_cache
+@role_required(ROL_SUPERADMIN)
+def cerrar_solicitud_superadmin_view(request, id_solicitud):
+    solicitud = get_object_or_404(
+        Solicitud,
+        id_solicitud=id_solicitud,
+        id_tsolicitud__tipo_solicitud="Registro de junta"
+    )
+
+    if solicitud.estado != ESTADO_EN_PROCESO:
+        messages.error(request, "Esta solicitud ya fue cerrada.")
+        return redirect("solicitudes_superadmin")
+
+    registro = get_object_or_404(
+        SolicitudRegistroJunta,
+        id_solicitud=solicitud
+    )
+
+    if request.method == "POST":
+        accion = request.POST.get("accion")
+        comentario = limpiar_texto(request.POST.get("comentario_presidente"))
+
+        if accion == "aprobar":
+            nuevo_estado = ESTADO_APROBADO
+        elif accion == "rechazar":
+            nuevo_estado = ESTADO_RECHAZADO
+        else:
+            messages.error(request, "Acción no válida.")
+            return redirect("solicitudes_superadmin")
+
+        try:
+            with transaction.atomic():
+
+                if nuevo_estado == ESTADO_APROBADO:
+                    existe_junta = Juntavecinos.objects.filter(
+                        nombre=registro.nombre_junta,
+                        id_sector=registro.id_sector
+                    ).exists()
+
+                    if existe_junta:
+                        messages.error(
+                            request,
+                            "Ya existe una junta con ese nombre en el sector seleccionado."
+                        )
+                        return redirect(
+                            "cerrar_solicitud_superadmin",
+                            id_solicitud=solicitud.id_solicitud
+                        )
+
+                    Juntavecinos.objects.create(
+                        id_junta=uuid.uuid4(),
+                        nombre=registro.nombre_junta,
+                        direccion=registro.direccion,
+                        fecha_creacion=timezone.now(),
+                        id_sector=registro.id_sector,
+                        estado_validacion="VALIDADA",
+                        documento_respaldo=registro.documento_personalidad_url
+                    )
+
+                    rol_admin = Rol.objects.get(nombre_rol=ROL_ADMIN)
+                    solicitud.id_vecino.id_rol = rol_admin
+                    solicitud.id_vecino.save()
+
+                solicitud.estado = nuevo_estado
+                solicitud.comentario_presidente = comentario
+                solicitud.save()
+
+                estado_obj = EstadoSolicitud.objects.get(
+                    nomb_est_sol=nuevo_estado
+                )
+
+                HistEstSol.objects.create(
+                    id_solicitud=solicitud,
+                    id_est=estado_obj,
+                    fecha_cb_estado=timezone.now()
+                )
+
+            messages.success(request, "Solicitud cerrada correctamente.")
+            return redirect("solicitudes_superadmin")
+
+        except Exception as e:
+            messages.error(request, f"Error al cerrar solicitud: {e}")
+            return redirect(
+                "cerrar_solicitud_superadmin",
+                id_solicitud=solicitud.id_solicitud
+            )
+
+    return render(request, "superadmin/solicitudes/cerrar.html", {
+        "solicitud": solicitud,
+        "registro": registro,
+    })
+
+# =========================
+# SUPERADMIN - GESTIÓN DE SECTORES
+# =========================
+
+
 @never_cache
 @role_required(ROL_SUPERADMIN)
 def listar_sectores_view(request):
@@ -76,10 +207,6 @@ def listar_sectores_view(request):
         "sectores": sectores,
         "busqueda": busqueda,
     })
-
-# =========================
-# SUPERADMIN - GESTIÓN DE SECTORES
-# =========================
 
 @never_cache
 @role_required(ROL_SUPERADMIN)

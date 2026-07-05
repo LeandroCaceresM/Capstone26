@@ -1,0 +1,40 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Solicitudes Superadmin
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Solicitudes de registro de junta</h1>
+
+{% if solicitudes_data %}
+    {% for item in solicitudes_data %}
+        <div class="datos-card">
+            <h2>{{ item.registro.nombre_junta }}</h2>
+
+            <p>
+                <strong>Solicitante:</strong>
+                {{ item.solicitud.id_vecino.pri_nombre }}
+                {{ item.solicitud.id_vecino.apell_paterno }}
+            </p>
+
+            <p>
+                <strong>Sector:</strong>
+                {{ item.registro.id_sector.nombre_sector }},
+                {{ item.registro.id_sector.id_comuna.nom_comuna }}
+            </p>
+
+            <p><strong>Estado:</strong> {{ item.solicitud.estado }}</p>
+
+            <a href="{% url 'cerrar_solicitud_superadmin' item.solicitud.id_solicitud %}">
+                Revisar solicitud
+            </a>
+        </div>
+        <br>
+    {% endfor %}
+{% else %}
+    <p>No hay solicitudes de registro de junta.</p>
+{% endif %}
+
+{% endblock %}

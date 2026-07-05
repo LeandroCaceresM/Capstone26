@@ -1,0 +1,65 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Revisar solicitud
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Revisar solicitud de registro de junta</h1>
+
+<p>
+    <strong>Solicitante:</strong>
+    {{ solicitud.id_vecino.pri_nombre }}
+    {{ solicitud.id_vecino.apell_paterno }}
+</p>
+
+<p><strong>Nombre junta:</strong> {{ registro.nombre_junta }}</p>
+<p><strong>Dirección sede:</strong> {{ registro.direccion }}</p>
+
+<p>
+    <strong>Sector:</strong>
+    {{ registro.id_sector.nombre_sector }},
+    {{ registro.id_sector.id_comuna.nom_comuna }},
+    {{ registro.id_sector.id_comuna.id_region.nom_region }}
+</p>
+
+<p>
+    <strong>Documento personalidad jurídica:</strong>
+    <a href="{{ registro.documento_personalidad_url }}" target="_blank">
+        Ver documento
+    </a>
+</p>
+
+<p>
+    <strong>Documento directiva vigente:</strong>
+    <a href="{{ registro.documento_directiva_url }}" target="_blank">
+        Ver documento
+    </a>
+</p>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Comentario</label>
+    <textarea
+        name="comentario_presidente"
+        rows="5"
+        placeholder="Escribe un comentario para el solicitante..."
+        required
+    ></textarea>
+
+    <button type="submit" name="accion" value="aprobar">
+        Aprobar y crear junta
+    </button>
+
+    <button type="submit" name="accion" value="rechazar">
+        Rechazar
+    </button>
+
+    <a href="{% url 'solicitudes_superadmin' %}">
+        Volver
+    </a>
+</form>
+
+{% endblock %}

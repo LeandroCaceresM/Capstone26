@@ -1,0 +1,133 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Solicitar registro de junta
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Solicitar registro de junta</h1>
+
+<p>
+    Esta solicitud permite registrar en UrbanLink una junta de vecinos que ya existe en la vida real.
+    Debes adjuntar documentos que acrediten su existencia y la directiva vigente.
+</p>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <label>Nombre de la junta</label>
+    <input type="text" name="nombre_junta" required>
+
+    <label>Dirección sede</label>
+    <input type="text" name="direccion" required>
+
+    <label>Región</label>
+    <select id="region_select" required>
+        <option value="">Seleccione una región</option>
+        {% for region in regiones %}
+            <option value="{{ region.id_region }}">
+                {{ region.nom_region }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Comuna</label>
+    <select id="comuna_select" required disabled>
+        <option value="">Primero seleccione una región</option>
+        {% for comuna in comunas %}
+            <option value="{{ comuna.id_comuna }}" data-region="{{ comuna.id_region.id_region }}">
+                {{ comuna.nom_comuna }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Sector</label>
+    <select name="id_sector" id="sector_select" required disabled>
+        <option value="">Primero seleccione una comuna</option>
+        {% for sector in sectores %}
+            <option value="{{ sector.id_sector }}" data-comuna="{{ sector.id_comuna.id_comuna }}">
+                {{ sector.nombre_sector }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Certificado personalidad jurídica</label>
+    <input type="file" name="documento_personalidad" accept=".pdf,.jpg,.jpeg,.png" required>
+
+    <label>Documento directiva vigente</label>
+    <input type="file" name="documento_directiva" accept=".pdf,.jpg,.jpeg,.png" required>
+
+    <button type="submit">
+        Enviar solicitud
+    </button>
+
+    <a href="{% url 'panel_vecino' %}">
+        Cancelar
+    </a>
+</form>
+
+<script>
+const regionSelect = document.getElementById("region_select");
+const comunaSelect = document.getElementById("comuna_select");
+const sectorSelect = document.getElementById("sector_select");
+
+const comunaOptions = Array.from(comunaSelect.options).filter(option => option.value);
+const sectorOptions = Array.from(sectorSelect.options).filter(option => option.value);
+
+function resetComunas(){
+    comunaSelect.innerHTML = '<option value="">Primero seleccione una región</option>';
+    comunaSelect.disabled = true;
+}
+
+function resetSectores(){
+    sectorSelect.innerHTML = '<option value="">Primero seleccione una comuna</option>';
+    sectorSelect.disabled = true;
+}
+
+function cargarComunas(regionId){
+    comunaSelect.innerHTML = '<option value="">Seleccione una comuna</option>';
+
+    comunaOptions.forEach(option => {
+        if(option.dataset.region === regionId){
+            comunaSelect.appendChild(option.cloneNode(true));
+        }
+    });
+
+    comunaSelect.disabled = false;
+}
+
+function cargarSectores(comunaId){
+    sectorSelect.innerHTML = '<option value="">Seleccione un sector</option>';
+
+    sectorOptions.forEach(option => {
+        if(option.dataset.comuna === comunaId){
+            sectorSelect.appendChild(option.cloneNode(true));
+        }
+    });
+
+    sectorSelect.disabled = false;
+}
+
+regionSelect.addEventListener("change", () => {
+    resetComunas();
+    resetSectores();
+
+    if(regionSelect.value){
+        cargarComunas(regionSelect.value);
+    }
+});
+
+comunaSelect.addEventListener("change", () => {
+    resetSectores();
+
+    if(comunaSelect.value){
+        cargarSectores(comunaSelect.value);
+    }
+});
+
+resetComunas();
+resetSectores();
+</script>
+
+{% endblock %}

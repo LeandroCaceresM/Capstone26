@@ -383,6 +383,106 @@ def mis_solicitudes_view(request):
 
 @never_cache
 @role_required(ROL_USUARIO)
+def solicitar_registro_junta_view(request):
+    vecino = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    regiones = Region.objects.all().order_by("nom_region")
+
+    comunas = Comuna.objects.select_related(
+        "id_region"
+    ).order_by("nom_comuna")
+
+    sectores = Sector.objects.select_related(
+        "id_comuna__id_region"
+    ).order_by(
+        "id_comuna__nom_comuna",
+        "nombre_sector"
+    )
+
+    if request.method == "POST":
+        nombre_junta = limpiar_titulo(request.POST.get("nombre_junta"))
+        direccion = limpiar_titulo(request.POST.get("direccion"))
+
+        sector = get_object_or_404(
+            Sector,
+            id_sector=request.POST.get("id_sector")
+        )
+
+        doc_personalidad = request.FILES.get("documento_personalidad")
+        doc_directiva = request.FILES.get("documento_directiva")
+
+        if not doc_personalidad or not doc_directiva:
+            messages.error(request, "Debe adjuntar ambos documentos requeridos.")
+            return redirect("solicitar_registro_junta")
+
+        def subir_documento(archivo, carpeta):
+            extension = os.path.splitext(archivo.name)[1].lower()
+            nombre_archivo = f"{carpeta}/{vecino.id_vecino}_{uuid.uuid4()}{extension}"
+
+            supabase_storage.storage.from_("documentos-juntas").upload(
+                path=nombre_archivo,
+                file=archivo.read(),
+                file_options={
+                    "content-type": archivo.content_type,
+                    "upsert": "false"
+                }
+            )
+
+            return supabase_storage.storage.from_("documentos-juntas").get_public_url(nombre_archivo)
+
+        personalidad_url = subir_documento(doc_personalidad, "personalidad_juridica")
+        directiva_url = subir_documento(doc_directiva, "directiva_vigente")
+
+        tipo_solicitud = get_object_or_404(
+            Tiposolicitud,
+            tipo_solicitud="Registro de junta"
+        )
+
+        solicitud = Solicitud.objects.create(
+            id_solicitud=uuid.uuid4(),
+            fecha_solicitud=timezone.now(),
+            estado=ESTADO_EN_PROCESO,
+            descripcion="Solicitud de registro de junta existente en UrbanLink.",
+            comentario_presidente=None,
+            id_vecino=vecino,
+            id_tsolicitud=tipo_solicitud
+        )
+
+        estado_en_proceso = EstadoSolicitud.objects.get(
+            nomb_est_sol=ESTADO_EN_PROCESO
+        )
+
+        HistEstSol.objects.create(
+            id_solicitud=solicitud,
+            id_est=estado_en_proceso,
+            fecha_cb_estado=timezone.now()
+        )
+
+        SolicitudRegistroJunta.objects.create(
+            id_solicitud_registro=uuid.uuid4(),
+            id_solicitud=solicitud,
+            nombre_junta=nombre_junta,
+            direccion=direccion,
+            id_sector=sector,
+            documento_personalidad_url=personalidad_url,
+            documento_directiva_url=directiva_url
+        )
+
+        messages.success(request, "Solicitud de registro de junta enviada correctamente.")
+        return redirect("mis_solicitudes")
+
+    return render(request, "vecino/solicitar_registro_junta.html", {
+        "regiones": regiones,
+        "comunas": comunas,
+        "sectores": sectores,
+    })
+
+
+@never_cache
+@role_required(ROL_USUARIO)
 def crear_solicitud_view(request):
     vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
 

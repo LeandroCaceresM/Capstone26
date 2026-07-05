@@ -5,6 +5,17 @@ urlpatterns = [
     path("panel-superadmin/", views.panel_superadmin_view, name="panel_superadmin"),
 
 
+    path(
+        "superadmin/solicitudes/",
+        views.solicitudes_superadmin_view,
+        name="solicitudes_superadmin"
+    ),
+    path(
+        "superadmin/solicitudes/<uuid:id_solicitud>/cerrar/",
+        views.cerrar_solicitud_superadmin_view,
+        name="cerrar_solicitud_superadmin"
+    ),
+
     path("superadmin/sectores/", views.listar_sectores_view, name="listar_sectores"),
     path("superadmin/sectores/crear/", views.crear_sector_view, name="crear_sector"),
     
