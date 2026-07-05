@@ -21,6 +21,17 @@ urlpatterns = [
         name="detalle_vivienda"
     ),
     path(
+        "presidente/viviendas/<uuid:id_vivienda>/eliminar/",
+        views.eliminar_vivienda_view,
+        name="eliminar_vivienda"
+    ),
+    path(
+        "presidente/viviendas/<uuid:id_vivienda>/editar/",
+        views.editar_vivienda_view,
+        name="editar_vivienda"
+    ),
+    
+    path(
         "presidente/viviendas/<uuid:id_vivienda>/asignar-vecino/",
         views.asignar_vecino_vivienda_view,
         name="asignar_vecino_vivienda"

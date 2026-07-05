@@ -108,7 +108,7 @@ def viviendas_junta_view(request):
     junta = residencia.id_vivienda.id_junta
 
     viviendas = Vivienda.objects.filter(
-        id_junta=junta
+        id_junta=junta,
     ).order_by("nombre_calle", "numero_calle")
 
     viviendas_data = []
@@ -160,6 +160,7 @@ def crear_vivienda_view(request):
         numero_calle = request.POST.get("numero_calle")
         num_block = request.POST.get("num_block") or None
         num_dpto = request.POST.get("num_dpto") or None
+        observacion = limpiar_texto(request.POST.get("observacion"))
 
         if tipo_vivienda == "C":
             num_block = None
@@ -182,7 +183,8 @@ def crear_vivienda_view(request):
             numero_calle=numero_calle,
             num_block=num_block,
             num_dpto=num_dpto,
-            id_junta=junta
+            id_junta=junta,
+            observacion=observacion,
         )
 
         messages.success(request, "Vivienda creada correctamente.")
@@ -190,6 +192,51 @@ def crear_vivienda_view(request):
 
     return render(request, "presidente/crear_vivienda.html", {
         "junta": junta
+    })
+
+
+@never_cache
+@role_required(ROL_ADMIN)
+def eliminar_vivienda_view(request, id_vivienda):
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    vivienda = get_object_or_404(
+        Vivienda,
+        id_vivienda=id_vivienda,
+        id_junta=junta
+    )
+
+    tiene_historial = HistVivienda.objects.filter(
+        id_vivienda=vivienda
+    ).exists()
+
+    if request.method == "POST":
+        if tiene_historial:
+            messages.error(
+                request,
+                "No se puede eliminar esta vivienda porque tiene historial de residentes."
+            )
+            return redirect("detalle_vivienda", id_vivienda=vivienda.id_vivienda)
+
+        vivienda.delete()
+
+        messages.success(request, "Vivienda eliminada correctamente.")
+        return redirect("viviendas_junta")
+
+    return render(request, "presidente/eliminar_vivienda.html", {
+        "vivienda": vivienda,
+        "tiene_historial": tiene_historial,
     })
 
 @never_cache
@@ -229,6 +276,103 @@ def detalle_vivienda_view(request, id_vivienda):
         "residentes_actuales": residentes_actuales,
         "historial_residentes": historial_residentes,
     })
+
+
+@never_cache
+@role_required(ROL_ADMIN)
+def editar_vivienda_view(request, id_vivienda):
+    presidente = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    vivienda = get_object_or_404(
+        Vivienda,
+        id_vivienda=id_vivienda,
+        id_junta=junta,
+    )
+
+    if request.method == "POST":
+        tipo_vivienda = request.POST.get("tipo_vivienda")
+        nombre_calle = limpiar_mayusculas(request.POST.get("nombre_calle"))
+        numero_calle = request.POST.get("numero_calle")
+        num_block = request.POST.get("num_block") or None
+        num_dpto = request.POST.get("num_dpto") or None
+        observacion = limpiar_texto(request.POST.get("observacion"))
+
+        if tipo_vivienda == "C":
+            num_block = None
+            num_dpto = None
+
+        existe = Vivienda.objects.filter(
+            id_junta=junta,
+            nombre_calle=nombre_calle,
+            numero_calle=numero_calle,
+            num_block=num_block,
+            num_dpto=num_dpto,
+        ).exclude(id_vivienda=vivienda.id_vivienda).exists()
+
+        if existe:
+            messages.error(request, "Ya existe otra vivienda con esa dirección.")
+            return redirect("editar_vivienda", id_vivienda=vivienda.id_vivienda)
+
+        vivienda.tipo_vivienda = tipo_vivienda
+        vivienda.nombre_calle = nombre_calle
+        vivienda.numero_calle = numero_calle
+        vivienda.num_block = num_block
+        vivienda.num_dpto = num_dpto
+        vivienda.observacion = observacion
+        vivienda.save()
+
+        messages.success(request, "Vivienda actualizada correctamente.")
+        return redirect("detalle_vivienda", id_vivienda=vivienda.id_vivienda)
+
+    return render(request, "presidente/editar_vivienda.html", {
+        "vivienda": vivienda,
+        "junta": junta
+    })
+
+    presidente = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    vivienda = get_object_or_404(
+        Vivienda,
+        id_vivienda=id_vivienda,
+        id_junta=junta,
+        vigencia=VIGENCIA_ACTIVA
+    )
+
+    tiene_residentes = HistVivienda.objects.filter(
+        id_vivienda=vivienda,
+        fecha_ter__isnull=True
+    ).exists()
+
+    if request.method == "POST":
+        if tiene_residentes:
+            messages.error(request, "No puedes desactivar una vivienda con residentes activos.")
+            return redirect("detalle_vivienda", id_vivienda=vivienda.id_vivienda)
+
+        vivienda.vigencia = VIGENCIA_INACTIVA
+        vivienda.save()
+
+        messages.success(request, "Vivienda desactivada correctamente.")
+        return redirect("viviendas_junta")
+
+    return render(request, "presidente/desactivar_vivienda.html", {
+        "vivienda": vivienda,
+        "tiene_residentes": tiene_residentes
+    })
+
 
 @never_cache
 @role_required(ROL_ADMIN)

@@ -1,87 +1,151 @@
 {% extends "base_panel.html" %}
+{% load static %}
 
 {% block titulo %}
 Detalle vivienda
 {% endblock %}
 
+{% block head %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/viviendas.css' %}">
+{% endblock %}
+
 {% block contenido %}
 
-<h1>Detalle vivienda</h1>
+<div class="viviendas-page">
 
-<p>
-    <strong>Dirección:</strong>
-    {{ vivienda.nombre_calle }} {{ vivienda.numero_calle }}
-</p>
+    <h1>Detalle vivienda</h1>
 
-<p>
-    <strong>Tipo:</strong>
-    {% if vivienda.tipo_vivienda == "C" %}
-        Casa
-    {% else %}
-        Departamento
-    {% endif %}
-</p>
+    <section class="vivienda-card">
 
-{% if vivienda.tipo_vivienda == "D" %}
-    <p><strong>Block:</strong> {{ vivienda.num_block }}</p>
-    <p><strong>Depto:</strong> {{ vivienda.num_dpto }}</p>
-{% endif %}
-
-<a href="{% url 'asignar_vecino_vivienda' vivienda.id_vivienda %}">
-    + Asignar vecino a esta vivienda
-</a>
-
-<br><br>
-
-<h2>Residentes actuales</h2>
-
-{% if residentes_actuales %}
-    {% for registro in residentes_actuales %}
-        <p>
-            {{ registro.id_vecino.pri_nombre }}
-            {{ registro.id_vecino.apell_paterno }}
-            {{ registro.id_vecino.apell_materno }}
-        </p>
-
-        <a href="{% url 'retirar_vecino_vivienda' vivienda.id_vivienda registro.id_vecino.id_vecino %}">
-            Retirar de vivienda
-        </a>
-    {% endfor %}
-{% else %}
-    <p>Esta vivienda no tiene residentes activos.</p>
-{% endif %}
-
-<h2>Historial de residentes</h2>
-
-{% if historial_residentes %}
-    <table>
-        <tr>
-            <th>Vecino</th>
-            <th>Desde</th>
-            <th>Hasta</th>
-        </tr>
-
-        {% for registro in historial_residentes %}
-            <tr>
-                <td>
-                    {{ registro.id_vecino.pri_nombre }}
-                    {{ registro.id_vecino.apell_paterno }}
-                </td>
-                <td>{{ registro.fecha_ini|date:"d/m/Y" }}</td>
-                <td>
-                    {% if registro.fecha_ter %}
-                        {{ registro.fecha_ter|date:"d/m/Y" }}
+        <div class="vivienda-card-header">
+            <div>
+                <h2>{{ vivienda.nombre_calle }} {{ vivienda.numero_calle }}</h2>
+                <span>
+                    {% if vivienda.tipo_vivienda == "C" %}
+                        Casa
                     {% else %}
-                        Actual
+                        Departamento
                     {% endif %}
-                </td>
-            </tr>
-        {% endfor %}
-    </table>
-{% endif %}
+                </span>
+            </div>
 
-<br>
+            {% if residentes_actuales %}
+                <span class="estado-vivienda ocupada">Ocupada</span>
+            {% else %}
+                <span class="estado-vivienda disponible">Disponible</span>
+            {% endif %}
+        </div>
 
-<a href="{% url 'viviendas_junta' %}">Volver</a>
+        {% if vivienda.tipo_vivienda == "D" %}
+            <div class="vivienda-extra">
+                <div>
+                    <small>Block</small>
+                    <strong>{{ vivienda.num_block|default:"-" }}</strong>
+                </div>
+
+                <div>
+                    <small>Depto</small>
+                    <strong>{{ vivienda.num_dpto|default:"-" }}</strong>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if vivienda.observacion %}
+            <div class="residentes-box">
+                <small>Observación</small>
+                <p>{{ vivienda.observacion }}</p>
+            </div>
+        {% endif %}
+
+        <div class="vivienda-actions">
+            <a class="btn-agregar" href="{% url 'asignar_vecino_vivienda' vivienda.id_vivienda %}">
+                + Asignar vecino
+            </a>
+
+            <a class="btn-secundario" href="{% url 'editar_vivienda' vivienda.id_vivienda %}">
+                Editar vivienda
+            </a>
+
+            <a class="btn-danger-link" href="{% url 'eliminar_vivienda' vivienda.id_vivienda %}">
+                Eliminar vivienda
+            </a>
+        </div>
+
+    </section>
+
+    <section class="vivienda-card mt-card">
+        <h2>Residentes actuales</h2>
+
+        {% if residentes_actuales %}
+            <div class="residentes-list">
+                {% for registro in residentes_actuales %}
+                    <div class="residente-item">
+                        <div>
+                            <strong>
+                                {{ registro.id_vecino.pri_nombre }}
+                                {{ registro.id_vecino.apell_paterno }}
+                                {{ registro.id_vecino.apell_materno }}
+                            </strong>
+                            <span>{{ registro.id_vecino.rut }}</span>
+                        </div>
+
+                        <a href="{% url 'retirar_vecino_vivienda' vivienda.id_vivienda registro.id_vecino.id_vecino %}">
+                            Retirar
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty-text">Esta vivienda no tiene residentes activos.</p>
+        {% endif %}
+    </section>
+
+    <section class="vivienda-card mt-card">
+        <h2>Historial de residentes</h2>
+
+        {% if historial_residentes %}
+            <div class="table-responsive">
+                <table class="panel-table">
+                    <thead>
+                        <tr>
+                            <th>Vecino</th>
+                            <th>Desde</th>
+                            <th>Hasta</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for registro in historial_residentes %}
+                            <tr>
+                                <td>
+                                    {{ registro.id_vecino.pri_nombre }}
+                                    {{ registro.id_vecino.apell_paterno }}
+                                </td>
+                                <td>{{ registro.fecha_ini|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if registro.fecha_ter %}
+                                        {{ registro.fecha_ter|date:"d/m/Y" }}
+                                    {% else %}
+                                        Actual
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="empty-text">No existe historial de residentes.</p>
+        {% endif %}
+    </section>
+
+    <br>
+
+    <a href="{% url 'viviendas_junta' %}">
+        Volver
+    </a>
+
+</div>
 
 {% endblock %}

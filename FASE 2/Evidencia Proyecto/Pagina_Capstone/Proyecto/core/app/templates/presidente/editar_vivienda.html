@@ -1,0 +1,126 @@
+{% extends "base_panel.html" %}
+{% load static %}
+
+{% block titulo %}
+Editar vivienda
+{% endblock %}
+
+{% block head %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/viviendas.css' %}">
+{% endblock %}
+
+{% block contenido %}
+
+<div class="viviendas-page">
+
+    <h1>Editar vivienda</h1>
+
+    <section class="vivienda-card">
+
+        <div class="junta-card">
+            <span>Junta</span>
+            <strong>{{ junta.nombre }}</strong>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <label>Tipo de vivienda</label>
+            <select name="tipo_vivienda" id="tipo_vivienda" required>
+                <option value="C"
+                    {% if vivienda.tipo_vivienda == "C" %}selected{% endif %}>
+                    Casa
+                </option>
+
+                <option value="D"
+                    {% if vivienda.tipo_vivienda == "D" %}selected{% endif %}>
+                    Departamento
+                </option>
+            </select>
+
+            <label>Nombre calle</label>
+            <input
+                type="text"
+                name="nombre_calle"
+                value="{{ vivienda.nombre_calle }}"
+                required
+            >
+
+            <label>Número calle</label>
+            <input
+                type="number"
+                name="numero_calle"
+                value="{{ vivienda.numero_calle }}"
+                required
+            >
+
+            <div id="datos_departamento">
+
+                <label>Block</label>
+                <input
+                    type="number"
+                    name="num_block"
+                    value="{{ vivienda.num_block|default:'' }}"
+                >
+
+                <label>Departamento</label>
+                <input
+                    type="number"
+                    name="num_dpto"
+                    value="{{ vivienda.num_dpto|default:'' }}"
+                >
+
+            </div>
+
+            <label>Observación</label>
+
+            <textarea
+                name="observacion"
+                rows="3"
+            >{{ vivienda.observacion|default:'' }}</textarea>
+
+            <div class="vivienda-actions">
+
+                <button type="submit">
+                    Guardar cambios
+                </button>
+
+                <a
+                    class="btn-secundario"
+                    href="{% url 'detalle_vivienda' vivienda.id_vivienda %}"
+                >
+                    Cancelar
+                </a>
+
+            </div>
+
+        </form>
+
+    </section>
+
+</div>
+
+<script>
+
+const tipo = document.getElementById("tipo_vivienda");
+const bloque = document.getElementById("datos_departamento");
+
+function actualizar(){
+
+    if(tipo.value === "D"){
+        bloque.style.display = "block";
+    }
+    else{
+        bloque.style.display = "none";
+    }
+
+}
+
+tipo.addEventListener("change", actualizar);
+
+actualizar();
+
+</script>
+
+{% endblock %}

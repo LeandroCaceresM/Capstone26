@@ -174,3 +174,111 @@
         flex-direction: column;
     }
 }
+
+.mt-card{
+    margin-top:18px;
+}
+
+.vivienda-actions{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:18px;
+}
+
+.btn-secundario{
+    background:#eef5ff;
+    color:#1565c0;
+    padding:12px 18px;
+    border-radius:12px;
+    font-weight:700;
+    text-decoration:none;
+}
+
+.btn-danger-link{
+    background:#fff1f2;
+    color:#dc2626;
+    padding:12px 18px;
+    border-radius:12px;
+    font-weight:700;
+    text-decoration:none;
+}
+
+.residentes-list{
+    display:grid;
+    gap:12px;
+}
+
+.residente-item{
+    background:#f6f8fc;
+    border-radius:14px;
+    padding:15px;
+    display:flex;
+    justify-content:space-between;
+    gap:14px;
+    align-items:center;
+}
+
+.residente-item strong,
+.residente-item span{
+    display:block;
+}
+
+.residente-item span{
+    color:#526587;
+    margin-top:4px;
+}
+
+.panel-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.panel-table th{
+    background:#1565c0;
+    color:white;
+}
+
+.panel-table th,
+.panel-table td{
+    padding:12px;
+    border:1px solid #ddd;
+}
+
+@media(max-width:768px){
+    .vivienda-actions{
+        flex-direction:column;
+    }
+
+    .vivienda-actions a{
+        text-align:center;
+    }
+
+    .residente-item{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .panel-table{
+        min-width:520px;
+    }
+}
+
+.junta-card{
+    background:#f6f8fc;
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:18px;
+}
+
+.junta-card span{
+    display:block;
+    color:#526587;
+    font-size:14px;
+}
+
+.junta-card strong{
+    display:block;
+    margin-top:5px;
+    font-size:18px;
+}

@@ -207,9 +207,7 @@ class Vivienda(models.Model):
     numero_calle = models.IntegerField()
     num_block = models.IntegerField(blank=True, null=True)
     num_dpto = models.IntegerField(blank=True, null=True)
-
     observacion = models.CharField(max_length=255, blank=True, null=True)
-    vigencia = models.CharField(max_length=1, default="S")
 
     id_junta = models.ForeignKey(Juntavecinos, models.DO_NOTHING, db_column='id_junta')
 

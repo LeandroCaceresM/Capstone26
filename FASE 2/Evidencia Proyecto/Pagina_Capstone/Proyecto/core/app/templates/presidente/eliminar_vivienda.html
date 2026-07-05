@@ -1,0 +1,36 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Eliminar vivienda
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Eliminar vivienda</h1>
+
+<p>
+    ¿Seguro que deseas eliminar la vivienda
+    <strong>{{ vivienda.nombre_calle }} {{ vivienda.numero_calle }}</strong>?
+</p>
+
+{% if tiene_historial %}
+    <p>
+        Esta vivienda tiene historial de residentes, por lo tanto no puede eliminarse.
+    </p>
+{% endif %}
+
+<form method="POST">
+    {% csrf_token %}
+
+    {% if not tiene_historial %}
+        <button type="submit">
+            Sí, eliminar
+        </button>
+    {% endif %}
+
+    <a href="{% url 'detalle_vivienda' vivienda.id_vivienda %}">
+        Cancelar
+    </a>
+</form>
+
+{% endblock %}

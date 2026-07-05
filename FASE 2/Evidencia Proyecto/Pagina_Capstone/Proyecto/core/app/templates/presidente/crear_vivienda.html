@@ -1,53 +1,79 @@
 {% extends "base_panel.html" %}
+{% load static %}
 
 {% block titulo %}
 Crear vivienda
 {% endblock %}
 
+{% block head %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/viviendas.css' %}">
+{% endblock %}
+
 {% block contenido %}
 
-<h1>Crear vivienda</h1>
+<div class="viviendas-page">
 
-<p><strong>Junta:</strong> {{ junta.nombre }}</p>
+    <h1>Crear vivienda</h1>
 
-<form method="POST">
-    {% csrf_token %}
+    <section class="vivienda-card">
 
-    <label>Tipo de vivienda</label>
-    <select name="tipo_vivienda" id="tipo_vivienda" required>
-        <option value="C">Casa</option>
-        <option value="D">Departamento</option>
-    </select>
+        <div class="junta-card">
+            <span>Junta</span>
+            <strong>{{ junta.nombre }}</strong>
+        </div>
 
-    <label>Nombre calle</label>
-    <input type="text" name="nombre_calle" required>
+        <form method="POST">
+            {% csrf_token %}
 
-    <label>Número calle</label>
-    <input type="number" name="numero_calle" required>
+            <label>Tipo de vivienda</label>
+            <select name="tipo_vivienda" id="tipo_vivienda" required>
+                <option value="C">Casa</option>
+                <option value="D">Departamento</option>
+            </select>
 
-    <div id="datos_departamento" style="display:none;">
-        <label>Block</label>
-        <input type="number" name="num_block">
+            <label>Nombre calle</label>
+            <input type="text" name="nombre_calle" required>
 
-        <label>Departamento</label>
-        <input type="number" name="num_dpto">
-    </div>
+            <label>Número calle</label>
+            <input type="number" name="numero_calle" required>
 
-    <button type="submit">Guardar vivienda</button>
+            <div id="datos_departamento" style="display:none;">
+                <label>Block</label>
+                <input type="number" name="num_block">
 
-    <a href="{% url 'viviendas_junta' %}">Volver</a>
-</form>
+                <label>Departamento</label>
+                <input type="number" name="num_dpto">
+            </div>
+
+            <label>Observación</label>
+            <textarea
+                name="observacion"
+                rows="3"
+                placeholder="Ej: Casa esquina, acceso por pasaje interior"
+            ></textarea>
+
+            <div class="vivienda-actions">
+                <button type="submit">
+                    Guardar vivienda
+                </button>
+
+                <a class="btn-secundario" href="{% url 'viviendas_junta' %}">
+                    Volver
+                </a>
+            </div>
+        </form>
+
+    </section>
+
+</div>
 
 <script>
     const tipoVivienda = document.getElementById("tipo_vivienda");
     const datosDepartamento = document.getElementById("datos_departamento");
 
     function actualizarCampos(){
-        if(tipoVivienda.value === "D"){
-            datosDepartamento.style.display = "block";
-        }else{
-            datosDepartamento.style.display = "none";
-        }
+        datosDepartamento.style.display = tipoVivienda.value === "D" ? "block" : "none";
     }
 
     tipoVivienda.addEventListener("change", actualizarCampos);
