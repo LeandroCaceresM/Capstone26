@@ -55,7 +55,7 @@ Cerrar Solicitud
 
     {% if cambio_domicilio %}
         <div class="cambio-domicilio-box">
-            <h3>Cambio de domicilio solicitado</h3>
+            <h3>Cambio de residencia solicitado</h3>
 
             <div class="info-grid">
                 <div class="info-card">
@@ -89,6 +89,20 @@ Cerrar Solicitud
                         {% endif %}
                     </strong>
                 </div>
+
+                <div class="info-card">
+                    <span>Evidencia</span>
+
+                    {% if cambio_domicilio.documento_url %}
+                        <strong>{{ cambio_domicilio.tipo_documento }}</strong>
+                        <br>
+                        <a href="{{ cambio_domicilio.documento_url }}" target="_blank">
+                            Ver evidencia
+                        </a>
+                    {% else %}
+                        <strong>Sin evidencia adjunta</strong>
+                    {% endif %}
+                </div> 
             </div>
         </div>
     {% endif %}
@@ -141,6 +155,7 @@ Cerrar Solicitud
             </div>
         </div>
     {% endif %}
+
 
         <form method="POST">
             {% csrf_token %}

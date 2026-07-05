@@ -31,9 +31,9 @@ Detalle vivienda
             </div>
 
             {% if residentes_actuales %}
-                <span class="estado-vivienda ocupada">Ocupada</span>
+                <span class="estado-vivienda ocupada">Con residentes</span>
             {% else %}
-                <span class="estado-vivienda disponible">Disponible</span>
+                <span class="estado-vivienda disponible">Sin residentes</span>
             {% endif %}
         </div>
 
@@ -60,7 +60,7 @@ Detalle vivienda
 
         <div class="vivienda-actions">
             <a class="btn-agregar" href="{% url 'asignar_vecino_vivienda' vivienda.id_vivienda %}">
-                + Asignar vecino
+                + Confirmar residencia
             </a>
 
             <a class="btn-secundario" href="{% url 'editar_vivienda' vivienda.id_vivienda %}">
