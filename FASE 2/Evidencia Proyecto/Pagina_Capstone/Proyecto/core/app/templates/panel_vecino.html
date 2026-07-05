@@ -16,6 +16,25 @@ Panel Vecino
 
     <h1>Panel Vecino</h1>
 
+
+{% if not residencia %}
+
+    <section class="dashboard-box">
+        <h2>Bienvenido a UrbanLink</h2>
+
+        <p>
+            Actualmente no perteneces a ninguna junta de vecinos.
+            Para acceder a noticias, certificados, solicitudes y eventos,
+            primero debes solicitar tu incorporación a una junta.
+        </p>
+
+        <a class="btn-panel" href="{% url 'solicitar_incorporacion' %}">
+            Solicitar incorporación
+        </a>
+    </section>
+
+{% else %}
+
     <div class="panel-dashboard">
 
         <section class="dashboard-box resumen-datos">
@@ -133,5 +152,7 @@ Panel Vecino
     </div>
 
 </div>
+
+{% endif %}
 
 {% endblock %}

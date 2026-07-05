@@ -87,6 +87,193 @@ def panel_vecino_view(request):
 
 @never_cache
 @role_required(ROL_USUARIO)
+def solicitar_incorporacion_view(request):
+    vecino = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia_actual = obtener_residencia_actual(vecino)
+
+    if residencia_actual:
+        messages.error(request, "Ya perteneces a una junta de vecinos.")
+        return redirect("panel_vecino")
+
+    solicitud_pendiente = Solicitud.objects.filter(
+        id_vecino=vecino,
+        id_tsolicitud__tipo_solicitud="Incorporación a junta",
+        estado=ESTADO_EN_PROCESO
+    ).exists()
+
+    if solicitud_pendiente:
+        messages.error(request, "Ya tienes una solicitud de incorporación en proceso.")
+        return redirect("mis_solicitudes")
+
+    juntas = Juntavecinos.objects.select_related(
+        "id_sector__id_comuna__id_region"
+    ).order_by("nombre")
+
+    if request.method == "POST":
+        junta = get_object_or_404(
+            Juntavecinos,
+            id_junta=request.POST.get("id_junta")
+        )
+
+        descripcion = limpiar_texto(request.POST.get("descripcion"))
+
+        tipo_solicitud = get_object_or_404(
+            Tiposolicitud,
+            tipo_solicitud="Incorporación a junta"
+        )
+
+        solicitud = Solicitud.objects.create(
+            id_solicitud=uuid.uuid4(),
+            fecha_solicitud=timezone.now(),
+            estado=ESTADO_EN_PROCESO,
+            descripcion=descripcion,
+            comentario_presidente=None,
+            id_vecino=vecino,
+            id_tsolicitud=tipo_solicitud
+        )
+
+        estado_en_proceso = EstadoSolicitud.objects.get(
+            nomb_est_sol=ESTADO_EN_PROCESO
+        )
+
+        HistEstSol.objects.create(
+            id_solicitud=solicitud,
+            id_est=estado_en_proceso,
+            fecha_cb_estado=timezone.now()
+        )
+
+        SolicitudIncorporacion.objects.create(
+            id_solicitud_incorporacion=uuid.uuid4(),
+            id_solicitud=solicitud,
+            id_junta=junta
+        )
+
+        messages.success(request, "Solicitud de incorporación enviada correctamente.")
+        return redirect("mis_solicitudes")
+
+    return render(request, "vecino/solicitar_incorporacion.html", {
+        "juntas": juntas,
+    })
+
+
+
+@never_cache
+@login_required_custom
+def mis_datos_view(request):
+    vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+
+    cargo_actual = obtener_cargo_actual(vecino)
+
+    if request.method == "POST":
+        vecino.telefono = limpiar_telefono(request.POST.get("telefono"))
+
+        if request.session.get("rol") == ROL_ADMIN:
+            firma = request.FILES.get("firma")
+
+            if firma:
+                extension = firma.name.split(".")[-1].lower()
+                nombre_archivo = f"presidentes/firma_{vecino.id_vecino}.{extension}"
+                archivo_bytes = firma.read()
+
+                supabase_storage.storage.from_("firmas").upload(
+                    path=nombre_archivo,
+                    file=archivo_bytes,
+                    file_options={
+                        "content-type": firma.content_type,
+                        "upsert": "true"
+                    }
+                )
+
+                firma_url = supabase_storage.storage.from_("firmas").get_public_url(nombre_archivo)
+                vecino.firma_digital = firma_url
+
+        vecino.save()
+        messages.success(request, "Datos actualizados correctamente.")
+        return redirect("mis_datos")
+
+    return render(request, "mis_datos.html", {
+        "vecino": vecino,
+        "cargo_actual": cargo_actual,
+    })
+
+
+@never_cache
+@role_required(ROL_USUARIO)
+def solicitar_cambio_domicilio_view(request):
+    vecino = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia_actual = obtener_residencia_actual(vecino)
+
+    if not residencia_actual:
+        messages.error(request, "Actualmente no tienes una vivienda activa.")
+        return redirect("mis_datos")
+
+    junta = residencia_actual.id_vivienda.id_junta
+
+    viviendas_disponibles = Vivienda.objects.filter(
+        id_junta=junta
+    ).exclude(
+        histvivienda__fecha_ter__isnull=True
+    ).order_by(
+        "nombre_calle",
+        "numero_calle"
+    )
+
+    if request.method == "POST":
+        vivienda_destino = get_object_or_404(
+            Vivienda,
+            id_vivienda=request.POST.get("id_vivienda_destino"),
+            id_junta=junta
+        )
+
+        tipo_solicitud = get_object_or_404(
+            Tiposolicitud,
+            tipo_solicitud="Cambio de domicilio"
+        )
+
+        solicitud = Solicitud.objects.create(
+            id_solicitud=uuid.uuid4(),
+            fecha_solicitud=timezone.now(),
+            estado=ESTADO_EN_PROCESO,
+            descripcion=limpiar_texto(request.POST.get("descripcion")),
+            comentario_presidente=None,
+            id_vecino=vecino,
+            id_tsolicitud=tipo_solicitud
+        )
+
+        estado_en_proceso = EstadoSolicitud.objects.get(
+            nomb_est_sol=ESTADO_EN_PROCESO
+        )
+
+        HistEstSol.objects.create(
+            id_solicitud=solicitud,
+            id_est=estado_en_proceso,
+            fecha_cb_estado=timezone.now()
+        )
+
+        SolicitudCambioDomicilio.objects.create(
+            id_solicitud_cambio=uuid.uuid4(),
+            id_solicitud=solicitud,
+            id_vivienda_destino=vivienda_destino
+        )
+
+        messages.success(request, "Solicitud de cambio de domicilio enviada correctamente.")
+        return redirect("mis_solicitudes")
+
+    return render(request, "vecino/solicitar_cambio_domicilio.html", {
+        "residencia_actual": residencia_actual,
+        "viviendas_disponibles": viviendas_disponibles,
+    })
+
+@never_cache
+@role_required(ROL_USUARIO)
 def mis_solicitudes_view(request):
     vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
 
@@ -151,46 +338,6 @@ def crear_solicitud_view(request):
 
     return render(request, "vecino/crear_solicitud.html", {
         "tipos": tipos
-    })
-
-
-@never_cache
-@login_required_custom
-def mis_datos_view(request):
-    vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
-
-    cargo_actual = obtener_cargo_actual(vecino)
-
-    if request.method == "POST":
-        vecino.telefono = limpiar_telefono(request.POST.get("telefono"))
-
-        if request.session.get("rol") == ROL_ADMIN:
-            firma = request.FILES.get("firma")
-
-            if firma:
-                extension = firma.name.split(".")[-1].lower()
-                nombre_archivo = f"presidentes/firma_{vecino.id_vecino}.{extension}"
-                archivo_bytes = firma.read()
-
-                supabase_storage.storage.from_("firmas").upload(
-                    path=nombre_archivo,
-                    file=archivo_bytes,
-                    file_options={
-                        "content-type": firma.content_type,
-                        "upsert": "true"
-                    }
-                )
-
-                firma_url = supabase_storage.storage.from_("firmas").get_public_url(nombre_archivo)
-                vecino.firma_digital = firma_url
-
-        vecino.save()
-        messages.success(request, "Datos actualizados correctamente.")
-        return redirect("mis_datos")
-
-    return render(request, "mis_datos.html", {
-        "vecino": vecino,
-        "cargo_actual": cargo_actual,
     })
 
 

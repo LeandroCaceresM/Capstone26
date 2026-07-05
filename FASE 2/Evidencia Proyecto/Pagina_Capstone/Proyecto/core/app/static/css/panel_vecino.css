@@ -199,3 +199,21 @@
         grid-template-columns:1fr;
     }
 }
+
+.btn-panel{
+    display:block;
+    text-align:center;
+    margin-top:18px;
+    background:#1565c0;
+    color:white;
+    padding:14px;
+    border-radius:12px;
+    font-weight:700;
+    text-decoration:none;
+}
+
+.btn-panel:hover{
+    background:#0d47a1;
+    color:white;
+    text-decoration:none;
+}

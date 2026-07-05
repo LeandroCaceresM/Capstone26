@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
-from django.db import models
+from django.db import models, transaction
 
 from app.constants import ESTADO_APROBADO, ESTADO_EN_PROCESO, ESTADO_RECHAZADO, ROL_ADMIN, ROL_USUARIO, VIGENCIA_ACTIVA, VIGENCIA_INACTIVA
 from app.models import *
@@ -633,24 +633,96 @@ def cerrar_solicitud_view(request, id_solicitud):
             messages.error(request, "Acción no válida.")
             return redirect("solicitudes_presidente")
 
-        solicitud.estado = nuevo_estado
-        solicitud.comentario_presidente = comentario_presidente
-        solicitud.save()
+        try:
+            with transaction.atomic():
 
-        estado_obj = EstadoSolicitud.objects.get(nomb_est_sol=nuevo_estado)
+                if (
+                    nuevo_estado == ESTADO_APROBADO
+                    and solicitud.id_tsolicitud.tipo_solicitud == "Cambio de domicilio"
+                ):
+                    cambio = get_object_or_404(
+                        SolicitudCambioDomicilio,
+                        id_solicitud=solicitud
+                    )
 
-        HistEstSol.objects.create(
-            id_solicitud=solicitud,
-            id_est=estado_obj,
-            fecha_cb_estado=timezone.now()
-        )
+                    vivienda_destino = cambio.id_vivienda_destino
+                    vecino = solicitud.id_vecino
 
-        messages.success(request, "Solicitud cerrada correctamente.")
-        return redirect("solicitudes_presidente")
+                    vivienda_ocupada = HistVivienda.objects.filter(
+                        id_vivienda=vivienda_destino,
+                        fecha_ter__isnull=True
+                    ).exists()
+
+                    if vivienda_ocupada:
+                        messages.error(
+                            request,
+                            "No se puede aprobar el cambio porque la vivienda destino ya está ocupada."
+                        )
+                        return redirect(
+                            "cerrar_solicitud",
+                            id_solicitud=solicitud.id_solicitud
+                        )
+
+                    residencia_actual = HistVivienda.objects.filter(
+                        id_vecino=vecino,
+                        fecha_ter__isnull=True
+                    ).first()
+
+                    if residencia_actual:
+                        residencia_actual.fecha_ter = timezone.now().date()
+                        residencia_actual.save()
+
+                    HistVivienda.objects.create(
+                        id_hist_vivienda=uuid.uuid4(),
+                        fecha_ini=timezone.now().date(),
+                        fecha_ter=None,
+                        id_vivienda=vivienda_destino,
+                        id_vecino=vecino
+                    )
+
+                solicitud.estado = nuevo_estado
+                solicitud.comentario_presidente = comentario_presidente
+                solicitud.save()
+
+                estado_obj = EstadoSolicitud.objects.get(
+                    nomb_est_sol=nuevo_estado
+                )
+
+                HistEstSol.objects.create(
+                    id_solicitud=solicitud,
+                    id_est=estado_obj,
+                    fecha_cb_estado=timezone.now()
+                )
+
+            messages.success(request, "Solicitud cerrada correctamente.")
+            return redirect("solicitudes_presidente")
+
+        except Exception as e:
+            messages.error(request, f"Error al cerrar solicitud: {e}")
+            return redirect(
+                "cerrar_solicitud",
+                id_solicitud=solicitud.id_solicitud
+            )
+
+    cambio_domicilio = None
+    residencia_actual = None
+
+    if solicitud.id_tsolicitud.tipo_solicitud == "Cambio de domicilio":
+        cambio_domicilio = SolicitudCambioDomicilio.objects.filter(
+            id_solicitud=solicitud
+        ).select_related("id_vivienda_destino").first()
+
+        residencia_actual = HistVivienda.objects.filter(
+            id_vecino=solicitud.id_vecino,
+            fecha_ter__isnull=True
+        ).select_related("id_vivienda").first()
 
     return render(request, "presidente/cerrar_solicitud.html", {
-        "solicitud": solicitud
+        "solicitud": solicitud,
+        "cambio_domicilio": cambio_domicilio,
+        "residencia_actual": residencia_actual,
     })
+
 
 # =========================
 # VISTAS CERTIFICADOS

@@ -135,3 +135,42 @@
     }
 }
 
+.cambio-domicilio-box{
+    margin-bottom: 22px;
+}
+
+.cambio-domicilio-box h3{
+    color: #1565c0;
+    margin-bottom: 14px;
+}
+
+.info-grid{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+.info-card{
+    background: #f6f8fc;
+    border-radius: 14px;
+    padding: 16px;
+    border-left: 5px solid #1565c0;
+}
+
+.info-card span{
+    display: block;
+    color: #526587;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.info-card strong{
+    display: block;
+    line-height: 1.5;
+}
+
+@media(max-width:768px){
+    .info-grid{
+        grid-template-columns: 1fr;
+    }
+}

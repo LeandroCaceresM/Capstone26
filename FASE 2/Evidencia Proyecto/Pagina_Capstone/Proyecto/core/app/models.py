@@ -215,6 +215,61 @@ class Vivienda(models.Model):
         managed = False
         db_table = 'vivienda'
 
+
+class SolicitudCambioDomicilio(models.Model):
+    id_solicitud_cambio = models.UUIDField(primary_key=True)
+
+    id_solicitud = models.ForeignKey(
+        Solicitud,
+        models.DO_NOTHING,
+        db_column="id_solicitud"
+    )
+
+    id_vivienda_destino = models.ForeignKey(
+        Vivienda,
+        models.DO_NOTHING,
+        db_column="id_vivienda_destino"
+    )
+
+    tipo_documento = models.CharField(max_length=50, blank=True, null=True)
+    documento_url = models.CharField(max_length=500, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = "solicitud_cambio_domicilio"
+
+
+class SolicitudIncorporacion(models.Model):
+    id_solicitud_incorporacion = models.UUIDField(primary_key=True)
+
+    id_solicitud = models.ForeignKey(
+        Solicitud,
+        models.DO_NOTHING,
+        db_column="id_solicitud"
+    )
+
+    id_junta = models.ForeignKey(
+        Juntavecinos,
+        models.DO_NOTHING,
+        db_column="id_junta"
+    )
+
+    id_vivienda = models.ForeignKey(
+        Vivienda,
+        models.DO_NOTHING,
+        db_column="id_vivienda",
+        blank=True,
+        null=True
+    )
+
+    tipo_documento = models.CharField(max_length=50, blank=True, null=True)
+    documento_url = models.CharField(max_length=500, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = "solicitud_incorporacion"
+
+#Noticias de una junta de vecinos
 class Noticia(models.Model):
     id_noticia = models.UUIDField(primary_key=True)
     titulo = models.CharField(max_length=120)

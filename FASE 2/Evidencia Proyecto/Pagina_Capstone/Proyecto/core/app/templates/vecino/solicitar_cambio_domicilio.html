@@ -1,0 +1,51 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Cambio de domicilio
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Solicitar cambio de domicilio</h1>
+
+<p>
+    <strong>Vivienda actual:</strong>
+    {{ residencia_actual.id_vivienda.nombre_calle }}
+    {{ residencia_actual.id_vivienda.numero_calle }}
+</p>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label>Nueva vivienda</label>
+    <select name="id_vivienda_destino" required>
+        <option value="">Seleccione una vivienda disponible</option>
+
+        {% for vivienda in viviendas_disponibles %}
+            <option value="{{ vivienda.id_vivienda }}">
+                {{ vivienda.nombre_calle }} {{ vivienda.numero_calle }}
+                {% if vivienda.tipo_vivienda == "D" %}
+                    - Block {{ vivienda.num_block }} Depto {{ vivienda.num_dpto }}
+                {% endif %}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Motivo del cambio</label>
+    <textarea
+        name="descripcion"
+        rows="5"
+        placeholder="Explique brevemente el motivo del cambio de domicilio"
+        required
+    ></textarea>
+
+    <button type="submit">
+        Enviar solicitud
+    </button>
+
+    <a href="{% url 'mis_datos' %}">
+        Cancelar
+    </a>
+</form>
+
+{% endblock %}

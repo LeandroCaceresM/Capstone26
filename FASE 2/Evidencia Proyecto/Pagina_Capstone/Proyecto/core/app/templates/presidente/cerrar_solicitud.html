@@ -53,6 +53,46 @@ Cerrar Solicitud
             </div>
         </div>
 
+    {% if cambio_domicilio %}
+        <div class="cambio-domicilio-box">
+            <h3>Cambio de domicilio solicitado</h3>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <span>Vivienda actual</span>
+                    <strong>
+                        {% if residencia_actual %}
+                            {{ residencia_actual.id_vivienda.nombre_calle }}
+                            {{ residencia_actual.id_vivienda.numero_calle }}
+
+                            {% if residencia_actual.id_vivienda.tipo_vivienda == "D" %}
+                                <br>
+                                Block {{ residencia_actual.id_vivienda.num_block }}
+                                Depto {{ residencia_actual.id_vivienda.num_dpto }}
+                            {% endif %}
+                        {% else %}
+                            Sin vivienda registrada
+                        {% endif %}
+                    </strong>
+                </div>
+
+                <div class="info-card">
+                    <span>Vivienda solicitada</span>
+                    <strong>
+                        {{ cambio_domicilio.id_vivienda_destino.nombre_calle }}
+                        {{ cambio_domicilio.id_vivienda_destino.numero_calle }}
+
+                        {% if cambio_domicilio.id_vivienda_destino.tipo_vivienda == "D" %}
+                            <br>
+                            Block {{ cambio_domicilio.id_vivienda_destino.num_block }}
+                            Depto {{ cambio_domicilio.id_vivienda_destino.num_dpto }}
+                        {% endif %}
+                    </strong>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
         <form method="POST">
             {% csrf_token %}
 
