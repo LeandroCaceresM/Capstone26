@@ -1,3 +1,4 @@
+import os
 import uuid
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -109,9 +110,23 @@ def solicitar_incorporacion_view(request):
         messages.error(request, "Ya tienes una solicitud de incorporación en proceso.")
         return redirect("mis_solicitudes")
 
+    regiones = Region.objects.all().order_by("nom_region")
+
+    comunas = Comuna.objects.select_related(
+        "id_region"
+    ).order_by("nom_comuna")
+
     juntas = Juntavecinos.objects.select_related(
         "id_sector__id_comuna__id_region"
     ).order_by("nombre")
+
+    viviendas = Vivienda.objects.select_related(
+        "id_junta"
+    ).order_by(
+        "id_junta__nombre",
+        "nombre_calle",
+        "numero_calle"
+    )
 
     if request.method == "POST":
         junta = get_object_or_404(
@@ -119,7 +134,35 @@ def solicitar_incorporacion_view(request):
             id_junta=request.POST.get("id_junta")
         )
 
+        vivienda = get_object_or_404(
+            Vivienda,
+            id_vivienda=request.POST.get("id_vivienda"),
+            id_junta=junta
+        )
+
+        tipo_documento = "Evidencia de domicilio"
+        documento = request.FILES.get("documento")
         descripcion = limpiar_texto(request.POST.get("descripcion"))
+
+        if not documento:
+            messages.error(request, "Debe adjuntar una evidencia de domicilio.")
+            return redirect("solicitar_incorporacion")
+
+        extension = os.path.splitext(documento.name)[1].lower()
+        nombre_archivo = f"incorporaciones/{vecino.id_vecino}_{uuid.uuid4()}{extension}"
+
+        supabase_storage.storage.from_("documentos-domicilio").upload(
+            path=nombre_archivo,
+            file=documento.read(),
+            file_options={
+                "content-type": documento.content_type,
+                "upsert": "false"
+            }
+        )
+
+        documento_url = supabase_storage.storage.from_(
+            "documentos-domicilio"
+        ).get_public_url(nombre_archivo)
 
         tipo_solicitud = get_object_or_404(
             Tiposolicitud,
@@ -149,23 +192,32 @@ def solicitar_incorporacion_view(request):
         SolicitudIncorporacion.objects.create(
             id_solicitud_incorporacion=uuid.uuid4(),
             id_solicitud=solicitud,
-            id_junta=junta
+            id_junta=junta,
+            id_vivienda=vivienda,
+            tipo_documento=tipo_documento,
+            documento_url=documento_url
         )
 
         messages.success(request, "Solicitud de incorporación enviada correctamente.")
         return redirect("mis_solicitudes")
 
     return render(request, "vecino/solicitar_incorporacion.html", {
+        "regiones": regiones,
+        "comunas": comunas,
         "juntas": juntas,
+        "viviendas": viviendas,
     })
-
 
 
 @never_cache
 @login_required_custom
 def mis_datos_view(request):
-    vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+    vecino = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
 
+    residencia = obtener_residencia_actual(vecino)
     cargo_actual = obtener_cargo_actual(vecino)
 
     if request.method == "POST":
@@ -197,6 +249,7 @@ def mis_datos_view(request):
 
     return render(request, "mis_datos.html", {
         "vecino": vecino,
+        "residencia": residencia,
         "cargo_actual": cargo_actual,
     })
 
@@ -275,22 +328,29 @@ def solicitar_cambio_domicilio_view(request):
 @never_cache
 @role_required(ROL_USUARIO)
 def mis_solicitudes_view(request):
-    vecino = get_object_or_404(Vecino, id_vecino=request.session.get("vecino_id"))
+    vecino = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
 
-    residencia_activa = obtener_residencia_actual(vecino)
-
-    if not residencia_activa:
-        messages.error(request, "Debe unirse a una junta para poder usar las solicitudes.")
-        return redirect("panel_vecino")
+    residencia = obtener_residencia_actual(vecino)
 
     solicitudes = Solicitud.objects.filter(
         id_vecino=vecino
-    ).select_related("id_tsolicitud").order_by("-fecha_solicitud")
+    ).select_related(
+        "id_tsolicitud"
+    ).order_by("-fecha_solicitud")
+
+    if not residencia:
+        solicitudes = solicitudes.filter(
+            id_tsolicitud__tipo_solicitud="Incorporación a junta"
+        )
 
     solicitudes_data = construir_solicitudes_data(solicitudes)
 
     return render(request, "vecino/mis_solicitudes.html", {
-        "solicitudes_data": solicitudes_data
+        "solicitudes_data": solicitudes_data,
+        "sin_junta": not residencia,
     })
 
 

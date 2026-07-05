@@ -3,14 +3,11 @@ from app import views
 
 urlpatterns = [
     path("panel-vecino/", views.panel_vecino_view, name="panel_vecino"),
-    
-    path(
-        "solicitar-incorporacion/",
-        views.solicitar_incorporacion_view,
-        name="solicitar_incorporacion"
-    ),
 
     path("mis-datos/", views.mis_datos_view, name="mis_datos"),
+        
+    path("solicitar-incorporacion/",views.solicitar_incorporacion_view,name="solicitar_incorporacion"),
+
     path(
         "mis-datos/solicitar-cambio-domicilio/",
         views.solicitar_cambio_domicilio_view,

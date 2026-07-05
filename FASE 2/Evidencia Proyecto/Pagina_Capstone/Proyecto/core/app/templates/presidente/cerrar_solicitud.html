@@ -93,6 +93,55 @@ Cerrar Solicitud
         </div>
     {% endif %}
 
+    {% if incorporacion %}
+        <div class="cambio-domicilio-box">
+            <h3>Solicitud de incorporación</h3>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <span>Junta solicitada</span>
+                    <strong>{{ incorporacion.id_junta.nombre }}</strong>
+                </div>
+
+                <div class="info-card">
+                    <span>Sector / comuna</span>
+                    <strong>
+                        {{ incorporacion.id_junta.id_sector.nombre_sector }}<br>
+                        {{ incorporacion.id_junta.id_sector.id_comuna.nom_comuna }},
+                        {{ incorporacion.id_junta.id_sector.id_comuna.id_region.nom_region }}
+                    </strong>
+                </div>
+
+                <div class="info-card">
+                    <span>Vivienda indicada</span>
+                    <strong>
+                        {{ incorporacion.id_vivienda.nombre_calle }}
+                        {{ incorporacion.id_vivienda.numero_calle }}
+
+                        {% if incorporacion.id_vivienda.tipo_vivienda == "D" %}
+                            <br>
+                            Block {{ incorporacion.id_vivienda.num_block }}
+                            Depto {{ incorporacion.id_vivienda.num_dpto }}
+                        {% endif %}
+                    </strong>
+                </div>
+
+                <div class="info-card">
+                    <span>Evidencia</span>
+                    {% if incorporacion.documento_url %}
+                        <strong>{{ incorporacion.tipo_documento }}</strong>
+                        <br>
+                        <a href="{{ incorporacion.documento_url }}" target="_blank">
+                            Ver evidencia
+                        </a>
+                    {% else %}
+                        <strong>Sin evidencia adjunta</strong>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
         <form method="POST">
             {% csrf_token %}
 

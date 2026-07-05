@@ -1,49 +1,163 @@
 {% extends "base_panel.html" %}
+{% load static %}
 
 {% block titulo %}
-Solicitar incorporación
+Mis datos
+{% endblock %}
+
+{% block head %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/mis_datos.css' %}">
 {% endblock %}
 
 {% block contenido %}
 
-<h1>Solicitar incorporación a junta</h1>
+<div class="datos-page">
 
-<p>
-    Selecciona la junta de vecinos a la que deseas incorporarte.
-    La directiva revisará tu solicitud antes de asignarte una vivienda.
-</p>
+    <h1>Mis datos</h1>
 
-<form method="POST">
-    {% csrf_token %}
+    <section class="datos-card">
 
-    <label>Junta de vecinos</label>
-    <select name="id_junta" required>
-        <option value="">Seleccione una junta</option>
+        <div class="datos-grid">
 
-        {% for junta in juntas %}
-            <option value="{{ junta.id_junta }}">
-                {{ junta.nombre }} -
-                {{ junta.id_sector.nombre_sector }},
-                {{ junta.id_sector.id_comuna.nom_comuna }}
-            </option>
-        {% endfor %}
-    </select>
+            <div class="datos-info">
+                <small>Nombre completo</small>
+                <p>
+                    {{ vecino.pri_nombre }}
+                    {{ vecino.seg_nombre|default:"" }}
+                    {{ vecino.apell_paterno }}
+                    {{ vecino.apell_materno }}
+                </p>
+            </div>
 
-    <label>Comentario o referencia</label>
-    <textarea
-        name="descripcion"
-        rows="5"
-        placeholder="Ej: Vivo actualmente en el sector y deseo incorporarme a la junta."
-        required
-    ></textarea>
+            <div class="datos-info">
+                <small>RUT</small>
+                <p>{{ vecino.rut }}</p>
+            </div>
 
-    <button type="submit">
-        Enviar solicitud
-    </button>
+            <div class="datos-info">
+                <small>Correo</small>
+                <p>{{ vecino.correo|default:"Sin correo registrado" }}</p>
+            </div>
 
-    <a href="{% url 'panel_vecino' %}">
-        Cancelar
-    </a>
-</form>
+            <div class="datos-info">
+                <small>Teléfono</small>
+                <p>{{ vecino.telefono|default:"Sin teléfono registrado" }}</p>
+            </div>
+
+            <div class="datos-info">
+                <small>Rol en el sistema</small>
+                <p>{{ request.session.rol }}</p>
+            </div>
+
+            <div class="datos-info">
+                <small>Cargo en la junta</small>
+                <p>
+                    {% if cargo_actual %}
+                        {{ cargo_actual.id_cargo.nombre_cargo }}
+                    {% else %}
+                        Vecino
+                    {% endif %}
+                </p>
+            </div>
+
+        </div>
+
+        {% if residencia %}
+            <div class="datos-section">
+                <h2>Residencia actual</h2>
+
+                <div class="datos-grid">
+                    <div class="datos-info">
+                        <small>Junta</small>
+                        <p>{{ residencia.id_vivienda.id_junta.nombre }}</p>
+                    </div>
+
+                    <div class="datos-info">
+                        <small>Dirección</small>
+                        <p>
+                            {{ residencia.id_vivienda.nombre_calle }}
+                            {{ residencia.id_vivienda.numero_calle }}
+
+                            {% if residencia.id_vivienda.tipo_vivienda == "D" %}
+                                Block {{ residencia.id_vivienda.num_block }}
+                                Depto {{ residencia.id_vivienda.num_dpto }}
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="datos-info">
+                        <small>Fecha de incorporación</small>
+                        <p>{{ residencia.fecha_ini|date:"d/m/Y" }}</p>
+                    </div>
+
+                    <div class="datos-info">
+                        <small>Estado</small>
+                        <p>Residencia activa</p>
+                    </div>
+                </div>
+
+                {% if request.session.rol == "Usuario" %}
+                    <a class="datos-btn-link" href="{% url 'solicitar_cambio_domicilio' %}">
+                        Solicitar cambio de domicilio
+                    </a>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="datos-section">
+                <h2>Residencia actual</h2>
+
+                <div class="empty-datos">
+                    Actualmente no perteneces a una junta de vecinos.
+                </div>
+
+                {% if request.session.rol == "Usuario" %}
+                    <a class="datos-btn-link" href="{% url 'solicitar_incorporacion' %}">
+                        Solicitar incorporación a una junta
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" class="form-section">
+            {% csrf_token %}
+
+            <label>Teléfono</label>
+            <input
+                class="form-input"
+                type="text"
+                name="telefono"
+                value="{{ vecino.telefono }}"
+                maxlength="9"
+                pattern="[0-9]{8,9}"
+                placeholder="Ej: 912345678"
+                title="Ingrese un teléfono de 8 o 9 dígitos."
+            >
+
+            {% if request.session.rol == "Admin" %}
+                <h2>Firma digital</h2>
+
+                <div class="firma-card">
+                    {% if vecino.firma_digital %}
+                        <img class="firma-preview" src="{{ vecino.firma_digital }}">
+                    {% else %}
+                        <div class="firma-vacia">
+                            Aún no has subido una firma digital.
+                        </div>
+                    {% endif %}
+                </div>
+
+                <label>Subir / cambiar firma</label>
+                <input class="form-input" type="file" name="firma" accept="image/*">
+            {% endif %}
+
+            <button class="datos-btn" type="submit">
+                Guardar cambios
+            </button>
+        </form>
+
+    </section>
+
+</div>
 
 {% endblock %}

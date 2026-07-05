@@ -540,9 +540,21 @@ def solicitudes_presidente_view(request):
         fecha_ter__isnull=True
     ).values_list("id_vecino", flat=True)
 
-    solicitudes = Solicitud.objects.filter(
+    solicitudes_vecinos_junta = Solicitud.objects.filter(
         id_vecino__in=vecinos_ids
-    ).select_related(
+    )
+
+    solicitudes_incorporacion_ids = SolicitudIncorporacion.objects.filter(
+        id_junta=junta
+    ).values_list("id_solicitud", flat=True)
+
+    solicitudes_incorporacion = Solicitud.objects.filter(
+        id_solicitud__in=solicitudes_incorporacion_ids
+    )
+
+    solicitudes = (
+        solicitudes_vecinos_junta | solicitudes_incorporacion
+    ).distinct().select_related(
         "id_vecino",
         "id_tsolicitud"
     )
@@ -608,7 +620,6 @@ def solicitudes_presidente_view(request):
         "busqueda": busqueda,
         "tipos": tipos,
     })
-    
 
 @never_cache
 @role_required(ROL_ADMIN)
@@ -621,9 +632,7 @@ def cerrar_solicitud_view(request, id_solicitud):
 
     if request.method == "POST":
         accion = request.POST.get("accion")
-        comentario_presidente = limpiar_texto(
-            request.POST.get("comentario_presidente")
-        )
+        comentario_presidente = limpiar_texto(request.POST.get("comentario_presidente"))
 
         if accion == "aprobar":
             nuevo_estado = ESTADO_APROBADO
@@ -636,32 +645,14 @@ def cerrar_solicitud_view(request, id_solicitud):
         try:
             with transaction.atomic():
 
-                if (
-                    nuevo_estado == ESTADO_APROBADO
-                    and solicitud.id_tsolicitud.tipo_solicitud == "Cambio de domicilio"
-                ):
+                if nuevo_estado == ESTADO_APROBADO and solicitud.id_tsolicitud.tipo_solicitud == "Cambio de domicilio":
                     cambio = get_object_or_404(
                         SolicitudCambioDomicilio,
                         id_solicitud=solicitud
                     )
 
-                    vivienda_destino = cambio.id_vivienda_destino
                     vecino = solicitud.id_vecino
-
-                    vivienda_ocupada = HistVivienda.objects.filter(
-                        id_vivienda=vivienda_destino,
-                        fecha_ter__isnull=True
-                    ).exists()
-
-                    if vivienda_ocupada:
-                        messages.error(
-                            request,
-                            "No se puede aprobar el cambio porque la vivienda destino ya está ocupada."
-                        )
-                        return redirect(
-                            "cerrar_solicitud",
-                            id_solicitud=solicitud.id_solicitud
-                        )
+                    vivienda_destino = cambio.id_vivienda_destino
 
                     residencia_actual = HistVivienda.objects.filter(
                         id_vecino=vecino,
@@ -680,13 +671,37 @@ def cerrar_solicitud_view(request, id_solicitud):
                         id_vecino=vecino
                     )
 
+                if nuevo_estado == ESTADO_APROBADO and solicitud.id_tsolicitud.tipo_solicitud == "Incorporación a junta":
+                    incorporacion = get_object_or_404(
+                        SolicitudIncorporacion,
+                        id_solicitud=solicitud
+                    )
+
+                    vecino = solicitud.id_vecino
+                    vivienda = incorporacion.id_vivienda
+
+                    ya_tiene_residencia = HistVivienda.objects.filter(
+                        id_vecino=vecino,
+                        fecha_ter__isnull=True
+                    ).exists()
+
+                    if ya_tiene_residencia:
+                        messages.error(request, "El vecino ya posee una residencia activa.")
+                        return redirect("cerrar_solicitud", id_solicitud=solicitud.id_solicitud)
+
+                    HistVivienda.objects.create(
+                        id_hist_vivienda=uuid.uuid4(),
+                        fecha_ini=timezone.now().date(),
+                        fecha_ter=None,
+                        id_vivienda=vivienda,
+                        id_vecino=vecino
+                    )
+
                 solicitud.estado = nuevo_estado
                 solicitud.comentario_presidente = comentario_presidente
                 solicitud.save()
 
-                estado_obj = EstadoSolicitud.objects.get(
-                    nomb_est_sol=nuevo_estado
-                )
+                estado_obj = EstadoSolicitud.objects.get(nomb_est_sol=nuevo_estado)
 
                 HistEstSol.objects.create(
                     id_solicitud=solicitud,
@@ -699,13 +714,11 @@ def cerrar_solicitud_view(request, id_solicitud):
 
         except Exception as e:
             messages.error(request, f"Error al cerrar solicitud: {e}")
-            return redirect(
-                "cerrar_solicitud",
-                id_solicitud=solicitud.id_solicitud
-            )
+            return redirect("cerrar_solicitud", id_solicitud=solicitud.id_solicitud)
 
     cambio_domicilio = None
     residencia_actual = None
+    incorporacion = None
 
     if solicitud.id_tsolicitud.tipo_solicitud == "Cambio de domicilio":
         cambio_domicilio = SolicitudCambioDomicilio.objects.filter(
@@ -717,10 +730,20 @@ def cerrar_solicitud_view(request, id_solicitud):
             fecha_ter__isnull=True
         ).select_related("id_vivienda").first()
 
+    if solicitud.id_tsolicitud.tipo_solicitud == "Incorporación a junta":
+        incorporacion = SolicitudIncorporacion.objects.filter(
+            id_solicitud=solicitud
+        ).select_related(
+            "id_junta",
+            "id_junta__id_sector__id_comuna__id_region",
+            "id_vivienda"
+        ).first()
+
     return render(request, "presidente/cerrar_solicitud.html", {
         "solicitud": solicitud,
         "cambio_domicilio": cambio_domicilio,
         "residencia_actual": residencia_actual,
+        "incorporacion": incorporacion,
     })
 
 

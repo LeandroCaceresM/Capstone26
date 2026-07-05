@@ -6,34 +6,100 @@ Solicitar incorporación
 
 {% block contenido %}
 
-<h1>Solicitar incorporación a junta</h1>
+<h1>Solicitar incorporación</h1>
 
 <p>
-    Selecciona la junta de vecinos a la que deseas incorporarte.
-    La directiva revisará tu solicitud antes de asignarte una vivienda.
+    Para incorporarte a una junta de vecinos debes indicar la vivienda donde
+    resides y adjuntar una evidencia que acredite tu domicilio.
 </p>
 
-<form method="POST">
+<form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
 
-    <label>Junta de vecinos</label>
-    <select name="id_junta" required>
-        <option value="">Seleccione una junta</option>
+    <label>Región</label>
+    <select id="region_select" required>
+        <option value="">Seleccione una región</option>
 
-        {% for junta in juntas %}
-            <option value="{{ junta.id_junta }}">
-                {{ junta.nombre }} -
-                {{ junta.id_sector.nombre_sector }},
-                {{ junta.id_sector.id_comuna.nom_comuna }}
+        {% for region in regiones %}
+            <option value="{{ region.id_region }}">
+                {{ region.nom_region }}
             </option>
         {% endfor %}
     </select>
 
-    <label>Comentario o referencia</label>
+    <label>Comuna</label>
+    <select id="comuna_select" required disabled>
+        <option value="">Primero seleccione una región</option>
+
+        {% for comuna in comunas %}
+            <option
+                value="{{ comuna.id_comuna }}"
+                data-region="{{ comuna.id_region.id_region }}"
+            >
+                {{ comuna.nom_comuna }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Buscar junta</label>
+    <input
+        type="text"
+        id="buscar_junta"
+        placeholder="Escribe el nombre de la junta..."
+        disabled
+    >
+
+    <label>Junta de vecinos</label>
+    <select name="id_junta" id="junta_select" required disabled>
+        <option value="">Primero seleccione una comuna</option>
+
+        {% for junta in juntas %}
+            <option
+                value="{{ junta.id_junta }}"
+                data-comuna="{{ junta.id_sector.id_comuna.id_comuna }}"
+                data-nombre="{{ junta.nombre|lower }}"
+            >
+                {{ junta.nombre }} - {{ junta.id_sector.nombre_sector }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Vivienda donde reside</label>
+    <select name="id_vivienda" id="vivienda_select" required disabled>
+        <option value="">Primero seleccione una junta</option>
+
+        {% for vivienda in viviendas %}
+            <option
+                value="{{ vivienda.id_vivienda }}"
+                data-junta="{{ vivienda.id_junta.id_junta }}"
+            >
+                {{ vivienda.nombre_calle }} {{ vivienda.numero_calle }}
+                {% if vivienda.tipo_vivienda == "D" %}
+                    - Block {{ vivienda.num_block }} Depto {{ vivienda.num_dpto }}
+                {% endif %}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Evidencia de domicilio</label>
+    <p class="form-help">
+        Puedes adjuntar una cuenta de luz, cuenta de agua, contrato de arriendo,
+        escritura, certificado de residencia u otro documento que acredite que
+        resides en la vivienda indicada.
+    </p>
+
+    <input
+        type="file"
+        name="documento"
+        accept=".pdf,.jpg,.jpeg,.png"
+        required
+    >
+
+    <label>Comentario</label>
     <textarea
         name="descripcion"
         rows="5"
-        placeholder="Ej: Vivo actualmente en el sector y deseo incorporarme a la junta."
+        placeholder="Ej: Vivo en esta vivienda desde enero de 2026."
         required
     ></textarea>
 
@@ -45,5 +111,114 @@ Solicitar incorporación
         Cancelar
     </a>
 </form>
+
+<script>
+const regionSelect = document.getElementById("region_select");
+const comunaSelect = document.getElementById("comuna_select");
+const buscarJunta = document.getElementById("buscar_junta");
+const juntaSelect = document.getElementById("junta_select");
+const viviendaSelect = document.getElementById("vivienda_select");
+
+const comunaOptions = Array.from(comunaSelect.options).filter(option => option.value);
+const juntaOptions = Array.from(juntaSelect.options).filter(option => option.value);
+const viviendaOptions = Array.from(viviendaSelect.options).filter(option => option.value);
+
+function resetComunas(){
+    comunaSelect.innerHTML = '<option value="">Primero seleccione una región</option>';
+    comunaSelect.disabled = true;
+}
+
+function resetJuntas(){
+    buscarJunta.value = "";
+    buscarJunta.disabled = true;
+
+    juntaSelect.innerHTML = '<option value="">Primero seleccione una comuna</option>';
+    juntaSelect.disabled = true;
+}
+
+function resetViviendas(){
+    viviendaSelect.innerHTML = '<option value="">Primero seleccione una junta</option>';
+    viviendaSelect.disabled = true;
+}
+
+function cargarComunas(regionId){
+    comunaSelect.innerHTML = '<option value="">Seleccione una comuna</option>';
+
+    comunaOptions.forEach(option => {
+        if(option.dataset.region === regionId){
+            comunaSelect.appendChild(option.cloneNode(true));
+        }
+    });
+
+    comunaSelect.disabled = false;
+}
+
+function cargarJuntas(){
+    const comunaId = comunaSelect.value;
+    const texto = buscarJunta.value.toLowerCase();
+
+    juntaSelect.innerHTML = '<option value="">Seleccione una junta</option>';
+
+    juntaOptions.forEach(option => {
+        const coincideComuna = option.dataset.comuna === comunaId;
+        const coincideTexto = option.dataset.nombre.includes(texto);
+
+        if(coincideComuna && coincideTexto){
+            juntaSelect.appendChild(option.cloneNode(true));
+        }
+    });
+
+    juntaSelect.disabled = false;
+}
+
+function cargarViviendas(juntaId){
+    viviendaSelect.innerHTML = '<option value="">Seleccione una vivienda</option>';
+
+    viviendaOptions.forEach(option => {
+        if(option.dataset.junta === juntaId){
+            viviendaSelect.appendChild(option.cloneNode(true));
+        }
+    });
+
+    viviendaSelect.disabled = false;
+}
+
+regionSelect.addEventListener("change", () => {
+    resetComunas();
+    resetJuntas();
+    resetViviendas();
+
+    if(regionSelect.value){
+        cargarComunas(regionSelect.value);
+    }
+});
+
+comunaSelect.addEventListener("change", () => {
+    resetJuntas();
+    resetViviendas();
+
+    if(comunaSelect.value){
+        buscarJunta.disabled = false;
+        cargarJuntas();
+    }
+});
+
+buscarJunta.addEventListener("input", () => {
+    resetViviendas();
+    cargarJuntas();
+});
+
+juntaSelect.addEventListener("change", () => {
+    resetViviendas();
+
+    if(juntaSelect.value){
+        cargarViviendas(juntaSelect.value);
+    }
+});
+
+resetComunas();
+resetJuntas();
+resetViviendas();
+</script>
 
 {% endblock %}
