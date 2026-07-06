@@ -1073,6 +1073,36 @@ def reporte_junta_view(request):
     certificados_emitidos = CertificadoDeResidencia.objects.filter(
         id_vecino__in=vecinos_ids
     ).count()
+    
+    casas = viviendas.filter(tipo_vivienda="C").count()
+    departamentos = viviendas.filter(tipo_vivienda="D").count()
+
+    total_solicitudes = solicitudes.count()
+
+    porcentaje_ocupacion = 0
+    if total_viviendas > 0:
+        porcentaje_ocupacion = round((viviendas_con_residentes / total_viviendas) * 100, 1)
+
+    porcentaje_solicitudes_resueltas = 0
+    if total_solicitudes > 0:
+        porcentaje_solicitudes_resueltas = round(
+            ((solicitudes_aprobadas + solicitudes_rechazadas) / total_solicitudes) * 100,
+            1
+        )
+
+    observaciones = []
+
+    if viviendas_sin_residentes > 0:
+        observaciones.append(f"Existen {viviendas_sin_residentes} viviendas sin residentes activos.")
+
+    if solicitudes_pendientes > 0:
+        observaciones.append(f"Hay {solicitudes_pendientes} solicitudes pendientes de revisión.")
+
+    if porcentaje_ocupacion >= 80:
+        observaciones.append(f"La ocupación de viviendas alcanza un {porcentaje_ocupacion}%.")
+
+    if certificados_emitidos > 0:
+        observaciones.append(f"Se han emitido {certificados_emitidos} certificados de residencia.")
 
     return render(request, "presidente/reporte_junta.html", {
         "junta": junta,
@@ -1085,6 +1115,12 @@ def reporte_junta_view(request):
         "solicitudes_aprobadas": solicitudes_aprobadas,
         "solicitudes_rechazadas": solicitudes_rechazadas,
         "certificados_emitidos": certificados_emitidos,
+        "casas": casas,
+        "departamentos": departamentos,
+        "total_solicitudes": total_solicitudes,
+        "porcentaje_ocupacion": porcentaje_ocupacion,
+        "porcentaje_solicitudes_resueltas": porcentaje_solicitudes_resueltas,
+        "observaciones": observaciones,
     })
 
 
@@ -1111,26 +1147,70 @@ def reporte_junta_pdf_view(request):
     ).values_list("id_vecino", flat=True).distinct()
 
     total_viviendas = viviendas.count()
+    casas = viviendas.filter(tipo_vivienda="C").count()
+    departamentos = viviendas.filter(tipo_vivienda="D").count()
+
     viviendas_con_residentes = viviendas.filter(
         histvivienda__fecha_ter__isnull=True
     ).distinct().count()
+
     viviendas_sin_residentes = total_viviendas - viviendas_con_residentes
     total_vecinos = vecinos_ids.count()
-
+    vecinos_con_discapacidad = VecinoDiscap.objects.filter(
+        id_vecino__in=vecinos_ids
+    ).values("id_vecino").distinct().count()
+    
     solicitudes = Solicitud.objects.filter(id_vecino__in=vecinos_ids)
 
-    datos = {
-        "Vecinos activos": total_vecinos,
-        "Viviendas registradas": total_viviendas,
-        "Viviendas con residentes": viviendas_con_residentes,
-        "Viviendas sin residentes": viviendas_sin_residentes,
-        "Solicitudes pendientes": solicitudes.filter(estado=ESTADO_EN_PROCESO).count(),
-        "Solicitudes aprobadas": solicitudes.filter(estado=ESTADO_APROBADO).count(),
-        "Solicitudes rechazadas": solicitudes.filter(estado=ESTADO_RECHAZADO).count(),
-        "Certificados emitidos": CertificadoDeResidencia.objects.filter(
-            id_vecino__in=vecinos_ids
-        ).count(),
-    }
+    solicitudes_pendientes = solicitudes.filter(estado=ESTADO_EN_PROCESO).count()
+    solicitudes_aprobadas = solicitudes.filter(estado=ESTADO_APROBADO).count()
+    solicitudes_rechazadas = solicitudes.filter(estado=ESTADO_RECHAZADO).count()
+    total_solicitudes = solicitudes.count()
+
+    certificados_emitidos = CertificadoDeResidencia.objects.filter(
+        id_vecino__in=vecinos_ids
+    ).count()
+
+    porcentaje_ocupacion = 0
+    if total_viviendas > 0:
+        porcentaje_ocupacion = round(
+            (viviendas_con_residentes / total_viviendas) * 100,
+            1
+        )
+
+    porcentaje_solicitudes_resueltas = 0
+    if total_solicitudes > 0:
+        porcentaje_solicitudes_resueltas = round(
+            ((solicitudes_aprobadas + solicitudes_rechazadas) / total_solicitudes) * 100,
+            1
+        )
+
+    observaciones = []
+
+    if viviendas_sin_residentes > 0:
+        observaciones.append(
+            f"Existen {viviendas_sin_residentes} viviendas sin residentes activos."
+        )
+        
+    if vecinos_con_discapacidad > 0:
+        observaciones.append(
+            f"La junta registra {vecinos_con_discapacidad} vecino(s) con discapacidad o condición registrada."
+        )
+
+    if solicitudes_pendientes > 0:
+        observaciones.append(
+            f"Hay {solicitudes_pendientes} solicitudes pendientes de revisión."
+        )
+
+    if porcentaje_ocupacion > 0:
+        observaciones.append(
+            f"La ocupación de viviendas alcanza un {porcentaje_ocupacion}%."
+        )
+
+    if certificados_emitidos > 0:
+        observaciones.append(
+            f"Se han emitido {certificados_emitidos} certificados de residencia."
+        )
 
     carpeta = os.path.join(settings.MEDIA_ROOT, "reportes")
     os.makedirs(carpeta, exist_ok=True)
@@ -1140,34 +1220,116 @@ def reporte_junta_pdf_view(request):
     c = canvas.Canvas(ruta_pdf, pagesize=letter)
     width, height = letter
 
+    def nueva_pagina():
+        c.showPage()
+        c.setFont("Helvetica", 9)
+        c.drawCentredString(
+            width / 2,
+            40,
+            "Reporte emitido digitalmente a través de UrbanLink."
+        )
+        return height - 60
+
+    def titulo(texto, y):
+        c.setFont("Helvetica-Bold", 13)
+        c.drawString(70, y, texto)
+        c.line(70, y - 5, width - 70, y - 5)
+        return y - 28
+
+    def item(nombre, valor, y):
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(85, y, f"{nombre}:")
+        c.setFont("Helvetica", 10)
+        c.drawString(245, y, str(valor))
+        return y - 20
+
     y = height - 60
 
-    c.setFont("Helvetica-Bold", 16)
+    c.setFont("Helvetica-Bold", 17)
     c.drawCentredString(width / 2, y, "REPORTE GENERAL DE LA JUNTA")
 
-    y -= 40
-    c.setFont("Helvetica", 11)
-    c.drawString(70, y, f"Junta: {junta.nombre}")
-
-    y -= 20
-    c.drawString(70, y, f"Presidente: {presidente.pri_nombre} {presidente.apell_paterno}")
-
-    y -= 20
-    c.drawString(70, y, f"Fecha emisión: {timezone.localtime(timezone.now()).strftime('%d/%m/%Y %H:%M')}")
-
-    y -= 40
-    c.setFont("Helvetica-Bold", 13)
-    c.drawString(70, y, "Indicadores")
-
     y -= 25
-    c.setFont("Helvetica", 11)
+    c.setFont("Helvetica", 10)
+    c.drawCentredString(
+        width / 2,
+        y,
+        "Informe administrativo y territorial generado por UrbanLink"
+    )
 
-    for nombre, valor in datos.items():
-        c.drawString(90, y, f"{nombre}: {valor}")
-        y -= 22
+    y -= 45
+
+    y = titulo("1. Información general", y)
+
+    comuna = junta.id_sector.id_comuna.nom_comuna
+    region = junta.id_sector.id_comuna.id_region.nom_region
+    sector = junta.id_sector.nombre_sector
+
+    y = item("Junta", junta.nombre, y)
+    y = item("Dirección sede", junta.direccion, y)
+    y = item("Sector", sector, y)
+    y = item("Comuna", comuna, y)
+    y = item("Región", region, y)
+    y = item("Presidente", f"{presidente.pri_nombre} {presidente.apell_paterno}", y)
+    y = item(
+        "Fecha de emisión",
+        timezone.localtime(timezone.now()).strftime("%d/%m/%Y %H:%M"),
+        y
+    )
+
+    y -= 15
+    y = titulo("2. Resumen territorial", y)
+
+    y = item("Total de viviendas", total_viviendas, y)
+    y = item("Casas", casas, y)
+    y = item("Departamentos", departamentos, y)
+    y = item("Viviendas con residentes", viviendas_con_residentes, y)
+    y = item("Viviendas sin residentes", viviendas_sin_residentes, y)
+    y = item("Vecinos activos", total_vecinos, y)
+    y = item("Vecinos con discapacidad", vecinos_con_discapacidad, y)
+
+    y -= 15
+    y = titulo("3. Resumen administrativo", y)
+
+    y = item("Total de solicitudes", total_solicitudes, y)
+    y = item("Solicitudes pendientes", solicitudes_pendientes, y)
+    y = item("Solicitudes aprobadas", solicitudes_aprobadas, y)
+    y = item("Solicitudes rechazadas", solicitudes_rechazadas, y)
+    y = item("Certificados emitidos", certificados_emitidos, y)
+
+    y -= 15
+    y = titulo("4. Indicadores", y)
+
+    y = item("Ocupación de viviendas", f"{porcentaje_ocupacion}%", y)
+    y = item("Solicitudes resueltas", f"{porcentaje_solicitudes_resueltas}%", y)
+
+    y -= 15
+    y = titulo("5. Observaciones automáticas", y)
+
+    c.setFont("Helvetica", 10)
+
+    if observaciones:
+        for obs in observaciones:
+            if y < 90:
+                y = nueva_pagina()
+
+            c.drawString(85, y, f"• {obs}")
+            y -= 20
+    else:
+        c.drawString(85, y, "No existen observaciones relevantes al momento del reporte.")
+        y -= 20
+
+    y -= 20
+    y = titulo("6. Responsable del reporte", y)
+
+    y = item("Emitido por", f"{presidente.pri_nombre} {presidente.apell_paterno}", y)
+    y = item("Cargo", "Presidente de la Junta de Vecinos", y)
 
     c.setFont("Helvetica", 9)
-    c.drawCentredString(width / 2, 50, "Reporte emitido digitalmente a través de UrbanLink.")
+    c.drawCentredString(
+        width / 2,
+        40,
+        "Reporte emitido digitalmente a través de UrbanLink."
+    )
 
     c.save()
 

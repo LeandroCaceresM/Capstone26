@@ -1,35 +1,75 @@
 {% extends "base_panel.html" %}
+{% load static %}
 
 {% block titulo %}
-Reporte General
+Reportes
 {% endblock %}
 
 {% block contenido %}
 
-<h1>Reporte General de la Junta</h1>
+<div class="reporte-page">
 
-<p><strong>Junta:</strong> {{ junta.nombre }}</p>
-<p><strong>Presidente:</strong> {{ presidente.pri_nombre }} {{ presidente.apell_paterno }}</p>
+    <div class="reporte-header">
+        <div>
+            <h1>Reportes</h1>
+            <p>
+                Resumen general de {{ junta.nombre }}.
+                Para ver el detalle completo, descarga el informe PDF.
+            </p>
+        </div>
 
-<h2>Resumen territorial</h2>
+        <a class="btn-reporte" href="{% url 'reporte_junta_pdf' %}">
+            Descargar informe PDF
+        </a>
+    </div>
 
-<div class="dashboard-cards">
-    <div class="card">Vecinos activos<br><strong>{{ total_vecinos }}</strong></div>
-    <div class="card">Viviendas registradas<br><strong>{{ total_viviendas }}</strong></div>
-    <div class="card">Con residentes<br><strong>{{ viviendas_con_residentes }}</strong></div>
-    <div class="card">Sin residentes<br><strong>{{ viviendas_sin_residentes }}</strong></div>
+    <section class="reporte-card">
+        <h2>Resumen principal</h2>
+
+        <div class="reporte-grid">
+            <div class="reporte-stat">
+                <span>Vecinos activos</span>
+                <strong>{{ total_vecinos }}</strong>
+            </div>
+
+            <div class="reporte-stat">
+                <span>Viviendas</span>
+                <strong>{{ total_viviendas }}</strong>
+            </div>
+
+            <div class="reporte-stat">
+                <span>Solicitudes pendientes</span>
+                <strong>{{ solicitudes_pendientes }}</strong>
+            </div>
+
+            <div class="reporte-stat">
+                <span>Certificados emitidos</span>
+                <strong>{{ certificados_emitidos }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="reporte-card">
+        <h2>Indicadores rápidos</h2>
+
+        <div class="indicadores-simple">
+            <p>
+                <strong>Ocupación de viviendas:</strong>
+                {{ porcentaje_ocupacion }}%
+            </p>
+
+            <p>
+                <strong>Solicitudes resueltas:</strong>
+                {{ porcentaje_solicitudes_resueltas }}%
+            </p>
+
+            <p>
+                <strong>Viviendas sin residentes:</strong>
+                {{ viviendas_sin_residentes }}
+            </p>
+        </div>
+    </section>
+
 </div>
 
-<h2>Resumen administrativo</h2>
-
-<div class="dashboard-cards">
-    <div class="card">Solicitudes pendientes<br><strong>{{ solicitudes_pendientes }}</strong></div>
-    <div class="card">Solicitudes aprobadas<br><strong>{{ solicitudes_aprobadas }}</strong></div>
-    <div class="card">Solicitudes rechazadas<br><strong>{{ solicitudes_rechazadas }}</strong></div>
-    <div class="card">Certificados emitidos<br><strong>{{ certificados_emitidos }}</strong></div>
-</div>
-
-<a class="btn-agregar" href="{% url 'reporte_junta_pdf' %}">
-    Descargar reporte PDF
-</a>
 {% endblock %}
