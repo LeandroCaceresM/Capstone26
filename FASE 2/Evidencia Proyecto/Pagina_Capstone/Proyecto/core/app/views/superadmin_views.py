@@ -134,7 +134,9 @@ def cerrar_solicitud_superadmin_view(request, id_solicitud):
                             id_solicitud=solicitud.id_solicitud
                         )
 
-                    Juntavecinos.objects.create(
+                    solicitante = solicitud.id_vecino
+
+                    nueva_junta = Juntavecinos.objects.create(
                         id_junta=uuid.uuid4(),
                         nombre=registro.nombre_junta,
                         direccion=registro.direccion,
@@ -144,9 +146,53 @@ def cerrar_solicitud_superadmin_view(request, id_solicitud):
                         documento_respaldo=registro.documento_personalidad_url
                     )
 
+                    vivienda_presidente = Vivienda.objects.create(
+                        id_vivienda=uuid.uuid4(),
+                        tipo_vivienda="C",
+                        nombre_calle=registro.direccion,
+                        numero_calle=0,
+                        num_block=None,
+                        num_dpto=None,
+                        id_junta=nueva_junta
+                    )
+
+                    HistVivienda.objects.create(
+                        id_hist_vivienda=uuid.uuid4(),
+                        fecha_ini=timezone.now().date(),
+                        fecha_ter=None,
+                        id_vivienda=vivienda_presidente,
+                        id_vecino=solicitante
+                    )
+
+                    cargo_presidente = Cargo.objects.get(
+                        nombre_cargo__iexact="Presidente"
+                    )
+
+                    fecha_inicio = timezone.now().date()
+                    fecha_fin = fecha_inicio.replace(
+                        year=fecha_inicio.year + 2
+                    )
+
+                    directiva = Directiva.objects.create(
+                        id_directiva=uuid.uuid4(),
+                        fecha_inicio_direct=fecha_inicio,
+                        fecha_fin_direct=fecha_fin,
+                        id_junta=nueva_junta
+                    )
+
+                    HistCargo.objects.create(
+                        id_hist_cargo=uuid.uuid4(),
+                        fecha_cargo_tentativa=fecha_inicio,
+                        fecha_cargo_fin=fecha_fin,
+                        fecha_cargo_fin_real=None,
+                        id_vecino=solicitante,
+                        id_cargo=cargo_presidente,
+                        id_directiva=directiva
+                    )
+
                     rol_admin = Rol.objects.get(nombre_rol=ROL_ADMIN)
-                    solicitud.id_vecino.id_rol = rol_admin
-                    solicitud.id_vecino.save()
+                    solicitante.id_rol = rol_admin
+                    solicitante.save()
 
                 solicitud.estado = nuevo_estado
                 solicitud.comentario_presidente = comentario
@@ -176,6 +222,7 @@ def cerrar_solicitud_superadmin_view(request, id_solicitud):
         "solicitud": solicitud,
         "registro": registro,
     })
+
 
 # =========================
 # SUPERADMIN - GESTIÓN DE SECTORES

@@ -1,0 +1,32 @@
+{% extends "base_panel.html" %}
+
+{% block titulo %}
+Reporte General
+{% endblock %}
+
+{% block contenido %}
+
+<h1>Reporte General de la Junta</h1>
+
+<p><strong>Junta:</strong> {{ junta.nombre }}</p>
+<p><strong>Presidente:</strong> {{ presidente.pri_nombre }} {{ presidente.apell_paterno }}</p>
+
+<h2>Resumen territorial</h2>
+
+<div class="dashboard-cards">
+    <div class="card">Vecinos activos<br><strong>{{ total_vecinos }}</strong></div>
+    <div class="card">Viviendas registradas<br><strong>{{ total_viviendas }}</strong></div>
+    <div class="card">Con residentes<br><strong>{{ viviendas_con_residentes }}</strong></div>
+    <div class="card">Sin residentes<br><strong>{{ viviendas_sin_residentes }}</strong></div>
+</div>
+
+<h2>Resumen administrativo</h2>
+
+<div class="dashboard-cards">
+    <div class="card">Solicitudes pendientes<br><strong>{{ solicitudes_pendientes }}</strong></div>
+    <div class="card">Solicitudes aprobadas<br><strong>{{ solicitudes_aprobadas }}</strong></div>
+    <div class="card">Solicitudes rechazadas<br><strong>{{ solicitudes_rechazadas }}</strong></div>
+    <div class="card">Certificados emitidos<br><strong>{{ certificados_emitidos }}</strong></div>
+</div>
+
+{% endblock %}

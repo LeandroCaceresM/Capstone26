@@ -41,8 +41,9 @@ def obtener_residencia_actual(vecino):
         fecha_ter__isnull=True
     ).select_related(
         "id_vivienda__id_junta",
-        "id_vivienda__id_junta__id_comuna",
-        "id_vivienda__id_junta__id_comuna__id_region"
+        "id_vivienda__id_junta__id_sector",
+        "id_vivienda__id_junta__id_sector__id_comuna",
+        "id_vivienda__id_junta__id_sector__id_comuna__id_region"
     ).first()
 
 
@@ -107,7 +108,7 @@ def generar_pdf_certificado(vecino, residencia, presidente, certificado):
 
     junta = residencia.id_vivienda.id_junta
     vivienda = residencia.id_vivienda
-    comuna = junta.id_comuna.nom_comuna
+    comuna = junta.id_sector.id_comuna.nom_comuna
 
     numero_certificado = certificado.numero_certificado
     fecha_texto = fecha_formal(hoy, comuna)

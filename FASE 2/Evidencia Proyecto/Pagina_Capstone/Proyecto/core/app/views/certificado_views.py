@@ -23,6 +23,12 @@ def certificado_residencia_view(request):
         Vecino,
         id_vecino=request.session.get("vecino_id")
     )
+    
+    residencia = obtener_residencia_actual(vecino)
+
+    if not residencia:
+        messages.error(request, "Debe pertenecer a una junta para poder solicitar el certificado.")
+        return redireccion_panel(request)
 
     residencia = obtener_residencia_actual(vecino)
     cargo = obtener_cargo_actual(vecino)

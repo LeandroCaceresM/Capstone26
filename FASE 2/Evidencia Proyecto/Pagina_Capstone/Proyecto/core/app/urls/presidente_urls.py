@@ -75,5 +75,6 @@ urlpatterns = [
         views.eliminar_evento_view,
         name="eliminar_evento"
     ),
+    path("presidente/reportes/", views.reporte_junta_view, name="reporte_junta"),
 ]
 

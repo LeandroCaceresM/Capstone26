@@ -1012,3 +1012,70 @@ def eliminar_evento_view(request, id_evento):
         "evento": evento
     })
 
+# =========================
+# VISTAS REPORTES  
+# =========================
+
+@never_cache
+@role_required(ROL_ADMIN)
+def reporte_junta_view(request):
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+
+    viviendas = Vivienda.objects.filter(id_junta=junta)
+
+    vecinos_ids = HistVivienda.objects.filter(
+        id_vivienda__id_junta=junta,
+        fecha_ter__isnull=True
+    ).values_list("id_vecino", flat=True).distinct()
+
+    total_viviendas = viviendas.count()
+    viviendas_con_residentes = viviendas.filter(
+        histvivienda__fecha_ter__isnull=True
+    ).distinct().count()
+
+    viviendas_sin_residentes = total_viviendas - viviendas_con_residentes
+    total_vecinos = vecinos_ids.count()
+
+    solicitudes = Solicitud.objects.filter(
+        id_vecino__in=vecinos_ids
+    )
+
+    solicitudes_pendientes = solicitudes.filter(
+        estado=ESTADO_EN_PROCESO
+    ).count()
+
+    solicitudes_aprobadas = solicitudes.filter(
+        estado=ESTADO_APROBADO
+    ).count()
+
+    solicitudes_rechazadas = solicitudes.filter(
+        estado=ESTADO_RECHAZADO
+    ).count()
+
+    certificados_emitidos = CertificadoDeResidencia.objects.filter(
+        id_vecino__in=vecinos_ids
+    ).count()
+
+    return render(request, "presidente/reporte_junta.html", {
+        "junta": junta,
+        "presidente": presidente,
+        "total_viviendas": total_viviendas,
+        "viviendas_con_residentes": viviendas_con_residentes,
+        "viviendas_sin_residentes": viviendas_sin_residentes,
+        "total_vecinos": total_vecinos,
+        "solicitudes_pendientes": solicitudes_pendientes,
+        "solicitudes_aprobadas": solicitudes_aprobadas,
+        "solicitudes_rechazadas": solicitudes_rechazadas,
+        "certificados_emitidos": certificados_emitidos,
+    })
