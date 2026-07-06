@@ -121,6 +121,15 @@ Registro
         Registrarse
     </button>
 
+    <div class="demo-actions">
+        <button
+            type="button"
+            class="btn-demo"
+            onclick="rellenarDemo()">
+            🎭 Rellenar datos demo
+        </button>
+    </div>
+
 </form>
 
 <div class="login-links">
@@ -131,4 +140,27 @@ Registro
 
 {% block scripts %}
 <script src="{% static 'js/rut.js' %}"></script>
+
+<script>
+
+function rellenarDemo(){
+
+    document.getElementById("rut").value = "20.203.852-2";
+
+    document.querySelector("[name='pri_nombre']").value = "Juan";
+    document.querySelector("[name='seg_nombre']").value = "Ignacio";
+    document.querySelector("[name='apell_paterno']").value = "Pérez";
+    document.querySelector("[name='apell_materno']").value = "González";
+
+    document.querySelector("[name='correo']").value = "juan.perez.demo@gmail.com";
+
+    document.querySelector("[name='telefono']").value = "912345678";
+
+    document.querySelector("[name='fecha_de_nacimiento']").value = "1998-06-14";
+
+    document.querySelector("[name='password']").value = "Demo1234";
+
+}
+
+</script>
 {% endblock %}
