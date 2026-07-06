@@ -76,5 +76,6 @@ urlpatterns = [
         name="eliminar_evento"
     ),
     path("presidente/reportes/", views.reporte_junta_view, name="reporte_junta"),
+    path("presidente/reportes/pdf/", views.reporte_junta_pdf_view, name="reporte_junta_pdf"),
 ]
 

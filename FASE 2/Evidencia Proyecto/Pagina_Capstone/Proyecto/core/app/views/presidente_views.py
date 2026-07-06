@@ -1,10 +1,14 @@
 import uuid
+import os
+
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.db import models, transaction
+from django.http import FileResponse
+from django.conf import settings
 
 from app.constants import ESTADO_APROBADO, ESTADO_EN_PROCESO, ESTADO_RECHAZADO, ROL_ADMIN, ROL_USUARIO, VIGENCIA_ACTIVA, VIGENCIA_INACTIVA
 from app.models import *
@@ -12,6 +16,9 @@ from app.services.vecino_service import obtener_residencia_actual
 from app.services.evento_service import obtener_eventos_junta
 from app.utils import *
 from app.decorators import role_required
+
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 
 # =========================
 # VISTAS PRESIDENTE
@@ -1079,3 +1086,93 @@ def reporte_junta_view(request):
         "solicitudes_rechazadas": solicitudes_rechazadas,
         "certificados_emitidos": certificados_emitidos,
     })
+
+
+@never_cache
+@role_required(ROL_ADMIN)
+def reporte_junta_pdf_view(request):
+    presidente = get_object_or_404(
+        Vecino,
+        id_vecino=request.session.get("vecino_id")
+    )
+
+    residencia = obtener_residencia_actual(presidente)
+
+    if not residencia:
+        messages.error(request, "No perteneces a ninguna junta.")
+        return redirect("panel_presidente")
+
+    junta = residencia.id_vivienda.id_junta
+    viviendas = Vivienda.objects.filter(id_junta=junta)
+
+    vecinos_ids = HistVivienda.objects.filter(
+        id_vivienda__id_junta=junta,
+        fecha_ter__isnull=True
+    ).values_list("id_vecino", flat=True).distinct()
+
+    total_viviendas = viviendas.count()
+    viviendas_con_residentes = viviendas.filter(
+        histvivienda__fecha_ter__isnull=True
+    ).distinct().count()
+    viviendas_sin_residentes = total_viviendas - viviendas_con_residentes
+    total_vecinos = vecinos_ids.count()
+
+    solicitudes = Solicitud.objects.filter(id_vecino__in=vecinos_ids)
+
+    datos = {
+        "Vecinos activos": total_vecinos,
+        "Viviendas registradas": total_viviendas,
+        "Viviendas con residentes": viviendas_con_residentes,
+        "Viviendas sin residentes": viviendas_sin_residentes,
+        "Solicitudes pendientes": solicitudes.filter(estado=ESTADO_EN_PROCESO).count(),
+        "Solicitudes aprobadas": solicitudes.filter(estado=ESTADO_APROBADO).count(),
+        "Solicitudes rechazadas": solicitudes.filter(estado=ESTADO_RECHAZADO).count(),
+        "Certificados emitidos": CertificadoDeResidencia.objects.filter(
+            id_vecino__in=vecinos_ids
+        ).count(),
+    }
+
+    carpeta = os.path.join(settings.MEDIA_ROOT, "reportes")
+    os.makedirs(carpeta, exist_ok=True)
+
+    ruta_pdf = os.path.join(carpeta, f"reporte_{junta.id_junta}.pdf")
+
+    c = canvas.Canvas(ruta_pdf, pagesize=letter)
+    width, height = letter
+
+    y = height - 60
+
+    c.setFont("Helvetica-Bold", 16)
+    c.drawCentredString(width / 2, y, "REPORTE GENERAL DE LA JUNTA")
+
+    y -= 40
+    c.setFont("Helvetica", 11)
+    c.drawString(70, y, f"Junta: {junta.nombre}")
+
+    y -= 20
+    c.drawString(70, y, f"Presidente: {presidente.pri_nombre} {presidente.apell_paterno}")
+
+    y -= 20
+    c.drawString(70, y, f"Fecha emisión: {timezone.localtime(timezone.now()).strftime('%d/%m/%Y %H:%M')}")
+
+    y -= 40
+    c.setFont("Helvetica-Bold", 13)
+    c.drawString(70, y, "Indicadores")
+
+    y -= 25
+    c.setFont("Helvetica", 11)
+
+    for nombre, valor in datos.items():
+        c.drawString(90, y, f"{nombre}: {valor}")
+        y -= 22
+
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(width / 2, 50, "Reporte emitido digitalmente a través de UrbanLink.")
+
+    c.save()
+
+    return FileResponse(
+        open(ruta_pdf, "rb"),
+        as_attachment=True,
+        filename=f"reporte_general_{junta.nombre}.pdf"
+    )

@@ -29,4 +29,7 @@ Reporte General
     <div class="card">Certificados emitidos<br><strong>{{ certificados_emitidos }}</strong></div>
 </div>
 
+<a class="btn-agregar" href="{% url 'reporte_junta_pdf' %}">
+    Descargar reporte PDF
+</a>
 {% endblock %}
